@@ -42,6 +42,10 @@ function setup(ioInstance, config) {
       io.emit('board-populated', {});
     });
 
+    socket.on('hide-category-reveal', () => {
+      io.emit('hide-category-reveal', {});
+    });
+
     socket.on('select-clue', (data) => {
       const { col, row } = data;
       const cell = gameState.selectClue(col, row);

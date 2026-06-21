@@ -3,6 +3,8 @@ var audio = {};
 var sfxCtx = null;
 var categoriesCoverVisible = true;
 var priceCoverVisible = true;
+var ansOverlayTimer = null;
+var videoEls = {};
 
 function initSfx() {
   try { sfxCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
@@ -48,6 +50,11 @@ function initAudio() {
     var el = document.getElementById('a-'+k);
     if (el) { el.src = map[k]; el.load(); }
     audio[k] = el;
+  });
+  // Init videos
+  ['bonus-clue', 'intro'].forEach(function(k) {
+    var el = document.getElementById('v-'+k);
+    if (el) videoEls[k] = el;
   });
 }
 function play(k) {
@@ -230,19 +237,55 @@ function showClueFromData(d) {
 /* ===== LOGO INTRO ===== */
 function playLogo() {
   show('logo');
+  var v = videoEls['intro'];
+  var hasVideoAsset = st && st.config && st.config.assets && st.config.assets.introVideo;
+  document.getElementById('logo-content-group').classList.remove('hidden');
+  if (v) v.classList.add('hidden');
   var lg = document.getElementById('logo-custom-img');
   var txt = document.getElementById('logo-text-group');
-  var byline = document.getElementById('logo-byline');
   if (hasLogo()) {
     setLogo(lg);
     lg.classList.remove('hidden');
     txt.classList.add('hidden');
-    byline.classList.remove('hidden');
   } else {
     lg.classList.add('hidden');
     txt.classList.remove('hidden');
-    byline.classList.remove('hidden');
   }
+
+  function done() { socket.emit('intro-complete'); }
+
+  if (hasVideoAsset && v) {
+    document.getElementById('logo-content-group').classList.add('hidden');
+    v.classList.remove('hidden');
+    v.src = 'video/intro.mp4';
+    v.load();
+    v.play().catch(function(){});
+    var videoDone = false;
+    v.addEventListener('ended', function() {
+      videoDone = true;
+      v.classList.add('hidden');
+      document.getElementById('logo-content-group').classList.remove('hidden');
+      play('intro');
+      var dur = 5000;
+      var el = audio['intro'];
+      if (el && el.duration && el.duration > 1) dur = Math.min(el.duration * 1000 + 500, 12000);
+      setTimeout(done, dur);
+    }, { once: true });
+    // Safety timeout in case video has no duration or hangs
+    setTimeout(function() {
+      if (!videoDone) {
+        v.pause(); v.classList.add('hidden');
+        document.getElementById('logo-content-group').classList.remove('hidden');
+        play('intro');
+        var dur = 5000;
+        var el = audio['intro'];
+        if (el && el.duration && el.duration > 1) dur = Math.min(el.duration * 1000 + 500, 12000);
+        setTimeout(done, dur);
+      }
+    }, 16000);
+    return;
+  }
+
   var flash = document.getElementById('logo-flash');
   flash.classList.remove('go');
   play('intro');
@@ -253,7 +296,7 @@ function playLogo() {
     flash.classList.add('go');
     setTimeout(function() { flash.classList.remove('go'); }, 300);
   }, dur - 2000);
-  setTimeout(function() { socket.emit('intro-complete'); }, dur);
+  setTimeout(done, dur);
 }
 
 /* ===== TIMER ===== */
@@ -265,7 +308,6 @@ function setTimer(rem, total) {
     f.style.width = pct + '%';
     f.classList.toggle('warning', rem <= 2 && rem > 0);
   }
-  if (rem <= 2 && rem > 0) playTone(880, 0.06, 'square', 0.06);
 }
 
 /* ===== ANSWER OVERLAY ===== */
@@ -274,21 +316,24 @@ function showAnswerOverlay(correct) {
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'answer-overlay';
-    overlay.innerHTML = '<div id="answer-overlay-text"></div><div class="ans-sub"></div>';
+    overlay.innerHTML = '<div id="answer-overlay-text"></div>';
     document.body.appendChild(overlay);
   }
   var textEl = document.getElementById('answer-overlay-text');
-  var subEl = overlay.querySelector('.ans-sub');
   overlay.className = '';
   textEl.className = '';
   textEl.textContent = correct ? 'CORRECT!' : 'INCORRECT';
-  subEl.textContent = correct ? 'Score updated' : 'No points awarded';
   overlay.classList.add(correct ? 'correct' : 'incorrect');
   textEl.classList.add(correct ? 'show-correct' : 'show-incorrect');
   play(correct ? 'correct' : 'incorrect');
-  setTimeout(function() {
+  if (ansOverlayTimer) clearTimeout(ansOverlayTimer);
+  ansOverlayTimer = setTimeout(function() {
+    ansOverlayTimer = null;
     overlay.className = '';
     textEl.className = '';
+    if (st && st.currentClue) {
+      socket.emit('return-to-board', { col: st.currentClue.col, row: st.currentClue.row });
+    }
   }, 2000);
 }
 
@@ -336,7 +381,7 @@ socket.on('sync-state', function(state) {
 socket.on('intro-started', function() { playLogo(); });
 
 socket.on('board-shown', function(d) {
-  stop('intro'); show('board');
+  show('board');
   categoriesCoverVisible = true;
   priceCoverVisible = true;
   renderBoard(d.board, d.players, d.categories);
@@ -354,13 +399,47 @@ socket.on('board-populated', function() {
 socket.on('clue-opened', function(d) { showClueFromData(d); });
 
 socket.on('bonus-clue-activated', function() {
+  var v = videoEls['bonus-clue'];
+  var hasVideoAsset = st && st.config && st.config.assets && st.config.assets.bonusClueVideo;
+  var ddWrap = document.getElementById('dd-wrap');
+  var ddBg = document.getElementById('dd-bg');
+  if (v) v.classList.add('hidden');
+  if (ddWrap) ddWrap.classList.remove('hidden');
+  if (ddBg) ddBg.classList.remove('hidden');
   var bcLabel = label('bonusClue') || 'BONUS CLUE';
   var parts = bcLabel.split(' ');
   var ddTitle1 = document.querySelector('#dd-wrap .dd-title');
   var ddTitle2 = document.querySelector('#dd-wrap .dd-title.sub');
   if (ddTitle1) ddTitle1.textContent = parts[0] || 'BONUS';
   if (ddTitle2) ddTitle2.textContent = parts.slice(1).join(' ') || 'CLUE!';
-  show('dd'); playBonusClue();
+  show('dd');
+
+  if (hasVideoAsset && v) {
+    if (ddWrap) ddWrap.classList.add('hidden');
+    if (ddBg) ddBg.classList.add('hidden');
+    v.classList.remove('hidden');
+    v.src = 'video/bonus-clue.mp4';
+    v.load();
+    v.play().catch(function(){});
+    var videoDone = false;
+    v.addEventListener('ended', function() {
+      videoDone = true;
+      v.classList.add('hidden');
+      if (ddWrap) ddWrap.classList.remove('hidden');
+      if (ddBg) ddBg.classList.remove('hidden');
+      playBonusClue();
+    }, { once: true });
+    setTimeout(function() {
+      if (!videoDone) {
+        v.pause(); v.classList.add('hidden');
+        if (ddWrap) ddWrap.classList.remove('hidden');
+        if (ddBg) ddBg.classList.remove('hidden');
+        playBonusClue();
+      }
+    }, 16000);
+  } else {
+    playBonusClue();
+  }
 });
 
 socket.on('bonus-clue-shown', function(d) {
@@ -376,7 +455,15 @@ socket.on('bonus-clue-shown', function(d) {
 
 socket.on('timer-tick', function(d) { setTimer(d.remaining); });
 
-socket.on('times-up', function() { play('timesup'); setTimer(0); playTone(165, 0.5, 'sawtooth', 0.1); });
+socket.on('times-up', function() {
+  play('timesup');
+  setTimer(0);
+  var tu = document.getElementById('times-up-overlay');
+  if (tu) {
+    tu.classList.remove('hidden');
+    setTimeout(function() { tu.classList.add('hidden'); }, 3000);
+  }
+});
 
 socket.on('answer-revealed', function(d) {
   var el = document.getElementById('clue-ans');
@@ -389,8 +476,10 @@ socket.on('board-return', function(d) {
   if (st) {
     st.revealedCells = d.revealedCells;
     st.phase = d.phase;
+    st.currentClue = null;
     if (st.board[d.col] && st.board[d.col][d.row]) st.board[d.col][d.row].revealed = true;
-    renderBoard(st.board, st.players, st.config.categories);
+    var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
+    renderBoard(st.board, st.players, cats);
   }
 });
 
@@ -417,7 +506,7 @@ socket.on('think-music-start', function() {
 });
 
 socket.on('championship-revealed', function(d) {
-  stop('think'); show('championship');
+  show('championship');
   playChampionshipReveal();
   if (d.answer) { document.getElementById('championship-ans').textContent = d.answer; document.getElementById('championship-ans').classList.remove('hidden'); }
   if (d.players) {
@@ -476,13 +565,32 @@ socket.on('outro', function() {
 });
 
 socket.on('category-revealed-broadcast', function(d) {
-  // Reveal a single category cover
+  // Also reveal the cover so it's gone when board is shown
   var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
   if (covers[d.index]) {
     covers[d.index].classList.remove('visible');
     covers[d.index].classList.add('revealed');
     covers[d.index].style.animation = 'catCoverReveal .5s cubic-bezier(.68,-0.55,.27,1.55) forwards';
   }
+  // Show fullscreen category name
+  var phase = document.getElementById('phase-cat-reveal');
+  var nameEl = document.getElementById('cat-reveal-name');
+  var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
+  if (nameEl && cats[d.index]) {
+    nameEl.textContent = cats[d.index];
+    // Re-trigger animation
+    var content = document.getElementById('cat-reveal-content');
+    if (content) {
+      content.style.animation = 'none';
+      void content.offsetWidth;
+      content.style.animation = '';
+    }
+  }
+  show('cat-reveal');
+});
+
+socket.on('hide-category-reveal', function() {
+  show('board');
 });
 
 function showChampionship(d) {

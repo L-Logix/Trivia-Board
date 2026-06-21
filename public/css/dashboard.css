@@ -7,7 +7,7 @@ html,body{width:100%;min-height:100%;background:#0d0d1a;color:#ddd;font-family:'
 #dash-hdr{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#141428;border-bottom:2px solid #2a2a4a;flex-wrap:wrap}
 .hdr-left{display:flex;align-items:baseline;gap:8px;margin:0 auto}
 .hdr-left h1{font-size:1.1rem;color:#ffcc00;letter-spacing:1px}
-.hdr-sub{font-size:.65rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px;display:none}
+
 .hdr-mid{display:flex;align-items:center;gap:6px}
 .badge{padding:2px 10px;border-radius:10px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .badge.idle{background:#2a2a4a;color:#888}

@@ -11,7 +11,6 @@
     <header id="dash-hdr">
       <div class="hdr-left">
         <h1 id="dash-title">DASHBOARD</h1>
-        <span class="hdr-sub">Host Dashboard</span>
       </div>
       <div class="hdr-mid">
         <span id="phase-badge" class="badge idle">IDLE</span>
@@ -55,6 +54,13 @@
           <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
           <button class="b b-red b-full" id="btn-reveal-championship">REVEAL RESULTS</button>
           <button class="b b-ghost b-full" id="btn-applause">APPLAUSE</button>
+        </div>
+        <div class="card hidden" id="card-cat-reveal">
+          <div class="card-lbl">CATEGORY REVEAL</div>
+          <div id="cat-reveal-info" class="card-info"></div>
+          <button class="b b-ghost b-full" id="btn-cat-prev">PREVIOUS</button>
+          <button class="b b-ghost b-full" id="btn-cat-next">NEXT</button>
+          <button class="b b-blue b-full" id="btn-cat-close">CLOSE</button>
         </div>
         <div class="card hidden" id="card-correct">
           <div class="card-lbl">ANSWER FEEDBACK</div>

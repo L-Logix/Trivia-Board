@@ -7,6 +7,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const CONFIG_PATH = path.join(ROOT, 'config.json');
 const AUDIO_DIR = path.join(ROOT, 'public', 'audio');
 const IMG_DIR = path.join(ROOT, 'public', 'img');
+const VIDEO_DIR = path.join(ROOT, 'public', 'video');
 
 function generateSilentMp3(filePath) {
   const frameHeader = Buffer.from([
@@ -83,6 +84,7 @@ function main() {
   ensureAudioFiles();
   console.log(chalk.cyan('  \u2192 Checking logo...'));
   ensureDefaultLogo();
+  if (!fs.existsSync(VIDEO_DIR)) fs.mkdirSync(VIDEO_DIR, { recursive: true });
   console.log('');
 
   const server = require('../server/index');

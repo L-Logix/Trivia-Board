@@ -16,14 +16,15 @@
 
   <div id="phase-logo" class="phase hidden">
     <div class="logo-bg"></div>
-    <div class="logo-content">
+    <video id="v-intro" class="phase-video hidden" muted playsinline></video>
+    <div class="logo-content" id="logo-content-group">
       <div class="logo-star left">★</div>
       <div class="logo-star right">★</div>
       <div id="logo-text-group" class="hidden">
         <div class="logo-text">WELCOME</div>
       </div>
       <img id="logo-custom-img" class="logo-custom hidden" src="img/logo.svg" alt="">
-      <div class="logo-byline" id="logo-byline">A TechnoThatch Production</div>
+      <div class="logo-byline hidden" id="logo-byline"></div>
     </div>
     <div class="logo-flash" id="logo-flash"></div>
   </div>
@@ -51,13 +52,20 @@
       <div id="clue-timer-track">
         <div id="clue-timer-fill"></div>
       </div>
-      <div id="clue-round-label"></div>
     </div>
     <div id="clue-scores"></div>
   </div>
 
+  <div id="phase-cat-reveal" class="phase hidden">
+    <div id="cat-reveal-content">
+      <div id="cat-reveal-label">CATEGORY</div>
+      <div id="cat-reveal-name"></div>
+    </div>
+  </div>
+
   <div id="phase-dd" class="phase hidden">
     <div id="dd-bg"></div>
+    <video id="v-bonus-clue" class="phase-video hidden" muted playsinline></video>
     <div id="dd-wrap">
       <div class="dd-star left">★</div>
       <div class="dd-star right">★</div>
@@ -96,6 +104,10 @@
   <audio id="a-outro" preload="auto"></audio>
 
   <div id="phase-overlay"></div>
+
+  <div id="times-up-overlay" class="hidden">
+    <div id="times-up-text">TIME'S UP!</div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket-client.js"></script>

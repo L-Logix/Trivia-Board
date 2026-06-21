@@ -82,10 +82,8 @@ function renderPlayers(players){
         '<button class="pb m" data-i="'+i+'" data-d="-'+clueVal+'">-'+clueVal+'</button>'+
         '<button class="pb s" data-i="'+i+'" data-d="100">+100</button>'+
         '<button class="pb s" data-i="'+i+'" data-d="-100">-100</button>'+
-      '</div>'+
-      '<div class="p-buzz" data-i="'+i+'">BUZZ</div>';
+      '</div>';
     el.querySelectorAll('.pb').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();socket.emit('adjust-score',{playerIndex:parseInt(this.dataset.i),delta:parseInt(this.dataset.d)})})});
-    el.querySelector('.p-buzz').addEventListener('click',function(){socket.emit('player-buzz',{playerIndex:i})});
     var inp = document.createElement('input');
     inp.type = 'number';
     inp.className = 'p-custom';
@@ -111,7 +109,10 @@ function renderPlayers(players){
 }
 function updScores(players){if(!players)return;players.forEach(function(p,i){var el=document.getElementById('ps-'+i);if(el)el.textContent=fmt(p.score)})}
 
-function side(id){['card-clue','card-bonus','card-championship','card-correct','card-populate'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
+var currentCategoryIndex = 0;
+var totalCategories = 0;
+
+function side(id){['card-clue','card-bonus','card-championship','card-correct','card-populate','card-cat-reveal'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
 function setTimer(v){document.getElementById('timer-num').textContent=v.toFixed(1)}
 
 function openChampionship(){
@@ -163,6 +164,21 @@ document.getElementById('btn-correct').addEventListener('click',function(){socke
 document.getElementById('btn-incorrect').addEventListener('click',function(){socket.emit('answer-incorrect')});
 document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
 document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
+document.getElementById('btn-cat-prev').addEventListener('click',function(){
+  var idx = currentCategoryIndex - 1;
+  if (idx < 0) idx = totalCategories - 1;
+  currentCategoryIndex = idx;
+  socket.emit('reveal-category', { index: idx });
+  document.getElementById('cat-reveal-info').textContent = 'Category ' + (idx + 1) + ' of ' + totalCategories;
+});
+document.getElementById('btn-cat-next').addEventListener('click',function(){
+  var idx = currentCategoryIndex + 1;
+  if (idx >= totalCategories) idx = 0;
+  currentCategoryIndex = idx;
+  socket.emit('reveal-category', { index: idx });
+  document.getElementById('cat-reveal-info').textContent = 'Category ' + (idx + 1) + ' of ' + totalCategories;
+});
+document.getElementById('btn-cat-close').addEventListener('click',function(){socket.emit('hide-category-reveal')});
 
 /* ===== SOCKET ===== */
 socket.on('sync-state',function(state){
@@ -207,7 +223,15 @@ socket.on('timer-tick',function(d){setTimer(d.remaining)});
 socket.on('times-up',function(){setTimer(0)});
 socket.on('buzz-result',function(d){document.querySelectorAll('.p-panel').forEach(function(p){p.classList.remove('buzz')});if(d.success){var el=document.querySelector('.p-panel[data-index="'+d.playerIndex+'"]');if(el)el.classList.add('buzz')}});
 socket.on('score-updated',function(d){if(st){st.players=d.players;renderPlayers(d.players)}});
-socket.on('board-return',function(d){if(st){st.revealedCells=d.revealedCells;st.phase=d.phase;st.currentClue=null;if(st.board[d.col]&&st.board[d.col][d.row])st.board[d.col][d.row].revealed=true;renderGrid(st.board,st.config.categories)}setPhase('board');side('card-populate')});
+socket.on('board-return',function(d){
+  if(st){
+    st.revealedCells=d.revealedCells;st.phase=d.phase;st.currentClue=null;
+    if(st.board[d.col]&&st.board[d.col][d.row])st.board[d.col][d.row].revealed=true;
+    var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
+    renderGrid(st.board,cats)
+  }
+  setPhase('board');side('card-populate')
+});
 socket.on('round2-started',function(d){if(st){st.board=d.board;st.players=d.players;st.currentRound=2;st.phase='board';st.currentClue=null}renderGrid(d.board,d.categories||(st&&st.config&&st.config.categoriesR2?st.config.categoriesR2:[]));renderPlayers(d.players);setRound(2);setPhase('board');categoriesRevealed=false;boardPopulated=false;side('card-populate');addCategoryRevealButtons()});
 socket.on('championship-started',function(){
   if(st)st.phase='championship';
@@ -217,8 +241,36 @@ socket.on('championship-started',function(){
   if(clbl)clbl.textContent=label('championshipSection')||'CHAMPIONSHIP';
 });
 socket.on('championship-revealed',function(d){if(st&&d.players){st.players=d.players;updScores(d.players);renderPlayers(d.players)}});
-socket.on('clue-rehidden',function(d){if(st){st.board=d.board;st.revealedCells=d.revealedCells}renderGrid(d.board,st?st.config.categories:[])});
-socket.on('cell-value-set',function(d){if(st){st.board=d.board}renderGrid(d.board,st?st.config.categories:[])});
-socket.on('game-reset',function(state){st=state;renderGrid(state.board,state.config.categories);renderPlayers(state.players);setRound(1);setPhase('idle');side(null);setTimer(0);categoriesRevealed=false;boardPopulated=false});
-socket.on('category-revealed-broadcast',function(d){categoriesRevealed=true});
+socket.on('clue-rehidden',function(d){
+  if(st){st.board=d.board;st.revealedCells=d.revealedCells}
+  var cats = st && st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : (st ? st.config.categories : []);
+  renderGrid(d.board,cats)
+});
+socket.on('cell-value-set',function(d){
+  if(st){st.board=d.board}
+  var cats = st && st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : (st ? st.config.categories : []);
+  renderGrid(d.board,cats)
+});
+socket.on('game-reset',function(state){
+  st=state;
+  var cats = state.currentRound === 2 && state.config.categoriesR2 ? state.config.categoriesR2 : state.config.categories;
+  renderGrid(state.board,cats);
+  renderPlayers(state.players);setRound(1);setPhase('idle');side(null);setTimer(0);categoriesRevealed=false;boardPopulated=false
+});
+socket.on('category-revealed-broadcast',function(d){
+  categoriesRevealed=true;
+  var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
+  totalCategories = cats.length;
+  currentCategoryIndex = d.index;
+  document.getElementById('cat-reveal-info').textContent = 'Category ' + (d.index + 1) + ' of ' + totalCategories;
+  side('card-cat-reveal');
+});
+socket.on('hide-category-reveal',function(){
+  side('card-populate');
+  if (st) {
+    var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
+    renderGrid(st.board, cats);
+  }
+  addCategoryRevealButtons();
+});
 socket.on('board-populated',function(){boardPopulated=true;side(null)});

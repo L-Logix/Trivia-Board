@@ -623,6 +623,37 @@ async function main() {
     }
   }
 
+  // Video uploads
+  const { introVideoPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'introVideoPath',
+      message: 'Upload intro video? (path to MP4, or leave blank for default animation):'
+    }
+  ]);
+  if (introVideoPath && introVideoPath.trim()) {
+    const dest = path.join(ROOT, 'public', 'video', 'intro.mp4');
+    if (copyAssetFile(introVideoPath.trim(), dest)) {
+      config.assets.introVideo = true;
+      console.log(chalk.green('  \u2713 Intro video copied'));
+    }
+  }
+
+  const { bonusClueVideoPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'bonusClueVideoPath',
+      message: 'Upload Bonus Clue video? (path to MP4, or leave blank for default animation):'
+    }
+  ]);
+  if (bonusClueVideoPath && bonusClueVideoPath.trim()) {
+    const dest = path.join(ROOT, 'public', 'video', 'bonus-clue.mp4');
+    if (copyAssetFile(bonusClueVideoPath.trim(), dest)) {
+      config.assets.bonusClueVideo = true;
+      console.log(chalk.green('  \u2713 Bonus Clue video copied'));
+    }
+  }
+
   const audioFiles = [
     { key: 'hostIntro', name: 'host-intro.mp3', label: 'Intro (host-intro.mp3)' },
     { key: 'timesUp', name: 'times-up.mp3', label: 'Time\'s Up (times-up.mp3)' },
