@@ -21,7 +21,8 @@ function setup(ioInstance, config) {
 
     socket.on('intro-complete', () => {
       gameState.phase = 'board';
-      io.emit('board-shown', { phase: 'board', board: gameState.board, players: gameState.players, categories: gameState.config.categories });
+      var cats = gameState.currentRound === 2 ? (gameState.config.categoriesR2 || gameState.config.categories) : gameState.config.categories;
+      io.emit('board-shown', { phase: 'board', board: gameState.board, players: gameState.players, categories: cats });
     });
 
     socket.on('select-clue', (data) => {
@@ -37,6 +38,7 @@ function setup(ioInstance, config) {
         category: cell.category,
         isDailyDouble: cell.isDailyDouble,
         phase: gameState.phase,
+        currentRound: gameState.currentRound,
         timerSeconds: gameState.config.timerSeconds,
         timerRemaining: gameState.timer.remaining
       });
@@ -98,6 +100,22 @@ function setup(ioInstance, config) {
       });
     });
 
+    socket.on('rehide-clue', (data) => {
+      const { col, row } = data;
+      const cell = gameState.rehideCell(col, row);
+      if (cell) {
+        io.emit('clue-rehidden', { col, row, board: gameState.board, revealedCells: gameState.revealedCells });
+      }
+    });
+
+    socket.on('set-cell-value', (data) => {
+      const { col, row, value } = data;
+      const cell = gameState.setCellValue(col, row, value);
+      if (cell) {
+        io.emit('cell-value-set', { col, row, value, board: gameState.board });
+      }
+    });
+
     socket.on('adjust-score', (data) => {
       const { playerIndex, delta } = data;
       const newScore = gameState.adjustScore(playerIndex, delta);
@@ -112,10 +130,12 @@ function setup(ioInstance, config) {
 
     socket.on('advance-round2', () => {
       gameState.advanceToRound2();
+      // Use Round 2 categories if available
+      var r2Cats = gameState.config.categoriesR2 || gameState.config.categories;
       io.emit('round2-started', {
         board: gameState.board,
         players: gameState.players.map(p => ({ ...p })),
-        categories: gameState.config.categories,
+        categories: r2Cats,
         currentRound: 2,
         phase: 'board'
       });
@@ -123,10 +143,11 @@ function setup(ioInstance, config) {
 
     socket.on('advance-final', () => {
       gameState.advanceToFinal();
+      var cats = gameState.currentRound === 2 ? (gameState.config.categoriesR2 || gameState.config.categories) : gameState.config.categories;
       io.emit('final-started', {
         phase: 'final',
         finalPhase: 'wagering',
-        categories: gameState.config.categories
+        categories: cats
       });
     });
 
@@ -156,6 +177,14 @@ function setup(ioInstance, config) {
 
     socket.on('play-audio', (data) => {
       io.emit('play-audio', { audio: data.audio });
+    });
+
+    socket.on('play-correct', () => {
+      io.emit('play-correct');
+    });
+
+    socket.on('play-wrong', () => {
+      io.emit('play-wrong');
     });
 
     socket.on('reset-game', () => {

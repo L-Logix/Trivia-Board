@@ -109,6 +109,21 @@ class GameState {
     return cell;
   }
 
+  rehideCell(col, row) {
+    const cell = this.getCell(col, row);
+    if (!cell) return null;
+    cell.revealed = false;
+    delete this.revealedCells[col + ',' + row];
+    return cell;
+  }
+
+  setCellValue(col, row, value) {
+    const cell = this.getCell(col, row);
+    if (!cell) return null;
+    cell.value = value;
+    return cell;
+  }
+
   advanceToRound2() {
     this.currentRound = 2;
     this.phase = 'board';

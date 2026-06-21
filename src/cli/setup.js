@@ -385,6 +385,10 @@ async function main() {
       console.log(chalk.cyan('  \u2192 Fetching Round 2 data...'));
       try {
         const r2Text = await fetchUrl(r2CsvUrl);
+        const trimmed = r2Text.trim();
+        if (trimmed.startsWith('<!')) {
+          throw new Error('Got HTML instead of CSV. Make sure your sheet is published:\nFile > Share > Publish to Web > Comma-separated values (.csv)');
+        }
         const r2Parsed = parseCsvData(r2Text);
         const r2Board = buildBoard(r2Parsed, config.columns, config.rows, config.doubleValues);
         if (r2Board) {

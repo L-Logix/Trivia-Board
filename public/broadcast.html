@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Trivia Board - Broadcast</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/broadcast.css">
 </head>
 <body>
@@ -45,6 +45,7 @@
       <div id="clue-timer-track">
         <div id="clue-timer-fill"></div>
       </div>
+      <div id="clue-round-label"></div>
     </div>
     <div id="clue-scores"></div>
   </div>
@@ -57,7 +58,6 @@
       <div class="dd-title">DAILY</div>
       <div class="dd-title sub">DOUBLE!</div>
     </div>
-    <div class="dd-flash" id="dd-flash"></div>
   </div>
 
   <div id="phase-final" class="phase hidden">
@@ -76,6 +76,8 @@
   <audio id="a-dd" preload="auto"></audio>
   <audio id="a-think" preload="auto"></audio>
   <audio id="a-applause" preload="auto"></audio>
+  <audio id="a-correct" preload="auto"></audio>
+  <audio id="a-wrong" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket-client.js"></script>

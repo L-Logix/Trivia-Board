@@ -20,9 +20,7 @@
   "dailyDoublesRound2": 2,
   "timerSeconds": 5,
   "players": [
-    "Alice",
-    "Bob",
-    "Charlie"
+    "asdfjhalsdkjf"
   ],
   "categories": [
     "History",
@@ -34,93 +32,93 @@
   ],
   "clues": [
     [
-      "Clue for category 1",
-      "Clue for category 2",
-      "Clue for category 3",
-      "Clue for category 4",
-      "Clue for category 5",
-      "Clue for category 6"
+      "Clue for History $200",
+      "Clue for Science $200",
+      "Clue for Pop Culture $200",
+      "Clue for Geography $200",
+      "Clue for Sports $200",
+      "Clue for Movies $200"
     ],
     [
-      "Clue for category 1",
-      "Clue for category 2",
-      "Clue for category 3",
-      "Clue for category 4",
-      "Clue for category 5",
-      "Clue for category 6"
+      "Clue for History $400",
+      "Clue for Science $400",
+      "Clue for Pop Culture $400",
+      "Clue for Geography $400",
+      "Clue for Sports $400",
+      "Clue for Movies $400"
     ],
     [
-      "Clue for category 1",
-      "Clue for category 2",
-      "Clue for category 3",
-      "Clue for category 4",
-      "Clue for category 5",
-      "Clue for category 6"
+      "Clue for History $600",
+      "Clue for Science $600",
+      "Clue for Pop Culture $600",
+      "Clue for Geography $600",
+      "Clue for Sports $600",
+      "Clue for Movies $600"
     ],
     [
-      "Clue for category 1",
-      "Clue for category 2",
-      "Clue for category 3",
-      "Clue for category 4",
-      "Clue for category 5",
-      "Clue for category 6"
+      "Clue for History $800",
+      "Clue for Science $800",
+      "Clue for Pop Culture $800",
+      "Clue for Geography $800",
+      "Clue for Sports $800",
+      "Clue for Movies $800"
     ],
     [
-      "Clue for category 1",
-      "Clue for category 2",
-      "Clue for category 3",
-      "Clue for category 4",
-      "Clue for category 5",
-      "Clue for category 6"
+      "Clue for History $1000",
+      "Clue for Science $1000",
+      "Clue for Pop Culture $1000",
+      "Clue for Geography $1000",
+      "Clue for Sports $1000",
+      "Clue for Movies $1000"
     ]
   ],
   "answers": [
     [
-      "Answer for category 1",
-      "Answer for category 2",
-      "Answer for category 3",
-      "Answer for category 4",
-      "Answer for category 5",
-      "Answer for category 6"
+      "Answer for $200",
+      "Answer for $200",
+      "Answer for $200",
+      "Answer for $200",
+      "Answer for $200",
+      "Answer for $200"
     ],
     [
-      "Answer for category 1",
-      "Answer for category 2",
-      "Answer for category 3",
-      "Answer for category 4",
-      "Answer for category 5",
-      "Answer for category 6"
+      "Answer for $400",
+      "Answer for $400",
+      "Answer for $400",
+      "Answer for $400",
+      "Answer for $400",
+      "Answer for $400"
     ],
     [
-      "Answer for category 1",
-      "Answer for category 2",
-      "Answer for category 3",
-      "Answer for category 4",
-      "Answer for category 5",
-      "Answer for category 6"
+      "Answer for $600",
+      "Answer for $600",
+      "Answer for $600",
+      "Answer for $600",
+      "Answer for $600",
+      "Answer for $600"
     ],
     [
-      "Answer for category 1",
-      "Answer for category 2",
-      "Answer for category 3",
-      "Answer for category 4",
-      "Answer for category 5",
-      "Answer for category 6"
+      "Answer for $800",
+      "Answer for $800",
+      "Answer for $800",
+      "Answer for $800",
+      "Answer for $800",
+      "Answer for $800"
     ],
     [
-      "Answer for category 1",
-      "Answer for category 2",
-      "Answer for category 3",
-      "Answer for category 4",
-      "Answer for category 5",
-      "Answer for category 6"
+      "Answer for $1000",
+      "Answer for $1000",
+      "Answer for $1000",
+      "Answer for $1000",
+      "Answer for $1000",
+      "Answer for $1000"
     ]
   ],
   "dailyDoublePositions": {
     "round1": [
       [
-        2,
-        3
+        4,
+        4
       ]
     ],
     "round2": [
@@ -129,102 +127,17 @@
         0
       ],
       [
-        4,
+        5,
         2
       ]
     ]
   },
-  "assets": {},
-  "categoriesR2": [
-    "History II",
-    "Science II",
-    "Pop Culture II",
-    "Geography II",
-    "Sports II",
-    "Movies II"
-  ],
-  "cluesR2": [
-    [
-      "R2 Clue 1",
-      "R2 Clue 2",
-      "R2 Clue 3",
-      "R2 Clue 4",
-      "R2 Clue 5",
-      "R2 Clue 6"
-    ],
-    [
-      "R2 Clue 1",
-      "R2 Clue 2",
-      "R2 Clue 3",
-      "R2 Clue 4",
-      "R2 Clue 5",
-      "R2 Clue 6"
-    ],
-    [
-      "R2 Clue 1",
-      "R2 Clue 2",
-      "R2 Clue 3",
-      "R2 Clue 4",
-      "R2 Clue 5",
-      "R2 Clue 6"
-    ],
-    [
-      "R2 Clue 1",
-      "R2 Clue 2",
-      "R2 Clue 3",
-      "R2 Clue 4",
-      "R2 Clue 5",
-      "R2 Clue 6"
-    ],
-    [
-      "R2 Clue 1",
-      "R2 Clue 2",
-      "R2 Clue 3",
-      "R2 Clue 4",
-      "R2 Clue 5",
-      "R2 Clue 6"
-    ]
-  ],
-  "answersR2": [
-    [
-      "R2 Answer 1",
-      "R2 Answer 2",
-      "R2 Answer 3",
-      "R2 Answer 4",
-      "R2 Answer 5",
-      "R2 Answer 6"
-    ],
-    [
-      "R2 Answer 1",
-      "R2 Answer 2",
-      "R2 Answer 3",
-      "R2 Answer 4",
-      "R2 Answer 5",
-      "R2 Answer 6"
-    ],
-    [
-      "R2 Answer 1",
-      "R2 Answer 2",
-      "R2 Answer 3",
-      "R2 Answer 4",
-      "R2 Answer 5",
-      "R2 Answer 6"
-    ],
-    [
-      "R2 Answer 1",
-      "R2 Answer 2",
-      "R2 Answer 3",
-      "R2 Answer 4",
-      "R2 Answer 5",
-      "R2 Answer 6"
-    ],
-    [
-      "R2 Answer 1",
-      "R2 Answer 2",
-      "R2 Answer 3",
-      "R2 Answer 4",
-      "R2 Answer 5",
-      "R2 Answer 6"
-    ]
-  ]
+  "assets": {
+    "logo": false,
+    "hostIntro": false,
+    "timesUp": false,
+    "dailyDouble": false,
+    "finalThink": false,
+    "applause": false
+  }
 }
