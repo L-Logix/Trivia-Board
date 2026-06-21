@@ -23,9 +23,21 @@ function showSplash() {
 }
 
 function convertSheetUrl(input) {
-  const match = input.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (match) {
-    const converted = `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv`;
+  // Already a CSV export URL — use as-is
+  if (input.includes('output=csv') || input.includes('format=csv')) {
+    return input;
+  }
+  // Published URL format: /d/e/{ID}/pub?...
+  const pubMatch = input.match(/\/d\/e\/([a-zA-Z0-9_-]+)\/pub/);
+  if (pubMatch) {
+    const converted = `https://docs.google.com/spreadsheets/d/e/${pubMatch[1]}/pub?gid=0&single=true&output=csv`;
+    console.log(chalk.green('  \u21b3 Normalized published URL'));
+    return converted;
+  }
+  // Edit URL format: /d/{ID}/edit?...
+  const editMatch = input.match(/\/d\/([a-zA-Z0-9_-]+?)(?:\/|$)/);
+  if (editMatch) {
+    const converted = `https://docs.google.com/spreadsheets/d/${editMatch[1]}/export?format=csv`;
     console.log(chalk.green('  \u21b3 Converted to CSV export URL automatically'));
     return converted;
   }
@@ -139,6 +151,14 @@ function buildBoard(parsed, columns, rows, values) {
   return buildGridBoard(parsed, columns, rows);
 }
 
+function escapeCsv(val) {
+  const s = String(val);
+  if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
 function generateTemplate(config) {
   let csv = 'Category,Clue,Answer\n';
   const sampleCats = ['History', 'Science', 'Pop Culture', 'Geography', 'Sports', 'Movies'].slice(0, config.columns);
@@ -146,13 +166,13 @@ function generateTemplate(config) {
     ['This president was born in 1732', 'Who is George Washington?'],
     ['H2O is the chemical formula for this', 'What is water?'],
     ['This planet is known as the Red Planet', 'What is Mars?'],
-    ['This author wrote "Romeo and Juliet"', 'Who is Shakespeare?'],
+    ['This author wrote Romeo and Juliet', 'Who is Shakespeare?'],
     ['This element has the symbol Au', 'What is gold?']
   ];
   for (let c = 0; c < config.columns; c++) {
     for (let r = 0; r < config.rows; r++) {
       const q = sampleQs[r % sampleQs.length];
-      csv += '"' + (sampleCats[c] || 'Category ' + (c+1)) + '","' + q[0] + '","' + q[1] + '"\n';
+      csv += escapeCsv(sampleCats[c] || 'Category ' + (c+1)) + ',' + escapeCsv(q[0]) + ',' + escapeCsv(q[1]) + '\n';
     }
   }
   return csv;
@@ -342,13 +362,10 @@ async function main() {
       console.log(chalk.green('  \u2713 Loaded ' + config.columns + ' categories x ' + config.rows + ' rows'));
     } catch (e) {
       console.log(chalk.red('  \u2717 CSV parse error: ' + e.message));
-      console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
-      csvText = templateCsv;
-      const parsed = parseCsvData(csvText);
-      const board = buildBoard(parsed, config.columns, config.rows, config.baseValues);
-      categories = board.categories;
-      clues = board.clues;
-      answers = board.answers;
+      console.log(chalk.yellow('  \u26a0 Using placeholder data instead.\n'));
+      categories = [];
+      clues = [];
+      answers = [];
     }
   }
 
@@ -393,6 +410,24 @@ async function main() {
   ]);
 
   config.players = playerInput;
+
+  // Fallback to placeholder data if CSV parsing failed
+  if (!categories || categories.length === 0) {
+    const phCats = ['History', 'Science', 'Pop Culture', 'Geography', 'Sports', 'Movies'].slice(0, config.columns);
+    while (phCats.length < config.columns) phCats.push('Category ' + (phCats.length + 1));
+    categories = phCats;
+    clues = [];
+    answers = [];
+    for (let r = 0; r < config.rows; r++) {
+      const cr = [], ar = [];
+      for (let c = 0; c < config.columns; c++) {
+        cr.push('Clue for ' + categories[c] + ' $' + config.baseValues[r]);
+        ar.push('Answer for $' + config.baseValues[r]);
+      }
+      clues.push(cr);
+      answers.push(ar);
+    }
+  }
   config.categories = categories;
   config.clues = clues;
   config.answers = answers;
