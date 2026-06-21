@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Trivia Board - Broadcast</title>
+  <link rel="stylesheet" href="css/broadcast.css">
+</head>
+<body>
+  <div id="init-overlay" class="pre-flight-slate">
+    <img src="img/logo.svg" alt="Trivia Board" class="slate-logo" id="slate-logo">
+    <p class="slate-text">Click anywhere to initialize broadcast audio</p>
+  </div>
+
+  <div id="phase-intro" class="phase hidden">
+    <div class="intro-container">
+      <img src="img/logo.svg" alt="Trivia Board" class="intro-logo" id="intro-logo">
+      <div class="intro-pulse-ring"></div>
+    </div>
+  </div>
+
+  <div id="phase-board" class="phase hidden">
+    <div id="game-board">
+      <div id="board-header"></div>
+      <div id="board-grid"></div>
+    </div>
+    <div id="score-bar"></div>
+  </div>
+
+  <div id="phase-clue" class="phase hidden">
+    <div id="clue-container">
+      <div id="clue-category"></div>
+      <div id="clue-value"></div>
+      <div id="clue-text"></div>
+      <div id="clue-answer" class="hidden"></div>
+      <div id="clue-timer-ring">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" class="timer-bg"/>
+          <circle cx="60" cy="60" r="54" class="timer-progress" id="timer-progress"/>
+        </svg>
+        <div id="timer-text"></div>
+      </div>
+    </div>
+    <div id="clue-score-bar"></div>
+  </div>
+
+  <div id="phase-daily-double" class="phase hidden">
+    <div id="dd-animation">
+      <div id="dd-flash">DAILY DOUBLE!</div>
+      <div id="dd-sub">Select Your Wager</div>
+    </div>
+  </div>
+
+  <div id="phase-final" class="phase hidden">
+    <div id="final-container">
+      <div id="final-header">FINAL SHOWDOWN</div>
+      <div id="final-category"></div>
+      <div id="final-clue"></div>
+      <div id="final-answer" class="hidden"></div>
+      <div id="final-results"></div>
+    </div>
+    <div id="final-score-bar"></div>
+  </div>
+
+  <audio id="audio-host-intro" preload="auto"></audio>
+  <audio id="audio-times-up" preload="auto"></audio>
+  <audio id="audio-daily-double" preload="auto"></audio>
+  <audio id="audio-final-think" preload="auto"></audio>
+  <audio id="audio-applause" preload="auto"></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket-client.js"></script>
+  <script src="js/broadcast.js"></script>
+</body>
+</html>

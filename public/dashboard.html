@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia Board - Host Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <div id="dash-container">
+    <header id="dash-header">
+      <h1>Trivia Board &mdash; Host Dashboard</h1>
+      <div id="dash-controls">
+        <button id="btn-start-intro" class="btn btn-primary">START INTRO (SPACE)</button>
+        <button id="btn-advance-round2" class="btn btn-warning">ADVANCE TO ROUND 2</button>
+        <button id="btn-advance-final" class="btn btn-danger">ADVANCE TO FINAL</button>
+        <button id="btn-reset" class="btn btn-secondary">RESET GAME</button>
+      </div>
+      <div id="round-indicator">Round 1</div>
+    </header>
+
+    <main id="dash-main">
+      <section id="dash-grid-section">
+        <div id="dash-board-header"></div>
+        <div id="dash-board-grid"></div>
+      </section>
+      <section id="dash-sidebar">
+        <div id="dash-timer-panel">
+          <div id="dash-timer-display">0.0</div>
+          <div class="timer-label">seconds remaining</div>
+        </div>
+        <div id="dash-dd-panel" class="hidden">
+          <h3>Daily Double Controls</h3>
+          <div class="dd-buttons">
+            <button class="btn btn-dd" data-dd-amount="100">+$100</button>
+            <button class="btn btn-dd" data-dd-amount="500">+$500</button>
+            <button class="btn btn-dd" data-dd-amount="-100">-$100</button>
+            <button class="btn btn-dd" data-dd-amount="-500">-$500</button>
+          </div>
+          <button id="btn-dd-confirm" class="btn btn-primary">CONFIRM WAGER & SHOW CLUE</button>
+        </div>
+        <div id="dash-clue-controls" class="hidden">
+          <button id="btn-reveal-answer" class="btn btn-primary">REVEAL ANSWER</button>
+          <button id="btn-return-board" class="btn btn-warning">RETURN TO BOARD</button>
+        </div>
+        <div id="dash-final-controls" class="hidden">
+          <h3>Final Showdown</h3>
+          <button id="btn-start-think" class="btn btn-primary">START THINK MUSIC (30s)</button>
+          <button id="btn-reveal-final" class="btn btn-danger">REVEAL FINAL ANSWER</button>
+          <button id="btn-play-applause" class="btn btn-secondary">PLAY APPLAUSE</button>
+        </div>
+      </section>
+    </main>
+
+    <section id="dash-players">
+      <div id="player-panels"></div>
+    </section>
+
+    <div id="reset-confirm-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Reset Game?</h2>
+        <p>This will clear all scores and progress. Are you sure?</p>
+        <div class="modal-buttons">
+          <button id="modal-reset-yes" class="btn btn-danger">YES, RESET</button>
+          <button id="modal-reset-no" class="btn btn-secondary">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket-client.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
