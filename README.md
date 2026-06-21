@@ -1,2 +1,2 @@
-# Jeopardy
+# Trivia Board
 
