@@ -134,5 +134,97 @@
       ]
     ]
   },
-  "assets": {}
+  "assets": {},
+  "categoriesR2": [
+    "History II",
+    "Science II",
+    "Pop Culture II",
+    "Geography II",
+    "Sports II",
+    "Movies II"
+  ],
+  "cluesR2": [
+    [
+      "R2 Clue 1",
+      "R2 Clue 2",
+      "R2 Clue 3",
+      "R2 Clue 4",
+      "R2 Clue 5",
+      "R2 Clue 6"
+    ],
+    [
+      "R2 Clue 1",
+      "R2 Clue 2",
+      "R2 Clue 3",
+      "R2 Clue 4",
+      "R2 Clue 5",
+      "R2 Clue 6"
+    ],
+    [
+      "R2 Clue 1",
+      "R2 Clue 2",
+      "R2 Clue 3",
+      "R2 Clue 4",
+      "R2 Clue 5",
+      "R2 Clue 6"
+    ],
+    [
+      "R2 Clue 1",
+      "R2 Clue 2",
+      "R2 Clue 3",
+      "R2 Clue 4",
+      "R2 Clue 5",
+      "R2 Clue 6"
+    ],
+    [
+      "R2 Clue 1",
+      "R2 Clue 2",
+      "R2 Clue 3",
+      "R2 Clue 4",
+      "R2 Clue 5",
+      "R2 Clue 6"
+    ]
+  ],
+  "answersR2": [
+    [
+      "R2 Answer 1",
+      "R2 Answer 2",
+      "R2 Answer 3",
+      "R2 Answer 4",
+      "R2 Answer 5",
+      "R2 Answer 6"
+    ],
+    [
+      "R2 Answer 1",
+      "R2 Answer 2",
+      "R2 Answer 3",
+      "R2 Answer 4",
+      "R2 Answer 5",
+      "R2 Answer 6"
+    ],
+    [
+      "R2 Answer 1",
+      "R2 Answer 2",
+      "R2 Answer 3",
+      "R2 Answer 4",
+      "R2 Answer 5",
+      "R2 Answer 6"
+    ],
+    [
+      "R2 Answer 1",
+      "R2 Answer 2",
+      "R2 Answer 3",
+      "R2 Answer 4",
+      "R2 Answer 5",
+      "R2 Answer 6"
+    ],
+    [
+      "R2 Answer 1",
+      "R2 Answer 2",
+      "R2 Answer 3",
+      "R2 Answer 4",
+      "R2 Answer 5",
+      "R2 Answer 6"
+    ]
+  ]
 }

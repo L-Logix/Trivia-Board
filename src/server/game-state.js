@@ -20,6 +20,9 @@ class GameState {
     const values = this.currentRound === 1 ? this.config.baseValues : this.config.doubleValues;
     const ddKey = 'round' + this.currentRound;
     const ddPositions = this.config.dailyDoublePositions[ddKey] || [];
+    const cats = this.currentRound === 1 ? this.config.categories : (this.config.categoriesR2 || this.config.categories);
+    const clues = this.currentRound === 1 ? this.config.clues : (this.config.cluesR2 || this.config.clues);
+    const ans = this.currentRound === 1 ? this.config.answers : (this.config.answersR2 || this.config.answers);
 
     for (let c = 0; c < this.config.columns; c++) {
       const col = [];
@@ -27,9 +30,9 @@ class GameState {
         const isDD = ddPositions.some(([dc, dr]) => dc === c && dr === r);
         col.push({
           value: values[r] || 200,
-          clue: (this.config.clues[r] && this.config.clues[r][c]) || 'Clue text',
-          answer: (this.config.answers[r] && this.config.answers[r][c]) || 'Answer text',
-          category: this.config.categories[c] || 'Category',
+          clue: (clues[r] && clues[r][c]) || 'Clue text',
+          answer: (ans[r] && ans[r][c]) || 'Answer text',
+          category: cats[c] || 'Category',
           revealed: false,
           isDailyDouble: isDD,
           col: c,

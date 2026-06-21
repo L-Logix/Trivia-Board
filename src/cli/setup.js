@@ -8,6 +8,7 @@ const { parse } = require('csv-parse/sync');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const CONFIG_PATH = path.join(ROOT, 'config.json');
+const TEMPLATE_PATH = path.join(ROOT, 'trivia-template.csv');
 
 function showSplash() {
   console.clear();
@@ -36,6 +37,11 @@ function fetchUrl(url) {
     const client = url.startsWith('https') ? https : http;
     client.get(url, { timeout: 15000 }, (res) => {
       let data = '';
+      const status = res.statusCode;
+      if (status >= 400) {
+        reject(new Error('HTTP ' + status + ' - check that your sheet is published to the web'));
+        return;
+      }
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => resolve(data));
     }).on('error', reject).on('timeout', function() {
@@ -47,13 +53,61 @@ function fetchUrl(url) {
 
 function parseCsvData(csvText) {
   const trimmed = csvText.trim();
-  if (!trimmed || trimmed.startsWith('<!')) {
-    throw new Error('The URL didn\'t return valid CSV data.\nMake sure your sheet is published: File > Share > Publish to Web > Comma-separated values (.csv)');
+  if (!trimmed) throw new Error('CSV is empty');
+  if (trimmed.startsWith('<!')) {
+    throw new Error('Got HTML instead of CSV. Make sure your sheet is published:\nFile > Share > Publish to Web > Comma-separated values (.csv)');
   }
-  return parse(trimmed, { relax_column_count: true, skip_empty_lines: true });
+  return parse(trimmed, { relax_column_count: true, skip_empty_lines: true, bom: true });
 }
 
-function buildBoard(parsed, columns, rows) {
+/* --- NEW: Simple "Category,Clue,Answer" format ---
+   Each row is: Category | Clue | Answer
+   Groups by category, assigns values in order */
+function buildSimpleBoard(parsed, columns, rows, values) {
+  const header = parsed[0].map(h => h.trim().toLowerCase());
+  const isSimple = header.length >= 3 && header[0] === 'category' && header[1] === 'clue' && header[2] === 'answer';
+
+  if (!isSimple) return null;
+
+  const groups = {};
+  for (let i = 1; i < parsed.length; i++) {
+    const row = parsed[i];
+    if (row.length < 3) continue;
+    const cat = row[0].trim();
+    const clue = row[1].trim();
+    const ans = row[2].trim();
+    if (!cat) continue;
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push({ clue, answer: ans });
+  }
+
+  const catNames = Object.keys(groups);
+  const usedCats = catNames.slice(0, columns);
+  while (usedCats.length < columns) usedCats.push('Category ' + (usedCats.length + 1));
+
+  const clues = [];
+  const answers = [];
+  for (let r = 0; r < rows; r++) {
+    const clueRow = [];
+    const ansRow = [];
+    for (let c = 0; c < columns; c++) {
+      const cat = usedCats[c];
+      const items = groups[cat] || [];
+      const item = items[r] || {};
+      clueRow.push(item.clue || (clueRow.length > 0 ? clueRow[0] : 'Clue text'));
+      ansRow.push(item.answer || (ansRow.length > 0 ? ansRow[0] : 'Answer text'));
+    }
+    clues.push(clueRow);
+    answers.push(ansRow);
+  }
+  return { categories: usedCats, clues, answers };
+}
+
+/* --- OLD: Grid format ---
+   Row 1: Categories
+   Odd rows: Clues
+   Even rows: Answers */
+function buildGridBoard(parsed, columns, rows) {
   if (parsed.length < 1) throw new Error('CSV is empty');
   const categories = parsed[0].slice(0, columns);
   while (categories.length < columns) categories.push('Category ' + (categories.length + 1));
@@ -75,6 +129,33 @@ function buildBoard(parsed, columns, rows) {
     rowIdx += 2;
   }
   return { categories, clues, answers };
+}
+
+function buildBoard(parsed, columns, rows, values) {
+  // Try simple format first
+  const simple = buildSimpleBoard(parsed, columns, rows, values);
+  if (simple) return simple;
+  // Fall back to grid format
+  return buildGridBoard(parsed, columns, rows);
+}
+
+function generateTemplate(config) {
+  let csv = 'Category,Clue,Answer\n';
+  const sampleCats = ['History', 'Science', 'Pop Culture', 'Geography', 'Sports', 'Movies'].slice(0, config.columns);
+  const sampleQs = [
+    ['This president was born in 1732', 'Who is George Washington?'],
+    ['H2O is the chemical formula for this', 'What is water?'],
+    ['This planet is known as the Red Planet', 'What is Mars?'],
+    ['This author wrote "Romeo and Juliet"', 'Who is Shakespeare?'],
+    ['This element has the symbol Au', 'What is gold?']
+  ];
+  for (let c = 0; c < config.columns; c++) {
+    for (let r = 0; r < config.rows; r++) {
+      const q = sampleQs[r % sampleQs.length];
+      csv += '"' + (sampleCats[c] || 'Category ' + (c+1)) + '","' + q[0] + '","' + q[1] + '"\n';
+    }
+  }
+  return csv;
 }
 
 function assignDailyDoubles(columns, rows, count) {
@@ -195,9 +276,7 @@ async function main() {
       }
     ]);
 
-    if (answers.doubleRound && !answers.dailyDoublesRound2) {
-      answers.dailyDoublesRound2 = 2;
-    }
+    if (answers.doubleRound && !answers.dailyDoublesRound2) answers.dailyDoublesRound2 = 2;
     if (!answers.doubleRound) {
       answers.dailyDoublesRound2 = 0;
       answers.doubleValues = answers.baseValues;
@@ -225,11 +304,17 @@ async function main() {
     config.timerSeconds = answers.timerSeconds;
   }
 
+  // Generate a template CSV for the user
+  const templateCsv = generateTemplate(config);
+  fs.writeFileSync(TEMPLATE_PATH, templateCsv);
+  console.log(chalk.cyan('  \u2192 Generated template: ') + chalk.bold('trivia-template.csv'));
+  console.log(chalk.cyan('    Open it as a guide for formatting your Google Sheet.\n'));
+
   const { sheetUrl } = await inquirer.prompt([
     {
       type: 'input',
       name: 'sheetUrl',
-      message: 'Paste Google Sheets Data URL:',
+      message: 'Paste Google Sheets published CSV URL:',
       validate: v => v.length > 0
     }
   ]);
@@ -242,44 +327,58 @@ async function main() {
     csvText = await fetchUrl(csvUrl);
   } catch (e) {
     console.log(chalk.red('  \u2717 Failed to fetch URL: ' + e.message));
-    console.log(chalk.yellow('  \u26a0 Using placeholder data instead.'));
-    csvText = '';
+    console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
+    csvText = templateCsv;
   }
 
   let categories, clues, answers;
   if (csvText) {
     try {
       const parsed = parseCsvData(csvText);
-      const board = buildBoard(parsed, config.columns, config.rows);
+      const board = buildBoard(parsed, config.columns, config.rows, config.baseValues);
       categories = board.categories;
       clues = board.clues;
       answers = board.answers;
       console.log(chalk.green('  \u2713 Loaded ' + config.columns + ' categories x ' + config.rows + ' rows'));
     } catch (e) {
       console.log(chalk.red('  \u2717 CSV parse error: ' + e.message));
-      console.log(chalk.yellow('  \u26a0 Using placeholder data instead.'));
-      categories = [];
-      clues = [];
-      answers = [];
+      console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
+      csvText = templateCsv;
+      const parsed = parseCsvData(csvText);
+      const board = buildBoard(parsed, config.columns, config.rows, config.baseValues);
+      categories = board.categories;
+      clues = board.clues;
+      answers = board.answers;
     }
   }
 
-  if (!categories || categories.length === 0) {
-    categories = [];
-    clues = [];
-    answers = [];
-    for (let c = 0; c < config.columns; c++) {
-      categories.push('Category ' + (c + 1));
-    }
-    for (let r = 0; r < config.rows; r++) {
-      const clueRow = [];
-      const ansRow = [];
-      for (let c = 0; c < config.columns; c++) {
-        clueRow.push('Clue text for ' + categories[c] + ' $' + config.baseValues[r]);
-        ansRow.push('What is the answer for $' + config.baseValues[r] + '?');
+  // Round 2 data
+  if (config.doubleRound) {
+    console.log(chalk.cyan('\n--- Round 2 Data ---'));
+    const { r2Url } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'r2Url',
+        message: 'Paste Round 2 CSV URL (or press Enter to reuse same sheet):'
       }
-      clues.push(clueRow);
-      answers.push(ansRow);
+    ]);
+
+    if (r2Url && r2Url.trim()) {
+      const r2CsvUrl = convertSheetUrl(r2Url.trim());
+      console.log(chalk.cyan('  \u2192 Fetching Round 2 data...'));
+      try {
+        const r2Text = await fetchUrl(r2CsvUrl);
+        const r2Parsed = parseCsvData(r2Text);
+        const r2Board = buildBoard(r2Parsed, config.columns, config.rows, config.doubleValues);
+        if (r2Board) {
+          config.r2Categories = r2Board.categories;
+          config.r2Clues = r2Board.clues;
+          config.r2Answers = r2Board.answers;
+          console.log(chalk.green('  \u2713 Loaded Round 2 data'));
+        }
+      } catch (e) {
+        console.log(chalk.yellow('  \u26a0 Could not load Round 2: ' + e.message));
+      }
     }
   }
 
@@ -347,6 +446,16 @@ async function main() {
       }
     }
   }
+
+  // Save round 2 data into config if present
+  if (config.r2Categories) {
+    config.categoriesR2 = config.r2Categories;
+    config.cluesR2 = config.r2Clues;
+    config.answersR2 = config.r2Answers;
+  }
+  delete config.r2Categories;
+  delete config.r2Clues;
+  delete config.r2Answers;
 
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   console.log('');

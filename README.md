@@ -27,21 +27,48 @@ Note: The `-g` flag binds the application to your system, allowing you to use th
 
 ## 2. Configuration & Setup
 
-Whenever you want to set up a new game or change your board layout, run:
+Run the setup wizard:
 
 ```bash
 trivia setup
 ```
 
-The TechnoThatch CLI wizard will launch. You can choose "Typical Trivia" to instantly apply official TV show rules (6x5 grid, standard values, standard Daily Doubles), or choose "Custom" to manually adjust rows, columns, and timers.
+Choose "Typical Trivia" for instant classic rules (6x5 grid, $200-$1000, Daily Doubles, 5s timer) or "Custom" to adjust everything.
 
-### Connecting Your Data
+### Setting Up Your Google Sheet
 
-The setup wizard will ask for a Google Sheets link.
+The wizard accepts a **simple format** where each row is one complete question:
 
-1. Create your trivia board using Google Sheets.
-2. Ensure your sheet is set to "Anyone with the link can view".
-3. Paste your standard Google Sheets URL into the CLI prompt. The engine automatically converts it to the correct CSV export format.
+| Category | Clue | Answer |
+|----------|------|--------|
+| History | This president was born in 1732 | Who is George Washington? |
+| History | This document begins "We the People" | What is the Constitution? |
+| Science | H2O is the chemical formula for this | What is water? |
+| Pop Culture | This 90s band sang "Smells Like Teen Spirit" | What is Nirvana? |
+
+**Rules:**
+- **Row 1 must be:** `Category`, `Clue`, `Answer` (header row)
+- Each row below = one question with its category, clue text, and answer text
+- Add as many questions per category as you want (the wizard fills the grid in order)
+- The wizard generates a `trivia-template.csv` file locally to use as a reference
+
+**Alternative grid format** (classic Jeopardy-style):
+- Row 1: Category names across columns
+- Row 2: Clues for the first row of values
+- Row 3: Answers for the first row of values
+- Repeat clue/answer pairs for each value level
+
+### Publishing Your Sheet
+
+1. In Google Sheets: **File > Share > Publish to Web**
+2. Choose: **Entire Document > Comma-separated values (.csv)**
+3. Click **Publish**
+4. Copy the URL and paste it into the wizard
+   - Regular sheet URLs work too (auto-converted to CSV export)
+
+### Round 2 (Double Round)
+
+If you have Double Round enabled, the wizard will ask for a **separate URL** for Round 2 data. You can use a different sheet/tab in the same document. Press Enter to reuse the same sheet for both rounds.
 
 ### Custom Assets
 
