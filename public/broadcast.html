@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Trivia Board - Broadcast</title>
+  <title>Broadcast View</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/broadcast.css">
@@ -19,9 +19,11 @@
     <div class="logo-content">
       <div class="logo-star left">★</div>
       <div class="logo-star right">★</div>
-      <div class="logo-text">TRIVIA</div>
-      <div class="logo-text sub">BOARD!</div>
-      <div class="logo-byline">A TechnoThatch Production</div>
+      <div id="logo-text-group" class="hidden">
+        <div class="logo-text">WELCOME</div>
+      </div>
+      <img id="logo-custom-img" class="logo-custom hidden" src="img/logo.svg" alt="">
+      <div class="logo-byline" id="logo-byline">A TechnoThatch Production</div>
     </div>
     <div class="logo-flash" id="logo-flash"></div>
   </div>
@@ -29,7 +31,10 @@
   <div id="phase-board" class="phase hidden">
     <div id="board-wrap">
       <div id="board-cats"></div>
-      <div id="board-grid"></div>
+      <div id="board-grid-wrap">
+        <div id="board-price-cover"><div class="price-cover-inner"></div></div>
+        <div id="board-grid"></div>
+      </div>
     </div>
     <div id="board-scores"></div>
   </div>
@@ -62,7 +67,7 @@
 
   <div id="phase-final" class="phase hidden">
     <div id="final-wrap">
-      <div id="final-hdr">FINAL TRIVIA</div>
+      <div id="final-hdr">FINAL</div>
       <div id="final-cat"></div>
       <div id="final-text"></div>
       <div id="final-ans" class="hidden"></div>
@@ -71,13 +76,25 @@
     <div id="final-scores"></div>
   </div>
 
+  <div id="phase-outro" class="phase hidden">
+    <div class="logo-bg"></div>
+    <div class="logo-content">
+      <img id="outro-logo" class="logo-custom hidden" src="img/logo.svg" alt="">
+      <div class="logo-byline" id="outro-byline">Thanks for Playing!</div>
+    </div>
+  </div>
+
   <audio id="a-intro" preload="auto"></audio>
   <audio id="a-timesup" preload="auto"></audio>
   <audio id="a-dd" preload="auto"></audio>
   <audio id="a-think" preload="auto"></audio>
   <audio id="a-applause" preload="auto"></audio>
+  <audio id="a-boardfill" preload="auto"></audio>
   <audio id="a-correct" preload="auto"></audio>
-  <audio id="a-wrong" preload="auto"></audio>
+  <audio id="a-incorrect" preload="auto"></audio>
+  <audio id="a-outro" preload="auto"></audio>
+
+  <div id="phase-overlay"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket-client.js"></script>

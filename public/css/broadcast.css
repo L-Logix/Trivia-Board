@@ -12,6 +12,15 @@ html,body {
 
 .hidden { display:none!important; }
 
+/* ===== TRANSITION DISSOLVE OVERLAY ===== */
+#phase-overlay {
+  position:fixed; inset:0; z-index:5000;
+  background:#060ce9;
+  opacity:0; pointer-events:none;
+  transition:opacity .35s ease;
+}
+#phase-overlay.active { opacity:1; }
+
 /* ---- INIT OVERLAY ---- */
 #init-overlay {
   position:fixed; inset:0; z-index:9999;
@@ -64,11 +73,6 @@ html,body {
   opacity:0; animation:dropIn .8s cubic-bezier(.175,.885,.32,1.275) .6s forwards;
   text-transform:uppercase;
 }
-.logo-text.sub {
-  color:#fff; font-size:7vw; letter-spacing:10px;
-  text-shadow:0 0 50px rgba(255,255,255,.1);
-  animation-delay:.9s;
-}
 @keyframes dropIn {
   0%{opacity:0;transform:translateY(-60px) scale(.8)}
   100%{opacity:1;transform:translateY(0) scale(1)}
@@ -79,6 +83,15 @@ html,body {
   text-transform:uppercase;
   opacity:0; animation:fadeUp .8s ease 1.8s forwards;
 }
+.logo-custom {
+  max-width:70%; max-height:50vh;
+  object-fit:contain;
+  opacity:0; animation:logoZoom .8s cubic-bezier(.175,.885,.32,1.275) .4s forwards;
+}
+@keyframes logoZoom {
+  0%{opacity:0;transform:scale(0.3)}
+  100%{opacity:1;transform:scale(1)}
+}
 @keyframes fadeUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }
 .logo-flash {
   position:absolute; inset:0; background:#fff;
@@ -87,18 +100,20 @@ html,body {
 .logo-flash.go { animation:flash .3s ease-out; }
 @keyframes flash { 0%{opacity:.8} 100%{opacity:0} }
 
-/* ===== BOARD PHASE — ACCURATE JEOPARDY ===== */
+/* ===== BOARD PHASE ===== */
 #phase-board { background:#060ce9; }
 
 #board-wrap {
   width:100%; height:90%;
   display:flex; flex-direction:column;
   padding:0.3% 0.5%;
+  position:relative;
 }
 
 #board-cats {
   display:grid; gap:2px; margin-bottom:2px;
   height:15%;
+  position:relative;
 }
 
 .board-cat {
@@ -112,15 +127,38 @@ html,body {
   border:2px solid rgba(255,255,255,.1);
   text-shadow:1px 2px 4px rgba(0,0,0,.5);
   line-height:1.1; word-break:break-word;
-  animation:catEntrance .5s ease both;
+  position:relative;
+  z-index:1;
 }
-@keyframes catEntrance {
-  0%{opacity:0;transform:scaleY(0)}
-  100%{opacity:1;transform:scaleY(1)}
+
+/* ===== PRICE COVER (one big cover over all clue cells) ===== */
+#board-grid-wrap {
+  flex:1; position:relative;
+  perspective:1000px;
+}
+#board-price-cover {
+  position:absolute; inset:0; z-index:5;
+  pointer-events:none;
+  transform-origin:top center;
+  transition:transform .6s cubic-bezier(.68,-0.55,.27,1.55), opacity .4s ease;
+}
+#board-price-cover.revealed {
+  transform:translateY(100%) scaleY(0);
+  opacity:0;
+}
+.price-cover-inner {
+  width:100%; height:100%;
+  background:#060ce9;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+  border:3px solid #ffcc00;
+  box-shadow:0 0 30px rgba(255,204,0,.2);
 }
 
 #board-grid {
-  display:grid; gap:2px; flex:1;
+  display:grid; gap:2px;
+  position:absolute; inset:0;
 }
 
 .board-cell {
@@ -131,11 +169,17 @@ html,body {
   font-size:3vw; font-weight:700;
   color:#ffcc00; text-shadow:2px 2px 4px rgba(0,0,0,.5), 0 0 20px rgba(255,204,0,.06);
   position:relative; overflow:hidden;
-  animation:cellEntrance .4s ease both;
+  backface-visibility:hidden;
+  transform-style:preserve-3d;
+  opacity:0;
 }
-@keyframes cellEntrance {
-  0%{opacity:0;transform:scale(0.5) rotateX(90deg)}
-  100%{opacity:1;transform:scale(1) rotateX(0)}
+.board-cell.flip-in {
+  animation:cellFlip .5s ease both;
+}
+@keyframes cellFlip {
+  0%{opacity:0;transform:rotateY(-90deg) scale(0.8)}
+  50%{opacity:1;transform:rotateY(15deg) scale(1.02)}
+  100%{opacity:1;transform:rotateY(0) scale(1)}
 }
 .board-cell::after {
   content:''; position:absolute; top:0; left:0; right:0; bottom:0;
@@ -148,7 +192,55 @@ html,body {
   border-color:rgba(255,255,255,.02);
 }
 
-/* ---- SCORE BAR ---- */
+/* ===== CORRECT / INCORRECT OVERLAY ===== */
+#answer-overlay {
+  position:fixed; inset:0; z-index:4000;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+#answer-overlay.correct {
+  background:radial-gradient(circle,rgba(0,200,0,.12) 0%,transparent 60%);
+  animation:correctFlash .5s ease;
+}
+#answer-overlay.incorrect {
+  background:radial-gradient(circle,rgba(200,0,0,.12) 0%,transparent 60%);
+  animation:incorrectFlash .5s ease;
+}
+@keyframes correctFlash {
+  0%{background:radial-gradient(circle,rgba(0,200,0,.25) 0%,transparent 60%)}
+  100%{background:radial-gradient(circle,rgba(0,200,0,0) 0%,transparent 60%)}
+}
+@keyframes incorrectFlash {
+  0%{background:radial-gradient(circle,rgba(200,0,0,.25) 0%,transparent 60%)}
+  100%{background:radial-gradient(circle,rgba(200,0,0,0) 0%,transparent 60%)}
+}
+#answer-overlay-text {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:6vw; font-weight:700;
+  text-transform:uppercase; letter-spacing:8px;
+  opacity:0;
+}
+#answer-overlay-text.show-correct {
+  opacity:1; color:#00cc44;
+  animation:ansPop .4s cubic-bezier(.175,.885,.32,1.275);
+}
+#answer-overlay-text.show-incorrect {
+  opacity:1; color:#ff4444;
+  animation:ansPop .4s cubic-bezier(.175,.885,.32,1.275);
+}
+.ans-sub {
+  position:absolute; bottom:35%; font-family:'Inter',sans-serif;
+  font-size:1.2vw; letter-spacing:4px;
+  color:rgba(255,255,255,.2);
+  opacity:0; animation:fadeUp .6s ease .5s forwards;
+}
+@keyframes ansPop {
+  0%{opacity:0;transform:scale(0) rotate(-10deg)}
+  50%{transform:scale(1.15) rotate(3deg)}
+  100%{opacity:1;transform:scale(1) rotate(0)}
+}
+
+/* ===== SCORE BAR ===== */
 #board-scores, #clue-scores, #final-scores {
   position:absolute; bottom:0; left:0;
   width:100%; height:8%;
@@ -167,6 +259,7 @@ html,body {
   font-family:'Oswald','Impact',sans-serif;
   font-size:1.6vw; font-weight:700; color:#ffcc00;
   font-variant-numeric:tabular-nums;
+  transition:all .3s ease;
 }
 
 /* ===== CLUE PHASE ===== */
@@ -183,9 +276,9 @@ html,body {
   position:absolute; top:4%; left:0; width:100%;
   display:flex; justify-content:space-between;
   padding:0 8%;
-  animation:fadeDown .4s ease;
+  animation:headerSlide .5s ease;
 }
-@keyframes fadeDown { 0%{opacity:0;transform:translateY(-20px)} 100%{opacity:1;transform:translateY(0)} }
+@keyframes headerSlide { 0%{opacity:0;transform:translateY(-30px)} 100%{opacity:1;transform:translateY(0)} }
 
 #clue-cat {
   font-family:'Oswald','Impact',sans-serif;
@@ -203,11 +296,12 @@ html,body {
   font-size:2.6vw; font-weight:400; line-height:1.4;
   text-align:center; max-width:80%;
   color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.5);
-  animation:clueEntrance .6s ease;
+  animation:clueZoom .7s cubic-bezier(.175,.885,.32,1.275);
 }
-@keyframes clueEntrance {
-  0%{opacity:0;transform:translateY(30px) scale(.95)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
+@keyframes clueZoom {
+  0%{opacity:0;transform:scale(0.5)}
+  60%{transform:scale(1.02)}
+  100%{opacity:1;transform:scale(1)}
 }
 
 #clue-ans {
@@ -216,13 +310,14 @@ html,body {
   color:#ffcc00; text-align:center;
   margin-top:35px; padding:16px 50px;
   border:3px solid #ffcc00;
-  animation:ansReveal .6s cubic-bezier(.175,.885,.32,1.275);
-  box-shadow:0 0 50px rgba(255,204,0,.12);
+  background:rgba(255,204,0,.05);
+  box-shadow:0 0 60px rgba(255,204,0,.15), inset 0 0 30px rgba(255,204,0,.03);
+  animation:ansSlide .7s cubic-bezier(.175,.885,.32,1.275);
 }
-@keyframes ansReveal {
-  0%{opacity:0;transform:scale(.7) rotateX(40deg)}
-  60%{transform:scale(1.05) rotateX(-5deg)}
-  100%{opacity:1;transform:scale(1) rotateX(0)}
+@keyframes ansSlide {
+  0%{opacity:0;transform:translateY(40px) scale(.9)}
+  60%{transform:translateY(-5px) scale(1.01)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
 }
 
 #clue-round-label {
@@ -234,15 +329,23 @@ html,body {
   text-transform:uppercase;
 }
 
-/* ---- TIMER BAR ---- */
+/* ===== TIMER BAR ===== */
 #clue-timer-track {
-  position:absolute; bottom:12%; left:10%; width:80%; height:6px;
+  position:absolute; bottom:11%; left:10%; width:80%; height:8px;
   background:rgba(255,255,255,.12); overflow:hidden;
 }
 #clue-timer-fill {
   height:100%; width:100%;
   background:#ffcc00;
   transition:width .1s linear;
+}
+#clue-timer-fill.warning {
+  background:#ff4444;
+  animation:timerPulse .5s ease infinite;
+}
+@keyframes timerPulse {
+  0%,100%{opacity:1}
+  50%{opacity:.4}
 }
 
 /* ===== DAILY DOUBLE ===== */
@@ -296,8 +399,9 @@ html,body {
   font-size:4vw; font-weight:700;
   color:#ffcc00; letter-spacing:8px; margin-bottom:25px;
   text-shadow:0 0 50px rgba(255,204,0,.15);
-  animation:fadeDown .6s ease;
+  animation:finalHdr .8s ease;
 }
+@keyframes finalHdr { 0%{opacity:0;letter-spacing:20px} 100%{opacity:1;letter-spacing:8px} }
 #final-cat {
   font-family:'Oswald','Impact',sans-serif;
   font-size:1.4vw; letter-spacing:4px;
@@ -312,25 +416,34 @@ html,body {
   font-size:2.2vw; font-weight:700; color:#ffcc00;
   text-align:center; margin-top:35px; padding:16px 45px;
   border:3px solid #ffcc00;
-  animation:ansReveal .6s cubic-bezier(.175,.885,.32,1.275);
+  background:rgba(255,204,0,.05);
+  box-shadow:0 0 60px rgba(255,204,0,.15);
+  animation:finalAns 1s cubic-bezier(.175,.885,.32,1.275);
 }
-#final-results { margin-top:25px; text-align:center; }
-.final-row { display:inline-block; margin:0 20px; padding:8px 16px; background:rgba(255,255,255,.05); }
+@keyframes finalAns {
+  0%{opacity:0;transform:scale(0) rotateX(90deg)}
+  50%{transform:scale(1.1) rotateX(-10deg)}
+  100%{opacity:1;transform:scale(1) rotateX(0)}
+}
+#final-results { margin-top:25px; text-align:center; animation:fadeUp .8s ease; }
+.final-row { display:inline-block; margin:0 20px; padding:12px 24px; background:rgba(255,255,255,.06); }
 .final-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
 .final-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
 
-/* ===== ROUND LABEL FADE ===== */
-.round-fade-in { animation:roundLabelIn .6s ease; }
-@keyframes roundLabelIn { 0%{opacity:0} 100%{opacity:1} }
-
-/* ===== SCORE POP ANIMATION ===== */
-.score-pop { animation:scorePop .3s ease; }
-@keyframes scorePop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
-
-/* ===== DAILY DOUBLE FLASH ===== */
-.dd-flash-effect {
-  position:absolute; inset:0; background:#fff;
-  opacity:0; pointer-events:none;
+/* ===== OUTRO ===== */
+#phase-outro {
+  background:#060ce9; overflow:hidden;
 }
-.dd-flash-effect.go { animation:ddFlash .15s ease-out; }
-@keyframes ddFlash { 0%{opacity:.9} 100%{opacity:0} }
+
+/* ===== SCORE POP ===== */
+.score-pop { animation:scorePop .3s ease; }
+@keyframes scorePop { 0%{transform:scale(1)} 50%{transform:scale(1.12)} 100%{transform:scale(1)} }
+
+/* ===== BOARD FILL ENTRANCE ===== */
+@keyframes boardFillEntrance {
+  0%{opacity:0;transform:scale(0.95)}
+  100%{opacity:1;transform:scale(1)}
+}
+#board-wrap.filling {
+  animation:boardFillEntrance .5s ease;
+}

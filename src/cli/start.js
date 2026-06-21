@@ -9,8 +9,8 @@ const IMG_DIR = path.join(ROOT, 'public', 'img');
 
 function generateSilentMp3(filePath) {
   const frameHeader = Buffer.from([
-    0xFF, 0xFB, 0x90, 0x00,  // MPEG1, Layer3, 128kbps, 44100Hz, stereo
-    0x00, 0x00, 0x00, 0x00   // side info
+    0xFF, 0xFB, 0x90, 0x00,
+    0x00, 0x00, 0x00, 0x00
   ]);
   const frameSize = 417;
   const frames = 38;
@@ -38,7 +38,7 @@ function generateSilentMp3(filePath) {
 }
 
 function ensureAudioFiles() {
-  const required = ['host-intro.mp3', 'times-up.mp3', 'daily-double.mp3', 'final-think.mp3', 'applause.mp3'];
+  const required = ['host-intro.mp3', 'times-up.mp3', 'daily-double.mp3', 'final-think.mp3', 'applause.mp3', 'board-fill.mp3', 'correct.mp3', 'incorrect.mp3', 'outro.mp3'];
   if (!fs.existsSync(AUDIO_DIR)) {
     fs.mkdirSync(AUDIO_DIR, { recursive: true });
   }
@@ -61,17 +61,14 @@ function ensureDefaultLogo() {
 
   const defaultSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
   <rect width="800" height="400" fill="#060ce9"/>
-  <text x="400" y="180" font-family="Arial Black, Impact, sans-serif" font-size="80" font-weight="900" fill="#ffcc00" text-anchor="middle" letter-spacing="4">TRIVIA</text>
-  <text x="400" y="270" font-family="Arial Black, Impact, sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">BOARD!</text>
-  <circle cx="400" cy="340" r="30" fill="none" stroke="#ffcc00" stroke-width="4"/>
-  <polygon points="400,320 410,340 430,340 415,355 420,375 400,365 380,375 385,355 370,340 390,340" fill="#ffcc00"/>
+  <text x="400" y="200" font-family="Oswald, Impact, sans-serif" font-size="90" font-weight="700" fill="#ffcc00" text-anchor="middle" letter-spacing="6">WELCOME</text>
 </svg>`;
   fs.writeFileSync(logoPath, defaultSvg);
   console.log(chalk.cyan('  \u2139 Default logo generated at public/img/logo.svg'));
 }
 
 function main() {
-  console.log(chalk.cyan('\n  Trivia Broadcast Engine'));
+  console.log(chalk.cyan('\n  Broadcast Engine'));
   console.log(chalk.cyan('  ========================================\n'));
 
   if (!fs.existsSync(CONFIG_PATH)) {

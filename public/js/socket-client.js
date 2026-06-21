@@ -5,7 +5,7 @@ const socket = io({
 });
 
 socket.on('connect', () => {
-  console.log('Connected to Trivia Broadcast Engine');
+  console.log('Connected to Broadcast Engine');
   socket.emit('sync-state');
 });
 

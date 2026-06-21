@@ -1,16 +1,13 @@
 var st = null;
 
-/* ---- KEYBOARD ---- */
 document.addEventListener('keydown',function(e){
   if (e.code==='Space') { e.preventDefault(); if (st&&st.phase==='idle') socket.emit('start-intro'); }
 });
 
-/* ---- UTILS ---- */
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function fmt(s){return (s>=0?'':'-')+'$'+Math.abs(s)}
 function qd(){return (st&&st.config.baseValues&&st.config.baseValues[0])||200}
 
-/* ---- PHASE BADGE ---- */
 function setPhase(p){
   var el=document.getElementById('phase-badge');
   var lbs={idle:'IDLE',intro:'INTRO',board:'BOARD',clue:'CLUE','daily-double':'DAILY DOUBLE',final:'FINAL'};
@@ -19,7 +16,6 @@ function setPhase(p){
 }
 function setRound(r){document.getElementById('round-badge').textContent='ROUND '+r}
 
-/* ---- GRID ---- */
 function renderGrid(board,cats){
   if (!board||!board.length) return;
   var cols=board.length,rows=board[0].length;
@@ -38,13 +34,12 @@ function renderGrid(board,cats){
       d.addEventListener('contextmenu',function(e){e.preventDefault()});
     } else {
       d.addEventListener('click',function(){socket.emit('rehide-clue',{col:c,row:r})});
-      d.title = 'Click to re-hide, right-click to re-hide';
+      d.title = 'Click to re-hide';
       d.addEventListener('contextmenu',function(e){e.preventDefault();socket.emit('rehide-clue',{col:c,row:r})});
     }
     d.innerHTML='<div class="d-cell-val" data-col="'+c+'" data-row="'+r+'">'+(cell.revealed?'':'$'+cell.value)+'</div><div class="d-cell-ans">'+esc(cell.answer)+'</div>';
     g.appendChild(d);
   }
-  // Add value editing listeners
   document.querySelectorAll('.d-cell-val').forEach(function(el) {
     el.addEventListener('dblclick', function(e) {
       e.stopPropagation();
@@ -61,7 +56,6 @@ function renderGrid(board,cats){
 }
 function mkClick(col,row){return function(){if(st&&(st.phase==='idle'||st.phase==='board'))socket.emit('select-clue',{col:col,row:row})}}
 
-/* ---- PLAYERS ---- */
 function renderPlayers(players){
   var c=document.getElementById('dash-players');c.innerHTML='';
   if (!players) return;
@@ -97,11 +91,9 @@ function renderPlayers(players){
 }
 function updScores(players){if(!players)return;players.forEach(function(p,i){var el=document.getElementById('ps-'+i);if(el)el.textContent=fmt(p.score)})}
 
-/* ---- SIDEBAR ---- */
-function side(id){['card-clue','card-dd','card-final'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
+function side(id){['card-clue','card-dd','card-final','card-correct'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
 function setTimer(v){document.getElementById('timer-num').textContent=v.toFixed(1)}
 
-/* ---- FINAL MODAL ---- */
 function openFinal(){
   var f=document.getElementById('final-form');f.innerHTML='';
   if (!st) return;
@@ -118,8 +110,6 @@ document.getElementById('btn-intro').addEventListener('click',function(){socket.
 document.getElementById('btn-r2').addEventListener('click',function(){socket.emit('advance-round2')});
 document.getElementById('btn-final').addEventListener('click',function(){socket.emit('advance-final')});
 document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
-document.getElementById('btn-correct').addEventListener('click',function(){socket.emit('play-audio',{audio:'correct'});socket.emit('play-correct')});
-document.getElementById('btn-wrong').addEventListener('click',function(){socket.emit('play-audio',{audio:'wrong'});socket.emit('play-wrong')});
 document.getElementById('btn-board').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
 document.getElementById('btn-dd-show').addEventListener('click',function(){socket.emit('daily-double-confirm');side('card-clue')});
 document.getElementById('btn-think').addEventListener('click',function(){socket.emit('start-think-music')});
@@ -138,16 +128,25 @@ document.getElementById('mfinal-go').addEventListener('click',function(){
   socket.emit('reveal-final',{wagers:w,correct:c,answer:a||''});
 });
 document.getElementById('mfinal-no').addEventListener('click',function(){document.getElementById('modal-final').classList.add('hidden')});
+document.getElementById('btn-correct').addEventListener('click',function(){socket.emit('answer-correct')});
+document.getElementById('btn-incorrect').addEventListener('click',function(){socket.emit('answer-incorrect')});
 
 /* ===== SOCKET ===== */
 socket.on('sync-state',function(state){
+  var titleEl = document.getElementById('dash-title');
+  var logoAsset = state.config && state.config.assets && state.config.assets.logo;
+  if (logoAsset && typeof logoAsset === 'string' && titleEl) {
+    titleEl.innerHTML = '<img src="img/logo.' + logoAsset + '" style="height:20px;vertical-align:middle" alt="Logo">';
+  } else if (titleEl) {
+    titleEl.textContent = 'DASHBOARD';
+  }
   st=state;
   var cats = state.currentRound === 2 && state.config.categoriesR2 ? state.config.categoriesR2 : state.config.categories;
   renderGrid(state.board,cats);
   renderPlayers(state.players);
   setPhase(state.phase);setRound(state.currentRound);
   switch(state.phase){
-    case'clue':side('card-clue');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];info.textContent=cell.category+' - $'+cell.value + (state.currentRound===2?' (DOUBLE)':'')}break;
+    case'clue':side('card-clue');side('card-correct');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];info.textContent=cell.category+' - $'+cell.value + (state.currentRound===2?' (DOUBLE)':'')}break;
     case'daily-double':side('card-dd');break;
     case'final':side('card-final');break;
     default:side(null);break;
@@ -157,7 +156,7 @@ socket.on('sync-state',function(state){
 
 socket.on('intro-started',function(){setPhase('intro')});
 socket.on('board-shown',function(d){if(st){st.phase='board';st.board=d.board;st.players=d.players}var cats=d.categories||(st&&st.config&&st.config.categories||[]);renderGrid(d.board,cats);renderPlayers(d.players);setPhase('board');side(null)});
-socket.on('clue-opened',function(d){if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase}setPhase(d.phase);if(d.isDailyDouble)side('card-dd');else{side('card-clue');document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0)}});
+socket.on('clue-opened',function(d){if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase}setPhase(d.phase);if(d.isDailyDouble)side('card-dd');else{side('card-clue');side('card-correct');document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0)}});
 socket.on('daily-double-activated',function(){setPhase('daily-double');side('card-dd')});
 socket.on('timer-tick',function(d){setTimer(d.remaining)});
 socket.on('times-up',function(){setTimer(0)});

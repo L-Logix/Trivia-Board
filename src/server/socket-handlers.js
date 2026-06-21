@@ -25,6 +25,10 @@ function setup(ioInstance, config) {
       io.emit('board-shown', { phase: 'board', board: gameState.board, players: gameState.players, categories: cats });
     });
 
+    socket.on('reveal-categories', () => {
+      io.emit('categories-revealed');
+    });
+
     socket.on('select-clue', (data) => {
       const { col, row } = data;
       const cell = gameState.selectClue(col, row);
@@ -87,6 +91,14 @@ function setup(ioInstance, config) {
       }
     });
 
+    socket.on('answer-correct', () => {
+      io.emit('answer-correct');
+    });
+
+    socket.on('answer-incorrect', () => {
+      io.emit('answer-incorrect');
+    });
+
     socket.on('return-to-board', (data) => {
       const { col, row } = data;
       gameState.revealCell(col, row);
@@ -130,7 +142,6 @@ function setup(ioInstance, config) {
 
     socket.on('advance-round2', () => {
       gameState.advanceToRound2();
-      // Use Round 2 categories if available
       var r2Cats = gameState.config.categoriesR2 || gameState.config.categories;
       io.emit('round2-started', {
         board: gameState.board,
@@ -147,7 +158,9 @@ function setup(ioInstance, config) {
       io.emit('final-started', {
         phase: 'final',
         finalPhase: 'wagering',
-        categories: cats
+        categories: cats,
+        finalCategory: gameState.config.finalCategory || '',
+        finalClue: gameState.config.finalClue || ''
       });
     });
 
@@ -179,12 +192,8 @@ function setup(ioInstance, config) {
       io.emit('play-audio', { audio: data.audio });
     });
 
-    socket.on('play-correct', () => {
-      io.emit('play-correct');
-    });
-
-    socket.on('play-wrong', () => {
-      io.emit('play-wrong');
+    socket.on('play-outro', () => {
+      io.emit('outro');
     });
 
     socket.on('reset-game', () => {

@@ -15,7 +15,7 @@ function showSplash() {
   console.log(chalk.cyan('╔══════════════════════════════════════════════════════════╗'));
   console.log(chalk.cyan('║'));
   console.log(chalk.cyan('║') + '          TechnoThatch Software Solutions');
-  console.log(chalk.cyan('║') + '            Trivia Broadcast Engine');
+  console.log(chalk.cyan('║') + '               Broadcast Engine');
   console.log(chalk.cyan('║') + '              Configuration Wizard');
   console.log(chalk.cyan('║'));
   console.log(chalk.cyan('╚══════════════════════════════════════════════════════════╝'));
@@ -23,18 +23,15 @@ function showSplash() {
 }
 
 function convertSheetUrl(input) {
-  // Already a CSV export URL — use as-is
   if (input.includes('output=csv') || input.includes('format=csv')) {
     return input;
   }
-  // Published URL format: /d/e/{ID}/pub?...
   const pubMatch = input.match(/\/d\/e\/([a-zA-Z0-9_-]+)\/pub/);
   if (pubMatch) {
     const converted = `https://docs.google.com/spreadsheets/d/e/${pubMatch[1]}/pub?gid=0&single=true&output=csv`;
     console.log(chalk.green('  \u21b3 Normalized published URL'));
     return converted;
   }
-  // Edit URL format: /d/{ID}/edit?...
   const editMatch = input.match(/\/d\/([a-zA-Z0-9_-]+?)(?:\/|$)/);
   if (editMatch) {
     const converted = `https://docs.google.com/spreadsheets/d/${editMatch[1]}/export?format=csv`;
@@ -72,9 +69,6 @@ function parseCsvData(csvText) {
   return parse(trimmed, { relax_column_count: true, skip_empty_lines: true, bom: true });
 }
 
-/* --- NEW: Simple "Category,Clue,Answer" format ---
-   Each row is: Category | Clue | Answer
-   Groups by category, assigns values in order */
 function buildSimpleBoard(parsed, columns, rows, values) {
   const header = parsed[0].map(h => h.trim().toLowerCase());
   const isSimple = header.length >= 3 && header[0] === 'category' && header[1] === 'clue' && header[2] === 'answer';
@@ -115,10 +109,6 @@ function buildSimpleBoard(parsed, columns, rows, values) {
   return { categories: usedCats, clues, answers };
 }
 
-/* --- OLD: Grid format ---
-   Row 1: Categories
-   Odd rows: Clues
-   Even rows: Answers */
 function buildGridBoard(parsed, columns, rows) {
   if (parsed.length < 1) throw new Error('CSV is empty');
   const categories = parsed[0].slice(0, columns);
@@ -144,10 +134,8 @@ function buildGridBoard(parsed, columns, rows) {
 }
 
 function buildBoard(parsed, columns, rows, values) {
-  // Try simple format first
   const simple = buildSimpleBoard(parsed, columns, rows, values);
   if (simple) return simple;
-  // Fall back to grid format
   return buildGridBoard(parsed, columns, rows);
 }
 
@@ -324,30 +312,35 @@ async function main() {
     config.timerSeconds = answers.timerSeconds;
   }
 
-  // Generate a template CSV for the user
+  // Generate template CSV
   const templateCsv = generateTemplate(config);
   fs.writeFileSync(TEMPLATE_PATH, templateCsv);
   console.log(chalk.cyan('  \u2192 Generated template: ') + chalk.bold('trivia-template.csv'));
   console.log(chalk.cyan('    Open it as a guide for formatting your Google Sheet.\n'));
 
-  const { sheetUrl } = await inquirer.prompt([
+  console.log(chalk.cyan('  \u2192 Edit ') + chalk.bold('trivia-template.csv') + chalk.cyan(' with your questions, then provide the file path below.\n'));
+
+  const { csvPath } = await inquirer.prompt([
     {
       type: 'input',
-      name: 'sheetUrl',
-      message: 'Paste Google Sheets published CSV URL:',
-      validate: v => v.length > 0
+      name: 'csvPath',
+      message: 'Enter path to Round 1 CSV file (or press Enter to use template):'
     }
   ]);
 
-  const csvUrl = convertSheetUrl(sheetUrl);
-  console.log(chalk.cyan('  \u2192 Fetching CSV data...'));
-
   let csvText;
-  try {
-    csvText = await fetchUrl(csvUrl);
-  } catch (e) {
-    console.log(chalk.red('  \u2717 Failed to fetch URL: ' + e.message));
-    console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
+  if (csvPath && csvPath.trim()) {
+    const resolvedPath = path.resolve(ROOT, csvPath.trim());
+    console.log(chalk.cyan('  \u2192 Reading Round 1 CSV from ' + resolvedPath + '...'));
+    try {
+      csvText = fs.readFileSync(resolvedPath, 'utf-8');
+    } catch (e) {
+      console.log(chalk.red('  \u2717 Failed to read file: ' + e.message));
+      console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
+      csvText = templateCsv;
+    }
+  } else {
+    console.log(chalk.yellow('  \u26a0 No file provided, using template data.\n'));
     csvText = templateCsv;
   }
 
@@ -371,24 +364,20 @@ async function main() {
 
   // Round 2 data
   if (config.doubleRound) {
-    console.log(chalk.cyan('\n--- Round 2 Data ---'));
-    const { r2Url } = await inquirer.prompt([
+    console.log(chalk.cyan('\n--- Round 2 Data ---\n'));
+    const { r2Path } = await inquirer.prompt([
       {
         type: 'input',
-        name: 'r2Url',
-        message: 'Paste Round 2 CSV URL (or press Enter to reuse same sheet):'
+        name: 'r2Path',
+        message: 'Enter path to Round 2 CSV file (or press Enter to reuse Round 1 data):'
       }
     ]);
 
-    if (r2Url && r2Url.trim()) {
-      const r2CsvUrl = convertSheetUrl(r2Url.trim());
-      console.log(chalk.cyan('  \u2192 Fetching Round 2 data...'));
+    if (r2Path && r2Path.trim()) {
+      const resolvedPath = path.resolve(ROOT, r2Path.trim());
+      console.log(chalk.cyan('  \u2192 Reading Round 2 CSV from ' + resolvedPath + '...'));
       try {
-        const r2Text = await fetchUrl(r2CsvUrl);
-        const trimmed = r2Text.trim();
-        if (trimmed.startsWith('<!')) {
-          throw new Error('Got HTML instead of CSV. Make sure your sheet is published:\nFile > Share > Publish to Web > Comma-separated values (.csv)');
-        }
+        const r2Text = fs.readFileSync(resolvedPath, 'utf-8');
         const r2Parsed = parseCsvData(r2Text);
         const r2Board = buildBoard(r2Parsed, config.columns, config.rows, config.doubleValues);
         if (r2Board) {
@@ -400,6 +389,35 @@ async function main() {
       } catch (e) {
         console.log(chalk.yellow('  \u26a0 Could not load Round 2: ' + e.message));
       }
+    }
+  }
+
+  // Final data
+  console.log(chalk.cyan('\n--- Final Data ---\n'));
+  const { finalPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'finalPath',
+      message: 'Enter path to Final CSV file (Category,Clue,Answer - or press Enter to skip):'
+    }
+  ]);
+
+  if (finalPath && finalPath.trim()) {
+    const resolvedPath = path.resolve(ROOT, finalPath.trim());
+    console.log(chalk.cyan('  \u2192 Reading Final CSV from ' + resolvedPath + '...'));
+    try {
+      const finalText = fs.readFileSync(resolvedPath, 'utf-8');
+      const finalParsed = parseCsvData(finalText);
+      if (finalParsed.length >= 2) {
+        config.finalCategory = finalParsed[1][0] || 'Final';
+        config.finalClue = finalParsed[1][1] || 'Final clue';
+        config.finalAnswer = finalParsed[1][2] || 'Final answer';
+        console.log(chalk.green('  \u2713 Loaded Final data'));
+      } else {
+        console.log(chalk.yellow('  \u26a0 Final CSV needs at least 2 rows (header + data)'));
+      }
+    } catch (e) {
+      console.log(chalk.yellow('  \u26a0 Could not load Final: ' + e.message));
     }
   }
 
@@ -415,7 +433,7 @@ async function main() {
 
   config.players = playerInput;
 
-  // Fallback to placeholder data if CSV parsing failed
+  // Fallback placeholder data
   if (!categories || categories.length === 0) {
     const phCats = ['History', 'Science', 'Pop Culture', 'Geography', 'Sports', 'Movies'].slice(0, config.columns);
     while (phCats.length < config.columns) phCats.push('Category ' + (phCats.length + 1));
@@ -425,8 +443,8 @@ async function main() {
     for (let r = 0; r < config.rows; r++) {
       const cr = [], ar = [];
       for (let c = 0; c < config.columns; c++) {
-        cr.push('Clue for ' + categories[c] + ' $' + config.baseValues[r]);
-        ar.push('Answer for $' + config.baseValues[r]);
+        cr.push('Clue: ' + categories[c]);
+        ar.push('Answer for this clue');
       }
       clues.push(cr);
       answers.push(ar);
@@ -441,7 +459,7 @@ async function main() {
       ? assignDailyDoubles(config.columns, config.rows, config.dailyDoublesRound2)
       : []
   };
-  config.assets = { logo: false, hostIntro: false, timesUp: false, dailyDouble: false, finalThink: false, applause: false };
+  config.assets = { logo: false, categoryCover: false, hostIntro: false, timesUp: false, dailyDouble: false, finalThink: false, applause: false, boardFill: false, correct: false, incorrect: false, outro: false };
 
   console.log(chalk.cyan('\n--- Asset Uploads ---'));
 
@@ -453,20 +471,40 @@ async function main() {
     }
   ]);
   if (logoPath && logoPath.trim()) {
-    const ext = path.extname(logoPath.trim()).toLowerCase();
-    const dest = path.join(ROOT, 'public', 'img', 'logo' + (ext || '.svg'));
+    const ext = path.extname(logoPath.trim()).toLowerCase().replace('.', '') || 'svg';
+    const dest = path.join(ROOT, 'public', 'img', 'logo.' + ext);
     if (copyAssetFile(logoPath.trim(), dest)) {
-      config.assets.logo = true;
+      config.assets.logo = ext;
       console.log(chalk.green('  \u2713 Logo copied'));
     }
   }
 
+  const { catCoverPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'catCoverPath',
+      message: 'Upload price cover image? (path to PNG - one big cover over clue values until board fill plays):'
+    }
+  ]);
+  if (catCoverPath && catCoverPath.trim()) {
+    const ext = path.extname(catCoverPath.trim()).toLowerCase().replace('.', '') || 'png';
+    const dest = path.join(ROOT, 'public', 'img', 'cat-cover.' + ext);
+    if (copyAssetFile(catCoverPath.trim(), dest)) {
+      config.assets.categoryCover = ext;
+      console.log(chalk.green('  \u2713 Price cover copied'));
+    }
+  }
+
   const audioFiles = [
-    { key: 'hostIntro', name: 'host-intro.mp3', label: 'Host Intro (host-intro.mp3)' },
+    { key: 'hostIntro', name: 'host-intro.mp3', label: 'Jeopardy Intro (host-intro.mp3)' },
     { key: 'timesUp', name: 'times-up.mp3', label: 'Time\'s Up (times-up.mp3)' },
     { key: 'dailyDouble', name: 'daily-double.mp3', label: 'Daily Double (daily-double.mp3)' },
-    { key: 'finalThink', name: 'final-think.mp3', label: 'Final Think Music (final-think.mp3)' },
-    { key: 'applause', name: 'applause.mp3', label: 'Applause (applause.mp3)' }
+    { key: 'finalThink', name: 'final-think.mp3', label: 'Think Music (final-think.mp3)' },
+    { key: 'applause', name: 'applause.mp3', label: 'Applause (applause.mp3)' },
+    { key: 'boardFill', name: 'board-fill.mp3', label: 'Board Fill (board-fill.mp3)' },
+    { key: 'correct', name: 'correct.mp3', label: 'Correct Answer (correct.mp3)' },
+    { key: 'incorrect', name: 'incorrect.mp3', label: 'Incorrect Answer (incorrect.mp3)' },
+    { key: 'outro', name: 'outro.mp3', label: 'Outro (outro.mp3)' }
   ];
 
   for (const af of audioFiles) {
@@ -486,7 +524,7 @@ async function main() {
     }
   }
 
-  // Save round 2 data into config if present
+  // Save round 2 data
   if (config.r2Categories) {
     config.categoriesR2 = config.r2Categories;
     config.cluesR2 = config.r2Clues;

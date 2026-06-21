@@ -27,6 +27,7 @@ html,body{width:100%;min-height:100%;background:#0d0d1a;color:#ddd;font-family:'
 .b-blue{background:linear-gradient(180deg,#4a90d9,#3570b0);color:#fff}
 .b-red{background:linear-gradient(180deg,#d94a4a,#b03030);color:#fff}
 .b-ghost{background:transparent;color:#999;border:1px solid #3a3a5e}
+.b-green{background:linear-gradient(180deg,#2ecc40,#1e9a30);color:#fff}
 .b-ghost:hover{background:rgba(255,255,255,.05);border-color:#5a5a8e}
 .b-full{width:100%}
 kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px;margin-left:3px}

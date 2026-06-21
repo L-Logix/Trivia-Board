@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trivia Board - Host Dashboard</title>
+  <title>Host Dashboard</title>
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
   <div id="dash">
     <header id="dash-hdr">
       <div class="hdr-left">
-        <h1>TRIVIA BOARD</h1>
+        <h1 id="dash-title">DASHBOARD</h1>
         <span class="hdr-sub">Host Dashboard</span>
       </div>
       <div class="hdr-mid">
@@ -40,10 +40,6 @@
           <div id="clue-info" class="card-info"></div>
           <button class="b b-gold b-full" id="btn-reveal">REVEAL ANSWER</button>
           <button class="b b-blue b-full" id="btn-board">RETURN TO BOARD</button>
-          <div style="display:flex;gap:3px;margin-top:4px">
-            <button class="b b-full" id="btn-correct" style="flex:1;background:linear-gradient(180deg,#1a8a3a,#0f6a2a);color:#fff">CORRECT</button>
-            <button class="b b-full" id="btn-wrong" style="flex:1;background:linear-gradient(180deg,#d94a4a,#b03030);color:#fff">WRONG</button>
-          </div>
         </div>
         <div class="card hidden" id="card-dd">
           <div class="card-lbl">DAILY DOUBLE</div>
@@ -54,6 +50,11 @@
           <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
           <button class="b b-red b-full" id="btn-reveal-final">REVEAL RESULTS</button>
           <button class="b b-ghost b-full" id="btn-applause">APPLAUSE</button>
+        </div>
+        <div class="card hidden" id="card-correct">
+          <div class="card-lbl">ANSWER FEEDBACK</div>
+          <button class="b b-green b-full" id="btn-correct">CORRECT</button>
+          <button class="b b-red b-full" id="btn-incorrect">INCORRECT</button>
         </div>
         <div class="card" id="card-help">
           <div class="card-lbl">SHORTCUTS</div>

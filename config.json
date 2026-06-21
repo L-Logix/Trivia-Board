@@ -20,7 +20,9 @@
   "dailyDoublesRound2": 2,
   "timerSeconds": 5,
   "players": [
-    "asdfjhalsdkjf"
+    "Alice",
+    "Bob",
+    "Charlie"
   ],
   "categories": [
     "History",
@@ -32,108 +34,108 @@
   ],
   "clues": [
     [
-      "Clue for History $200",
-      "Clue for Science $200",
-      "Clue for Pop Culture $200",
-      "Clue for Geography $200",
-      "Clue for Sports $200",
-      "Clue for Movies $200"
+      "This president was born in 1732",
+      "This president was born in 1732",
+      "This president was born in 1732",
+      "This president was born in 1732",
+      "This president was born in 1732",
+      "This president was born in 1732"
     ],
     [
-      "Clue for History $400",
-      "Clue for Science $400",
-      "Clue for Pop Culture $400",
-      "Clue for Geography $400",
-      "Clue for Sports $400",
-      "Clue for Movies $400"
+      "H2O is the chemical formula for this",
+      "H2O is the chemical formula for this",
+      "H2O is the chemical formula for this",
+      "H2O is the chemical formula for this",
+      "H2O is the chemical formula for this",
+      "H2O is the chemical formula for this"
     ],
     [
-      "Clue for History $600",
-      "Clue for Science $600",
-      "Clue for Pop Culture $600",
-      "Clue for Geography $600",
-      "Clue for Sports $600",
-      "Clue for Movies $600"
+      "This planet is known as the Red Planet",
+      "This planet is known as the Red Planet",
+      "This planet is known as the Red Planet",
+      "This planet is known as the Red Planet",
+      "This planet is known as the Red Planet",
+      "This planet is known as the Red Planet"
     ],
     [
-      "Clue for History $800",
-      "Clue for Science $800",
-      "Clue for Pop Culture $800",
-      "Clue for Geography $800",
-      "Clue for Sports $800",
-      "Clue for Movies $800"
+      "This author wrote Romeo and Juliet",
+      "This author wrote Romeo and Juliet",
+      "This author wrote Romeo and Juliet",
+      "This author wrote Romeo and Juliet",
+      "This author wrote Romeo and Juliet",
+      "This author wrote Romeo and Juliet"
     ],
     [
-      "Clue for History $1000",
-      "Clue for Science $1000",
-      "Clue for Pop Culture $1000",
-      "Clue for Geography $1000",
-      "Clue for Sports $1000",
-      "Clue for Movies $1000"
+      "This element has the symbol Au",
+      "This element has the symbol Au",
+      "This element has the symbol Au",
+      "This element has the symbol Au",
+      "This element has the symbol Au",
+      "This element has the symbol Au"
     ]
   ],
   "answers": [
     [
-      "Answer for $200",
-      "Answer for $200",
-      "Answer for $200",
-      "Answer for $200",
-      "Answer for $200",
-      "Answer for $200"
+      "Who is George Washington?",
+      "Who is George Washington?",
+      "Who is George Washington?",
+      "Who is George Washington?",
+      "Who is George Washington?",
+      "Who is George Washington?"
     ],
     [
-      "Answer for $400",
-      "Answer for $400",
-      "Answer for $400",
-      "Answer for $400",
-      "Answer for $400",
-      "Answer for $400"
+      "What is water?",
+      "What is water?",
+      "What is water?",
+      "What is water?",
+      "What is water?",
+      "What is water?"
     ],
     [
-      "Answer for $600",
-      "Answer for $600",
-      "Answer for $600",
-      "Answer for $600",
-      "Answer for $600",
-      "Answer for $600"
+      "What is Mars?",
+      "What is Mars?",
+      "What is Mars?",
+      "What is Mars?",
+      "What is Mars?",
+      "What is Mars?"
     ],
     [
-      "Answer for $800",
-      "Answer for $800",
-      "Answer for $800",
-      "Answer for $800",
-      "Answer for $800",
-      "Answer for $800"
+      "Who is Shakespeare?",
+      "Who is Shakespeare?",
+      "Who is Shakespeare?",
+      "Who is Shakespeare?",
+      "Who is Shakespeare?",
+      "Who is Shakespeare?"
     ],
     [
-      "Answer for $1000",
-      "Answer for $1000",
-      "Answer for $1000",
-      "Answer for $1000",
-      "Answer for $1000",
-      "Answer for $1000"
+      "What is gold?",
+      "What is gold?",
+      "What is gold?",
+      "What is gold?",
+      "What is gold?",
+      "What is gold?"
     ]
   ],
   "dailyDoublePositions": {
     "round1": [
       [
-        4,
-        4
+        1,
+        3
       ]
     ],
     "round2": [
       [
         1,
-        0
+        3
       ],
       [
-        5,
-        2
+        1,
+        4
       ]
     ]
   },
   "assets": {
-    "logo": false,
+    "logo": "png",
     "hostIntro": false,
     "timesUp": false,
     "dailyDouble": false,

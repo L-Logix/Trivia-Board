@@ -2,7 +2,7 @@ var st = null;
 var audio = {};
 var sfxCtx = null;
 
-/* ===== WEB AUDIO API SOUND ENGINE ===== */
+/* ===== WEB AUDIO ===== */
 function initSfx() {
   try { sfxCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
@@ -25,21 +25,6 @@ function playDailyDouble() {
     setTimeout(function() { playTone(f, 0.25, 'sine', 0.2); }, i * 80);
   });
 }
-function playCorrect() {
-  playTone(523.25, 0.25, 'sine', 0.2);
-  setTimeout(function() { playTone(659.25, 0.25, 'sine', 0.2); }, 120);
-  setTimeout(function() { playTone(783.99, 0.4, 'sine', 0.2); }, 240);
-}
-function playWrong() {
-  playTone(220, 0.3, 'sawtooth', 0.12);
-  setTimeout(function() { playTone(165, 0.5, 'sawtooth', 0.12); }, 250);
-}
-function playThinkBeep() {
-  for (var i = 0; i < 5; i++) {
-    setTimeout(function() { playTone(880, 0.08, 'square', 0.08); }, i * 500);
-  }
-  setTimeout(function() { playTone(440, 0.4, 'square', 0.1); }, 2500);
-}
 function playFinalReveal() {
   [392, 392, 523.25, 392, 523.25, 659.25].forEach(function(f, i) {
     setTimeout(function() { playTone(f, 0.3, 'sine', 0.15); }, i * 150);
@@ -47,11 +32,10 @@ function playFinalReveal() {
 }
 
 function initAudio() {
-  ['intro','timesup','dd','think','applause','correct','wrong'].forEach(function(k) {
+  ['intro','timesup','dd','think','applause','boardfill','correct','incorrect','outro'].forEach(function(k) {
     audio[k] = document.getElementById('a-'+k);
   });
 }
-
 function play(k) {
   var el = audio[k];
   if (el) { el.currentTime = 0; el.play().catch(function(){}); }
@@ -61,20 +45,43 @@ function stop(k) {
   if (el) { el.pause(); el.currentTime = 0; }
 }
 
-function show(id) {
-  document.querySelectorAll('.phase').forEach(function(p) { p.classList.add('hidden'); });
-  var el = document.getElementById('phase-'+id);
-  if (el) el.classList.remove('hidden');
-}
-
 function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function fmt(s) { return (s >= 0 ? '' : '-') + '$' + Math.abs(s); }
 
-/* ===== ANIMATION HELPERS ===== */
+/* ===== PHASE TRANSITION ===== */
+function show(id) {
+  var overlay = document.getElementById('phase-overlay');
+  if (overlay) {
+    overlay.classList.add('active');
+    setTimeout(function() {
+      document.querySelectorAll('.phase').forEach(function(p) { p.classList.add('hidden'); });
+      var el = document.getElementById('phase-'+id);
+      if (el) el.classList.remove('hidden');
+      overlay.classList.remove('active');
+    }, 150);
+  } else {
+    document.querySelectorAll('.phase').forEach(function(p) { p.classList.add('hidden'); });
+    var el = document.getElementById('phase-'+id);
+    if (el) el.classList.remove('hidden');
+  }
+}
+
 function animateScore(el) {
   el.classList.remove('score-pop');
   void el.offsetWidth;
   el.classList.add('score-pop');
+}
+
+/* ===== DYNAMIC LOGO SRC ===== */
+function logoAsset() {
+  var a = st && st.config && st.config.assets && st.config.assets.logo;
+  return a && typeof a === 'string' ? a : null;
+}
+function logoExt() { return logoAsset() || 'svg'; }
+function hasLogo() { return !!logoAsset(); }
+
+function setLogo(el) {
+  if (el) el.src = 'img/logo.' + logoExt();
 }
 
 /* ===== BOARD ===== */
@@ -93,22 +100,46 @@ function renderBoard(board, players, cats) {
     h.appendChild(d);
   }
 
+  // Price cover - one big cover over entire grid
+  var coverEl = document.getElementById('board-price-cover');
+  var coverInner = coverEl ? coverEl.querySelector('.price-cover-inner') : null;
+  if (coverEl) coverEl.classList.remove('revealed');
+  if (coverInner) {
+    var catCoverAsset = st && st.config && st.config.assets && st.config.assets.categoryCover;
+    if (catCoverAsset && typeof catCoverAsset === 'string') {
+      coverInner.style.backgroundImage = 'url(img/cat-cover.' + catCoverAsset + ')';
+    } else {
+      coverInner.style.backgroundImage = '';
+    }
+  }
+
   var g = document.getElementById('board-grid');
   g.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
   g.innerHTML = '';
-  var idx = 0;
   for (var r = 0; r < rows; r++) {
     for (var c = 0; c < cols; c++) {
       var cell = board[c][r];
       var d = document.createElement('div');
       d.className = 'board-cell' + (cell.revealed ? ' revealed' : '');
       d.textContent = cell.revealed ? '' : '$' + cell.value;
-      d.style.animationDelay = (0.2 + idx * 0.025) + 's';
+      d.style.opacity = cell.revealed ? '1' : '0';
       g.appendChild(d);
-      idx++;
     }
   }
   renderScores(players, document.getElementById('board-scores'));
+}
+
+function revealCategories() {
+  var coverEl = document.getElementById('board-price-cover');
+  if (coverEl) coverEl.classList.add('revealed');
+  // Flip in clue cells with staggered delay
+  var cells = document.querySelectorAll('.board-cell:not(.revealed)');
+  cells.forEach(function(c, i) {
+    setTimeout(function() {
+      c.classList.add('flip-in');
+    }, i * 35 + 50);
+  });
+  play('boardfill');
 }
 
 function renderScores(players, container) {
@@ -135,6 +166,7 @@ function showClue(cell) {
   document.getElementById('clue-text').textContent = cell.clue || '';
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
+  document.getElementById('clue-timer-fill').classList.remove('warning');
   var rl = document.getElementById('clue-round-label');
   if (rl) rl.textContent = st && st.currentRound === 2 ? 'DOUBLE ROUND' : '';
   show('clue');
@@ -148,6 +180,7 @@ function showClueFromData(d) {
   document.getElementById('clue-ans').classList.add('hidden');
   var pct = d.timerSeconds > 0 ? (d.timerRemaining / d.timerSeconds) * 100 : 100;
   document.getElementById('clue-timer-fill').style.width = pct + '%';
+  document.getElementById('clue-timer-fill').classList.remove('warning');
   var rl = document.getElementById('clue-round-label');
   if (rl) rl.textContent = (d.currentRound || (st && st.currentRound) || 1) === 2 ? 'DOUBLE ROUND' : '';
   show('clue');
@@ -158,6 +191,19 @@ function showClueFromData(d) {
 /* ===== LOGO INTRO ===== */
 function playLogo() {
   show('logo');
+  var lg = document.getElementById('logo-custom-img');
+  var txt = document.getElementById('logo-text-group');
+  var byline = document.getElementById('logo-byline');
+  if (hasLogo()) {
+    setLogo(lg);
+    lg.classList.remove('hidden');
+    txt.classList.add('hidden');
+    byline.classList.remove('hidden');
+  } else {
+    lg.classList.add('hidden');
+    txt.classList.remove('hidden');
+    byline.classList.remove('hidden');
+  }
   var flash = document.getElementById('logo-flash');
   flash.classList.remove('go');
   play('intro');
@@ -176,13 +222,41 @@ function setTimer(rem, total) {
   total = total || (st && st.config && st.config.timerSeconds) || 5;
   var pct = total > 0 ? Math.max(0, (rem / total) * 100) : 0;
   var f = document.getElementById('clue-timer-fill');
-  if (f) f.style.width = pct + '%';
+  if (f) {
+    f.style.width = pct + '%';
+    f.classList.toggle('warning', rem <= 2 && rem > 0);
+  }
   if (rem <= 2 && rem > 0) playTone(880, 0.06, 'square', 0.06);
+}
+
+/* ===== ANSWER OVERLAY ===== */
+function showAnswerOverlay(correct) {
+  var overlay = document.getElementById('answer-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'answer-overlay';
+    overlay.innerHTML = '<div id="answer-overlay-text"></div><div class="ans-sub"></div>';
+    document.body.appendChild(overlay);
+  }
+  var textEl = document.getElementById('answer-overlay-text');
+  var subEl = overlay.querySelector('.ans-sub');
+  overlay.className = '';
+  textEl.className = '';
+  textEl.textContent = correct ? 'CORRECT!' : 'INCORRECT';
+  subEl.textContent = correct ? 'Score updated' : 'No points awarded';
+  overlay.classList.add(correct ? 'correct' : 'incorrect');
+  textEl.classList.add(correct ? 'show-correct' : 'show-incorrect');
+  play(correct ? 'correct' : 'incorrect');
+  setTimeout(function() {
+    overlay.className = '';
+    textEl.className = '';
+  }, 2000);
 }
 
 /* ===== INIT OVERLAY ===== */
 document.getElementById('init-overlay').addEventListener('click', function() {
   initSfx();
+  if (hasLogo()) setLogo(document.getElementById('init-logo'));
   var u = new Audio('audio/times-up.mp3');
   u.volume = 0;
   u.play().then(function() { u.pause(); }).catch(function() {});
@@ -190,7 +264,7 @@ document.getElementById('init-overlay').addEventListener('click', function() {
   var self = this;
   setTimeout(function() {
     self.style.display = 'none';
-    if (st) {
+    if (st && st.phase !== 'idle') {
       var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
       show('board');
       renderBoard(st.board, st.players, cats);
@@ -226,6 +300,8 @@ socket.on('board-shown', function(d) {
   stop('intro'); show('board');
   renderBoard(d.board, d.players, d.categories);
   updateScores(d.players);
+  // Auto-reveal categories after a beat
+  setTimeout(function() { revealCategories(); }, 800);
 });
 
 socket.on('clue-opened', function(d) { showClueFromData(d); });
@@ -241,6 +317,7 @@ socket.on('dd-clue-shown', function(d) {
   document.getElementById('clue-text').textContent = d.clue || '';
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
+  document.getElementById('clue-timer-fill').classList.remove('warning');
   updateScores(st ? st.players : []);
 });
 
@@ -276,6 +353,7 @@ socket.on('score-updated', function(d) {
 socket.on('round2-started', function(d) {
   if (st) { st.board = d.board; st.players = d.players; st.currentRound = 2; st.phase = 'board'; st.currentClue = null; }
   show('board'); renderBoard(d.board, d.players, d.categories); updateScores(d.players);
+  setTimeout(function() { revealCategories(); }, 800);
 });
 
 socket.on('final-started', function(d) { showFinal(d); });
@@ -300,11 +378,7 @@ socket.on('final-revealed', function(d) {
 });
 
 socket.on('play-audio', function(d) {
-  if (d.audio) {
-    play(d.audio);
-    if (d.audio === 'correct') playCorrect();
-    if (d.audio === 'wrong') playWrong();
-  }
+  if (d.audio) play(d.audio);
 });
 
 socket.on('clue-rehidden', function(d) {
@@ -332,15 +406,28 @@ socket.on('game-reset', function(state) {
   updateScores(state.players);
 });
 
+socket.on('answer-correct', function() { showAnswerOverlay(true); });
+socket.on('answer-incorrect', function() { showAnswerOverlay(false); });
+
+socket.on('outro', function() {
+  show('outro');
+  var lg = document.getElementById('outro-logo');
+  var byline = document.getElementById('outro-byline');
+  if (hasLogo()) {
+    setLogo(lg);
+    lg.classList.remove('hidden');
+  } else {
+    lg.classList.add('hidden');
+  }
+  byline.classList.remove('hidden');
+  play('outro');
+});
+
 function showFinal(d) {
   show('final');
-  document.getElementById('final-cat').textContent = d.categories ? d.categories.join(', ') : '';
-  document.getElementById('final-text').textContent = '';
+  document.getElementById('final-cat').textContent = d.finalCategory || (d.categories ? d.categories.join(', ') : '');
+  document.getElementById('final-text').textContent = d.finalClue || '';
   document.getElementById('final-ans').classList.add('hidden');
   document.getElementById('final-results').innerHTML = '';
   if (st) updateScores(st.players);
 }
-
-/* ===== ADD CORRECT/WRONG BUTTON SUPPORT ===== */
-socket.on('play-correct', function() { playCorrect(); play('correct'); });
-socket.on('play-wrong', function() { playWrong(); play('wrong'); });
