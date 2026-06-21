@@ -16,13 +16,16 @@
     2000
   ],
   "doubleRound": true,
-  "dailyDoublesRound1": 1,
-  "dailyDoublesRound2": 2,
+  "bonusCluesRound1": 1,
+  "bonusCluesRound2": 2,
   "timerSeconds": 5,
+  "championshipCategory": "FINAL JEOPARDY",
+  "championshipClue": "\nFinalists:\nAlex\n\nBlake\n\nCasey\n\nDrew\n\nOnly one of them won.\n\nTimeline\n3:55 PM — Principal posts a sheet on the bulletin board.\n\nThe sheet shows only the winner’s name.\n\n4:02 PM — Alex walks past the board.\n\n4:04 PM — Blake walks past the board.\n\n4:06 PM — Casey walks past the board.\n\n4:08 PM — Drew walks past the board.\n\nEach finalist is alone when they pass.\nYou do not know who actually looked at the paper.\n\n4:10 PM — All four finalists meet in the hallway.\nYou ask them all at once:\n\n“Right now, do you know for sure who won the talent show?”\n\nTheir answers:\n\nAlex: “Yes, I know for sure.”\n\nBlake: “No, I don’t know.”\n\nCasey: “I don’t know, but I know that Alex knows.”\n\nDrew: “I didn’t know before, but after hearing Casey, now I know for sure who won.”\n\nAll four are answering honestly.\nNone of them have talked to anyone else.\nNone of them saw anyone else look at the board.\n\nWho won the talent show?",
+  "championshipAnswer": "Alex",
   "players": [
     "Daddy",
-    "Achchi",
-    "Seeya"
+    "Seeya",
+    "Achchi"
   ],
   "categories": [
     "Passport, Please",
@@ -116,21 +119,21 @@
       "What is kkakdugi?"
     ]
   ],
-  "dailyDoublePositions": {
+  "bonusCluePositions": {
     "round1": [
       [
-        4,
-        0
+        3,
+        4
       ]
     ],
     "round2": [
       [
         3,
-        0
+        4
       ],
       [
-        2,
-        2
+        4,
+        1
       ]
     ]
   },
@@ -139,13 +142,20 @@
     "categoryCover": "jpg",
     "hostIntro": true,
     "timesUp": true,
-    "dailyDouble": true,
-    "finalThink": true,
+    "bonusClue": true,
+    "championshipThink": true,
     "applause": false,
     "boardFill": true,
     "correct": true,
     "incorrect": true,
     "outro": true
+  },
+  "jeopardyStyle": true,
+  "labels": {
+    "bonusClue": "DAILY DOUBLE",
+    "championshipHdr": "FINAL JEOPARDY",
+    "championshipSection": "FINAL ROUND",
+    "round2Suffix": " (DOUBLE)"
   },
   "categoriesR2": [
     "Capitals of the World… Literally",

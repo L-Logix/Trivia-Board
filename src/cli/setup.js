@@ -359,51 +359,79 @@ async function main() {
 
   console.log(chalk.cyan('  \u2192 Edit ') + chalk.bold('trivia-template.csv') + chalk.cyan(' with your questions, then provide the file path below.\n'));
 
-  const { csvPath } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'csvPath',
-      message: 'Enter path to Round 1 CSV file (or press Enter to use template):'
-    }
-  ]);
-
   let csvText;
-  if (csvPath && csvPath.trim()) {
-    const resolvedPath = path.resolve(ROOT, csvPath.trim());
-    console.log(chalk.cyan('  \u2192 Reading Round 1 CSV from ' + resolvedPath + '...'));
-    try {
-      csvText = fs.readFileSync(resolvedPath, 'utf-8');
-    } catch (e) {
-      console.log(chalk.red('  \u2717 Failed to read file: ' + e.message));
-      console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
-      csvText = templateCsv;
+  let skipCsv = false;
+  if (isExisting && config.categories && config.categories.length > 0) {
+    const { reuseCsv } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'reuseCsv',
+        message: 'Keep existing Round 1 data (' + config.categories.length + ' categories)?',
+        default: true
+      }
+    ]);
+    if (reuseCsv) {
+      skipCsv = true;
+      categories = config.categories;
+      clues = config.clues;
+      answers = config.answers;
+      console.log(chalk.green('  \u2713 Kept existing Round 1 data'));
     }
-  } else {
-    console.log(chalk.yellow('  \u26a0 No file provided, using template data.\n'));
-    csvText = templateCsv;
   }
 
-  let categories, clues, answers;
-  if (csvText) {
-    try {
-      const parsed = parseCsvData(csvText);
-      const board = buildBoard(parsed, config.columns, config.rows, config.baseValues);
-      categories = board.categories;
-      clues = board.clues;
-      answers = board.answers;
-      console.log(chalk.green('  \u2713 Loaded ' + config.columns + ' categories x ' + config.rows + ' rows'));
-    } catch (e) {
-      console.log(chalk.red('  \u2717 CSV parse error: ' + e.message));
-      console.log(chalk.yellow('  \u26a0 Using placeholder data instead.\n'));
-      categories = [];
-      clues = [];
-      answers = [];
+  if (!skipCsv) {
+    const { csvPath } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'csvPath',
+        message: 'Enter path to Round 1 CSV file (or press Enter to use template):'
+      }
+    ]);
+
+    if (csvPath && csvPath.trim()) {
+      const resolvedPath = path.resolve(ROOT, csvPath.trim());
+      console.log(chalk.cyan('  \u2192 Reading Round 1 CSV from ' + resolvedPath + '...'));
+      try {
+        csvText = fs.readFileSync(resolvedPath, 'utf-8');
+      } catch (e) {
+        console.log(chalk.red('  \u2717 Failed to read file: ' + e.message));
+        console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
+        csvText = templateCsv;
+      }
+    } else {
+      console.log(chalk.yellow('  \u26a0 No file provided, using template data.\n'));
+      csvText = templateCsv;
+    }
+
+    if (csvText) {
+      try {
+        const parsed = parseCsvData(csvText);
+        const board = buildBoard(parsed, config.columns, config.rows, config.baseValues);
+        categories = board.categories;
+        clues = board.clues;
+        answers = board.answers;
+        console.log(chalk.green('  \u2713 Loaded ' + config.columns + ' categories x ' + config.rows + ' rows'));
+      } catch (e) {
+        console.log(chalk.red('  \u2717 CSV parse error: ' + e.message));
+        console.log(chalk.yellow('  \u26a0 Using placeholder data instead.\n'));
+        categories = [];
+        clues = [];
+        answers = [];
+      }
     }
   }
 
   // Round 2 data
   if (config.doubleRound) {
     console.log(chalk.cyan('\n--- Round 2 Data ---\n'));
+    let skipR2 = false;
+    if (isExisting && config.r2Categories) {
+      const { reuseR2 } = await inquirer.prompt([
+        { type: 'confirm', name: 'reuseR2', message: 'Keep existing Round 2 data?', default: true }
+      ]);
+      if (reuseR2) skipR2 = true;
+    }
+    if (!skipR2) {
     const { r2Path } = await inquirer.prompt([
       {
         type: 'input',
@@ -429,10 +457,19 @@ async function main() {
         console.log(chalk.yellow('  \u26a0 Could not load Round 2: ' + e.message));
       }
     }
+    }
   }
 
   // Championship data
   console.log(chalk.cyan('\n--- Championship Data ---\n'));
+  let skipChamp = false;
+  if (isExisting && config.championshipCategory) {
+    const { reuseChamp } = await inquirer.prompt([
+      { type: 'confirm', name: 'reuseChamp', message: 'Keep existing Championship data?', default: true }
+    ]);
+    if (reuseChamp) skipChamp = true;
+  }
+  if (!skipChamp) {
   const { championshipPath } = await inquirer.prompt([
     {
       type: 'input',
@@ -459,18 +496,28 @@ async function main() {
       console.log(chalk.yellow('  \u26a0 Could not load Championship: ' + e.message));
     }
   }
+  }
 
+  let skipPlayers = false;
+  if (isExisting && config.players && config.players.length > 0) {
+    const { reusePlayers } = await inquirer.prompt([
+      { type: 'confirm', name: 'reusePlayers', message: 'Keep existing players (' + config.players.join(', ') + ')?', default: true }
+    ]);
+    if (reusePlayers) skipPlayers = true;
+  }
+  if (!skipPlayers) {
   const { playerInput } = await inquirer.prompt([
     {
       type: 'input',
       name: 'playerInput',
       message: 'Enter Player/Team Names (comma separated):',
-      default: 'Alice,Bob,Charlie',
+      default: isExisting && config.players ? config.players.join(',') : 'Alice,Bob,Charlie',
       filter: v => v.split(',').map(s => s.trim()).filter(s => s.length > 0)
     }
   ]);
 
   config.players = playerInput;
+  }
 
   // Fallback placeholder data
   if (!categories || categories.length === 0) {
