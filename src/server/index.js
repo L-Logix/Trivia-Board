@@ -25,9 +25,17 @@ function start(port, config, callback) {
     res.sendFile(path.join(PUBLIC_DIR, 'dashboard.html'));
   });
 
+  app.get('/helper-scoring', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'helper-scoring.html'));
+  });
+
+  app.get('/helper-board', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'helper-board.html'));
+  });
+
   socketHandlers.setup(io, config);
 
-  server.listen(port, () => {
+  server.listen(port, '0.0.0.0', () => {
     if (callback) callback();
   });
 

@@ -6,20 +6,20 @@ class GameState {
     this.phase = 'idle';
     this.currentClue = null;
     this.revealedCells = {};
-    this.usedDailyDoubles = { round1: [], round2: [] };
+    this.usedBonusClues = { round1: [], round2: [] };
     this.board = [];
     this.timer = { remaining: 0, running: false, interval: null };
-    this.finalWagers = {};
-    this.finalAnswers = {};
-    this.finalPhase = null;
+    this.championshipWagers = {};
+    this.championshipAnswers = {};
+    this.championshipPhase = null;
     this._initBoard();
   }
 
   _initBoard() {
     this.board = [];
     const values = this.currentRound === 1 ? this.config.baseValues : this.config.doubleValues;
-    const ddKey = 'round' + this.currentRound;
-    const ddPositions = this.config.dailyDoublePositions[ddKey] || [];
+    const bcKey = 'round' + this.currentRound;
+    const bcPositions = this.config.bonusCluePositions[bcKey] || [];
     const cats = this.currentRound === 1 ? this.config.categories : (this.config.categoriesR2 || this.config.categories);
     const clues = this.currentRound === 1 ? this.config.clues : (this.config.cluesR2 || this.config.clues);
     const ans = this.currentRound === 1 ? this.config.answers : (this.config.answersR2 || this.config.answers);
@@ -27,14 +27,14 @@ class GameState {
     for (let c = 0; c < this.config.columns; c++) {
       const col = [];
       for (let r = 0; r < this.config.rows; r++) {
-        const isDD = ddPositions.some(([dc, dr]) => dc === c && dr === r);
+        const isBC = bcPositions.some(([bc, br]) => bc === c && br === r);
         col.push({
           value: values[r] || 200,
           clue: (clues[r] && clues[r][c]) || 'Clue text',
           answer: (ans[r] && ans[r][c]) || 'Answer text',
           category: cats[c] || 'Category',
           revealed: false,
-          isDailyDouble: isDD,
+          isBonusClue: isBC,
           col: c,
           row: r
         });
@@ -52,15 +52,15 @@ class GameState {
     const cell = this.getCell(col, row);
     if (!cell || cell.revealed) return null;
     this.currentClue = { col, row };
-    this.phase = cell.isDailyDouble ? 'daily-double' : 'clue';
+    this.phase = cell.isBonusClue ? 'bonus-clue' : 'clue';
     return cell;
   }
 
-  confirmDailyDouble() {
-    if (this.phase === 'daily-double') {
+  confirmBonusClue() {
+    if (this.phase === 'bonus-clue') {
       this.phase = 'clue';
-      const ddKey = 'round' + this.currentRound;
-      this.usedDailyDoubles[ddKey].push([this.currentClue.col, this.currentClue.row]);
+      const bcKey = 'round' + this.currentRound;
+      this.usedBonusClues[bcKey].push([this.currentClue.col, this.currentClue.row]);
     }
   }
 
@@ -94,11 +94,11 @@ class GameState {
   }
 
   setWager(playerIndex, amount) {
-    this.finalWagers[playerIndex] = amount;
+    this.championshipWagers[playerIndex] = amount;
   }
 
-  setFinalAnswer(playerIndex, correct) {
-    this.finalAnswers[playerIndex] = correct;
+  setChampionshipAnswer(playerIndex, correct) {
+    this.championshipAnswers[playerIndex] = correct;
   }
 
   revealCell(col, row) {
@@ -129,23 +129,23 @@ class GameState {
     this.phase = 'board';
     this.revealedCells = {};
     this.currentClue = null;
-    this.finalWagers = {};
-    this.finalAnswers = {};
-    this.finalPhase = null;
+    this.championshipWagers = {};
+    this.championshipAnswers = {};
+    this.championshipPhase = null;
     this._initBoard();
   }
 
-  advanceToFinal() {
-    this.phase = 'final';
-    this.finalPhase = 'wagering';
+  advanceToChampionship() {
+    this.phase = 'championship';
+    this.championshipPhase = 'wagering';
   }
 
   startThinkMusic() {
-    this.finalPhase = 'thinking';
+    this.championshipPhase = 'thinking';
   }
 
-  revealFinal() {
-    this.finalPhase = 'revealed';
+  revealChampionship() {
+    this.championshipPhase = 'revealed';
   }
 
   allRevealed() {
@@ -163,10 +163,10 @@ class GameState {
     this.phase = 'idle';
     this.currentClue = null;
     this.revealedCells = {};
-    this.usedDailyDoubles = { round1: [], round2: [] };
-    this.finalWagers = {};
-    this.finalAnswers = {};
-    this.finalPhase = null;
+    this.usedBonusClues = { round1: [], round2: [] };
+    this.championshipWagers = {};
+    this.championshipAnswers = {};
+    this.championshipPhase = null;
     this.stopTimer();
     this._initBoard();
   }
@@ -179,9 +179,9 @@ class GameState {
       phase: this.phase,
       currentClue: this.currentClue ? { ...this.currentClue } : null,
       revealedCells: { ...this.revealedCells },
-      usedDailyDoubles: {
-        round1: [...this.usedDailyDoubles.round1],
-        round2: [...this.usedDailyDoubles.round2]
+      usedBonusClues: {
+        round1: [...this.usedBonusClues.round1],
+        round2: [...this.usedBonusClues.round2]
       },
       board: this.board.map(col => col.map(cell => ({
         value: cell.value,
@@ -189,14 +189,14 @@ class GameState {
         answer: cell.answer,
         category: cell.category,
         revealed: cell.revealed,
-        isDailyDouble: cell.isDailyDouble,
+        isBonusClue: cell.isBonusClue,
         col: cell.col,
         row: cell.row
       }))),
       timer: { remaining: this.timer.remaining, running: this.timer.running },
-      finalPhase: this.finalPhase,
-      finalWagers: { ...this.finalWagers },
-      finalAnswers: { ...this.finalAnswers }
+      championshipPhase: this.championshipPhase,
+      championshipWagers: { ...this.championshipWagers },
+      championshipAnswers: { ...this.championshipAnswers }
     };
   }
 }

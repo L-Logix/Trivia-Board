@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board Helper</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100%;background:#0d0d1a;color:#ddd;font-family:'Segoe UI',Arial,sans-serif}
+    h1{font-size:1.2rem;color:#ffcc00;letter-spacing:2px;text-align:center;padding:10px;background:#141428;border-bottom:2px solid #2a2a4a;text-transform:uppercase}
+    #wrap{display:flex;gap:12px;padding:12px;max-width:900px;margin:0 auto}
+    #controls{width:240px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+    .card{background:#141428;border-radius:6px;padding:12px;border:1px solid #2a2a4a}
+    .card-lbl{font-size:.55rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+    .btn{padding:7px 12px;border:none;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:1px;width:100%;margin-bottom:4px}
+    .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+    .btn-gold{background:linear-gradient(180deg,#ffcc00,#d4a800);color:#1a1a2e}
+    .btn-blue{background:linear-gradient(180deg,#4a90d9,#3570b0);color:#fff}
+    .btn-red{background:linear-gradient(180deg,#d94a4a,#b03030);color:#fff}
+    .btn-ghost{background:transparent;color:#999;border:1px solid #3a3a5e}
+    #grid{flex:1;display:grid;gap:2px}
+    .cell{background:#1a1a3a;border-radius:2px;display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#ffcc00;border:2px solid transparent;min-height:36px;text-align:center}
+    .cell:hover{background:#2a2a5a;border-color:#4a90d9}
+    .cell.revealed{background:rgba(255,255,255,.04);opacity:.4}
+    .cell.bonus{border-color:#ffcc00}
+    .hidden{display:none!important}
+    #cats{display:grid;gap:2px;margin-bottom:4px}
+    .cat{background:#1a1a3a;color:#fff;font-size:.55rem;font-weight:700;text-transform:uppercase;display:flex;align-items:center;justify-content:center;padding:3px;border-radius:2px;letter-spacing:1px;text-align:center}
+  </style>
+</head>
+<body>
+  <h1>BOARD HELPER</h1>
+  <div id="wrap">
+    <div id="controls">
+      <div class="card">
+        <div class="card-lbl">BOARD</div>
+        <button class="btn btn-blue" id="btn-reveal-categories">REVEAL CATEGORIES</button>
+        <button class="btn btn-gold" id="btn-populate-board">POPULATE BOARD</button>
+      </div>
+      <div class="card">
+        <div class="card-lbl">GAME</div>
+        <button class="btn btn-gold" id="btn-intro">START INTRO</button>
+        <button class="btn btn-blue" id="btn-r2">ROUND 2</button>
+        <button class="btn btn-red" id="btn-championship">CHAMPIONSHIP</button>
+      </div>
+      <div class="card">
+        <div class="card-lbl">CLUE</div>
+        <button class="btn btn-gold" id="btn-reveal">REVEAL ANSWER</button>
+        <button class="btn btn-blue" id="btn-board">RETURN TO BOARD</button>
+      </div>
+      <div class="card">
+        <div class="card-lbl">AUDIO</div>
+        <button class="btn btn-ghost" id="btn-applause">APPLAUSE</button>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div id="cats"></div>
+      <div id="grid"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket-client.js"></script>
+  <script>
+    var st=null;
+    socket.on('sync-state',function(s){st=s;render(s.board,s.config.categories);document.querySelectorAll('.card .card-lbl').forEach(function(){})});
+    socket.on('board-shown',function(d){if(st){st.phase='board';st.board=d.board;st.players=d.players}render(d.board,d.categories)});
+    socket.on('round2-started',function(d){if(st){st.board=d.board;st.currentRound=2}render(d.board,d.categories||[])});
+    socket.on('board-return',function(d){if(st){st.board=d.board;st.phase='board'}render(st.board,st.config.categories)});
+    socket.on('clue-rehidden',function(d){if(st){st.board=d.board}render(d.board,st?st.config.categories:[])});
+    socket.on('cell-value-set',function(d){if(st){st.board=d.board}render(d.board,st?st.config.categories:[])});
+    socket.on('game-reset',function(s){st=s;render(s.board,s.config.categories)});
+
+    function render(board,cats){
+      if(!board||!board.length)return;
+      var cols=board.length,rows=board[0].length;
+      var h=document.getElementById('cats');h.style.gridTemplateColumns='repeat('+cols+',1fr)';h.innerHTML='';
+      for(var c=0;c<cols;c++){var d=document.createElement('div');d.className='cat';d.textContent=(cats&&cats[c])||'Cat';h.appendChild(d)}
+      var g=document.getElementById('grid');g.style.gridTemplateColumns='repeat('+cols+',1fr)';g.innerHTML='';
+      for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){
+        var cell=board[c][r];
+        var d=document.createElement('div');
+        d.className='cell'+(cell.revealed?' revealed':'')+(cell.isBonusClue?' bonus':'');
+        d.textContent=cell.revealed?'':'$'+cell.value;
+        if(!cell.revealed)d.addEventListener('click',function(c2,r2){return function(){socket.emit('select-clue',{col:c2,row:r2})}}(c,r));
+        g.appendChild(d);
+      }
+    }
+
+    document.getElementById('btn-intro').addEventListener('click',function(){socket.emit('start-intro')});
+    document.getElementById('btn-r2').addEventListener('click',function(){socket.emit('advance-round2')});
+    document.getElementById('btn-championship').addEventListener('click',function(){socket.emit('advance-championship')});
+    document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
+    document.getElementById('btn-board').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
+    document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
+    document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
+    document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
+  </script>
+</body>
+</html>

@@ -1,8 +1,9 @@
 var st = null;
 var audio = {};
 var sfxCtx = null;
+var categoriesCoverVisible = true;
+var priceCoverVisible = true;
 
-/* ===== WEB AUDIO ===== */
 function initSfx() {
   try { sfxCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
 }
@@ -19,21 +20,34 @@ function playTone(freq, dur, type, vol) {
     o.start(); o.stop(sfxCtx.currentTime + dur);
   } catch(e) {}
 }
-function playDailyDouble() {
+function playBonusClue() {
   play('dd');
   [523.25, 587.33, 659.25, 698.46, 783.99, 880].forEach(function(f, i) {
     setTimeout(function() { playTone(f, 0.25, 'sine', 0.2); }, i * 80);
   });
 }
-function playFinalReveal() {
+function playChampionshipReveal() {
   [392, 392, 523.25, 392, 523.25, 659.25].forEach(function(f, i) {
     setTimeout(function() { playTone(f, 0.3, 'sine', 0.15); }, i * 150);
   });
 }
 
 function initAudio() {
-  ['intro','timesup','dd','think','applause','boardfill','correct','incorrect','outro'].forEach(function(k) {
-    audio[k] = document.getElementById('a-'+k);
+  var map = {
+    intro:'audio/host-intro.mp3',
+    timesup:'audio/times-up.mp3',
+    dd:'audio/daily-double.mp3',
+    think:'audio/final-think.mp3',
+    applause:'audio/applause.mp3',
+    boardfill:'audio/board-fill.mp3',
+    correct:'audio/correct.mp3',
+    incorrect:'audio/incorrect.mp3',
+    outro:'audio/outro.mp3'
+  };
+  Object.keys(map).forEach(function(k) {
+    var el = document.getElementById('a-'+k);
+    if (el) { el.src = map[k]; el.load(); }
+    audio[k] = el;
   });
 }
 function play(k) {
@@ -48,7 +62,6 @@ function stop(k) {
 function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function fmt(s) { return (s >= 0 ? '' : '-') + '$' + Math.abs(s); }
 
-/* ===== PHASE TRANSITION ===== */
 function show(id) {
   var overlay = document.getElementById('phase-overlay');
   if (overlay) {
@@ -72,14 +85,15 @@ function animateScore(el) {
   el.classList.add('score-pop');
 }
 
-/* ===== DYNAMIC LOGO SRC ===== */
+function label(key) {
+  return (st && st.config && st.config.labels && st.config.labels[key]) || '';
+}
 function logoAsset() {
   var a = st && st.config && st.config.assets && st.config.assets.logo;
   return a && typeof a === 'string' ? a : null;
 }
 function logoExt() { return logoAsset() || 'svg'; }
 function hasLogo() { return !!logoAsset(); }
-
 function setLogo(el) {
   if (el) el.src = 'img/logo.' + logoExt();
 }
@@ -88,6 +102,8 @@ function setLogo(el) {
 function renderBoard(board, players, cats) {
   if (!board || !board.length) return;
   var cols = board.length, rows = board[0].length;
+  categoriesCoverVisible = true;
+  priceCoverVisible = true;
 
   var h = document.getElementById('board-cats');
   h.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
@@ -96,8 +112,23 @@ function renderBoard(board, players, cats) {
     var d = document.createElement('div');
     d.className = 'board-cat';
     d.textContent = (cats && cats[c]) || 'Category';
-    d.style.animationDelay = (c * 0.06) + 's';
     h.appendChild(d);
+  }
+
+  // Per-category covers
+  var cc = document.getElementById('board-cat-covers');
+  if (cc) {
+    cc.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+    cc.innerHTML = '';
+    for (var c2 = 0; c2 < cols; c2++) {
+      var cover = document.createElement('div');
+      cover.className = 'cat-cover visible';
+      var catCoverAsset = st && st.config && st.config.assets && st.config.assets.categoryCover;
+      if (catCoverAsset && typeof catCoverAsset === 'string') {
+        cover.style.backgroundImage = 'url(img/cat-cover.' + catCoverAsset + ')';
+      }
+      cc.appendChild(cover);
+    }
   }
 
   // Price cover - one big cover over entire grid
@@ -129,10 +160,21 @@ function renderBoard(board, players, cats) {
   renderScores(players, document.getElementById('board-scores'));
 }
 
-function revealCategories() {
+function revealCategoryCovers() {
+  var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
+  if (!covers.length) return;
+  covers.forEach(function(c, i) {
+    setTimeout(function() {
+      c.classList.remove('visible');
+      c.classList.add('revealed');
+      c.style.animation = 'catCoverReveal .5s cubic-bezier(.68,-0.55,.27,1.55) forwards';
+    }, i * 200 + 100);
+  });
+}
+
+function revealPriceCover() {
   var coverEl = document.getElementById('board-price-cover');
   if (coverEl) coverEl.classList.add('revealed');
-  // Flip in clue cells with staggered delay
   var cells = document.querySelectorAll('.board-cell:not(.revealed)');
   cells.forEach(function(c, i) {
     setTimeout(function() {
@@ -140,6 +182,7 @@ function revealCategories() {
     }, i * 35 + 50);
   });
   play('boardfill');
+  priceCoverVisible = false;
 }
 
 function renderScores(players, container) {
@@ -156,36 +199,32 @@ function renderScores(players, container) {
 function updateScores(players) {
   renderScores(players, document.getElementById('board-scores'));
   renderScores(players, document.getElementById('clue-scores'));
-  renderScores(players, document.getElementById('final-scores'));
+  if (document.getElementById('championship-scores')) renderScores(players, document.getElementById('championship-scores'));
 }
 
 /* ===== CLUE ===== */
 function showClue(cell) {
   document.getElementById('clue-cat').textContent = cell.category || '';
-  document.getElementById('clue-val').textContent = cell.isDailyDouble ? 'DAILY DOUBLE' : '$' + cell.value;
+  document.getElementById('clue-val').textContent = cell.isBonusClue ? label('bonusClue') || 'BONUS CLUE' : '$' + cell.value;
   document.getElementById('clue-text').textContent = cell.clue || '';
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
   document.getElementById('clue-timer-fill').classList.remove('warning');
-  var rl = document.getElementById('clue-round-label');
-  if (rl) rl.textContent = st && st.currentRound === 2 ? 'DOUBLE ROUND' : '';
   show('clue');
   updateScores(st ? st.players : []);
 }
 
 function showClueFromData(d) {
   document.getElementById('clue-cat').textContent = d.category || '';
-  document.getElementById('clue-val').textContent = d.isDailyDouble ? 'DAILY DOUBLE' : '$' + (d.value || 0);
+  document.getElementById('clue-val').textContent = d.isBonusClue ? label('bonusClue') || 'BONUS CLUE' : '$' + (d.value || 0);
   document.getElementById('clue-text').textContent = d.clue || '';
   document.getElementById('clue-ans').classList.add('hidden');
   var pct = d.timerSeconds > 0 ? (d.timerRemaining / d.timerSeconds) * 100 : 100;
   document.getElementById('clue-timer-fill').style.width = pct + '%';
   document.getElementById('clue-timer-fill').classList.remove('warning');
-  var rl = document.getElementById('clue-round-label');
-  if (rl) rl.textContent = (d.currentRound || (st && st.currentRound) || 1) === 2 ? 'DOUBLE ROUND' : '';
   show('clue');
   updateScores(st ? st.players : []);
-  if (d.isDailyDouble) playDailyDouble();
+  if (d.isBonusClue) playBonusClue();
 }
 
 /* ===== LOGO INTRO ===== */
@@ -288,8 +327,8 @@ socket.on('sync-state', function(state) {
         updateScores(state.players); break;
       case 'clue':
         if (state.currentClue) { var c = state.board[state.currentClue.col][state.currentClue.row]; showClue(c); } break;
-      case 'daily-double': show('dd'); playDailyDouble(); break;
-      case 'final': showFinal(state); break;
+      case 'bonus-clue': show('dd'); playBonusClue(); break;
+      case 'championship': showChampionship(state); break;
     }
   }
 });
@@ -298,22 +337,36 @@ socket.on('intro-started', function() { playLogo(); });
 
 socket.on('board-shown', function(d) {
   stop('intro'); show('board');
+  categoriesCoverVisible = true;
+  priceCoverVisible = true;
   renderBoard(d.board, d.players, d.categories);
   updateScores(d.players);
-  // Auto-reveal categories after a beat
-  setTimeout(function() { revealCategories(); }, 800);
+});
+
+socket.on('categories-revealed', function() {
+  revealCategoryCovers();
+});
+
+socket.on('board-populated', function() {
+  revealPriceCover();
 });
 
 socket.on('clue-opened', function(d) { showClueFromData(d); });
 
-socket.on('daily-double-activated', function() {
-  show('dd'); playDailyDouble();
+socket.on('bonus-clue-activated', function() {
+  var bcLabel = label('bonusClue') || 'BONUS CLUE';
+  var parts = bcLabel.split(' ');
+  var ddTitle1 = document.querySelector('#dd-wrap .dd-title');
+  var ddTitle2 = document.querySelector('#dd-wrap .dd-title.sub');
+  if (ddTitle1) ddTitle1.textContent = parts[0] || 'BONUS';
+  if (ddTitle2) ddTitle2.textContent = parts.slice(1).join(' ') || 'CLUE!';
+  show('dd'); playBonusClue();
 });
 
-socket.on('dd-clue-shown', function(d) {
+socket.on('bonus-clue-shown', function(d) {
   show('clue');
   document.getElementById('clue-cat').textContent = d.category || '';
-  document.getElementById('clue-val').textContent = 'DAILY DOUBLE';
+  document.getElementById('clue-val').textContent = label('bonusClue') || 'BONUS CLUE';
   document.getElementById('clue-text').textContent = d.clue || '';
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
@@ -353,27 +406,26 @@ socket.on('score-updated', function(d) {
 socket.on('round2-started', function(d) {
   if (st) { st.board = d.board; st.players = d.players; st.currentRound = 2; st.phase = 'board'; st.currentClue = null; }
   show('board'); renderBoard(d.board, d.players, d.categories); updateScores(d.players);
-  setTimeout(function() { revealCategories(); }, 800);
 });
 
-socket.on('final-started', function(d) { showFinal(d); });
+socket.on('championship-started', function(d) { showChampionship(d); });
 
 socket.on('think-music-start', function() {
   play('think');
-  if (st) st.finalPhase = 'thinking';
-  document.getElementById('final-text').textContent = '';
+  if (st) st.championshipPhase = 'thinking';
+  document.getElementById('championship-text').textContent = '';
 });
 
-socket.on('final-revealed', function(d) {
-  stop('think'); show('final');
-  playFinalReveal();
-  if (d.answer) { document.getElementById('final-ans').textContent = d.answer; document.getElementById('final-ans').classList.remove('hidden'); }
+socket.on('championship-revealed', function(d) {
+  stop('think'); show('championship');
+  playChampionshipReveal();
+  if (d.answer) { document.getElementById('championship-ans').textContent = d.answer; document.getElementById('championship-ans').classList.remove('hidden'); }
   if (d.players) {
     var html = '<div style="margin:15px 0;font-size:1.3vw;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase">Final Scores</div>';
-    d.players.forEach(function(p) { html += '<span class="final-row"><div class="final-r-name">' + esc(p.name) + '</div><div class="final-r-score">' + fmt(p.score) + '</div></span>'; });
-    document.getElementById('final-results').innerHTML = html;
+    d.players.forEach(function(p) { html += '<span class="championship-row"><div class="championship-r-name">' + esc(p.name) + '</div><div class="championship-r-score">' + fmt(p.score) + '</div></span>'; });
+    document.getElementById('championship-results').innerHTML = html;
   }
-  renderScores(d.players, document.getElementById('final-scores'));
+  if (document.getElementById('championship-scores')) renderScores(d.players, document.getElementById('championship-scores'));
   setTimeout(function() { play('applause'); }, 800);
 });
 
@@ -423,11 +475,22 @@ socket.on('outro', function() {
   play('outro');
 });
 
-function showFinal(d) {
-  show('final');
-  document.getElementById('final-cat').textContent = d.finalCategory || (d.categories ? d.categories.join(', ') : '');
-  document.getElementById('final-text').textContent = d.finalClue || '';
-  document.getElementById('final-ans').classList.add('hidden');
-  document.getElementById('final-results').innerHTML = '';
+socket.on('category-revealed-broadcast', function(d) {
+  // Reveal a single category cover
+  var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
+  if (covers[d.index]) {
+    covers[d.index].classList.remove('visible');
+    covers[d.index].classList.add('revealed');
+    covers[d.index].style.animation = 'catCoverReveal .5s cubic-bezier(.68,-0.55,.27,1.55) forwards';
+  }
+});
+
+function showChampionship(d) {
+  show('championship');
+  document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
+  document.getElementById('championship-cat').textContent = d.championshipCategory || (d.categories ? d.categories.join(', ') : '');
+  document.getElementById('championship-text').textContent = d.championshipClue || '';
+  document.getElementById('championship-ans').classList.add('hidden');
+  document.getElementById('championship-results').innerHTML = '';
   if (st) updateScores(st.players);
 }

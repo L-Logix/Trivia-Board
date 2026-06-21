@@ -20,7 +20,7 @@
       <div class="hdr-right">
         <button id="btn-intro" class="b b-gold">START <kbd>SPACE</kbd></button>
         <button id="btn-r2" class="b b-blue">ROUND 2</button>
-        <button id="btn-final" class="b b-red">FINAL</button>
+        <button id="btn-championship" class="b b-red">CHAMPIONSHIP</button>
         <button id="btn-reset" class="b b-ghost">RESET</button>
       </div>
     </header>
@@ -41,14 +41,19 @@
           <button class="b b-gold b-full" id="btn-reveal">REVEAL ANSWER</button>
           <button class="b b-blue b-full" id="btn-board">RETURN TO BOARD</button>
         </div>
-        <div class="card hidden" id="card-dd">
-          <div class="card-lbl">DAILY DOUBLE</div>
-          <button class="b b-gold b-full" id="btn-dd-show">SHOW CLUE</button>
+        <div class="card hidden" id="card-bonus">
+          <div class="card-lbl">BONUS CLUE</div>
+          <button class="b b-gold b-full" id="btn-bonus-show">SHOW CLUE</button>
         </div>
-        <div class="card hidden" id="card-final">
-          <div class="card-lbl">FINAL ROUND</div>
+        <div class="card hidden" id="card-populate">
+          <div class="card-lbl">BOARD CONTROLS</div>
+          <button class="b b-gold b-full" id="btn-reveal-categories">REVEAL CATEGORIES</button>
+          <button class="b b-blue b-full" id="btn-populate-board">POPULATE BOARD</button>
+        </div>
+        <div class="card hidden" id="card-championship">
+          <div class="card-lbl">CHAMPIONSHIP</div>
           <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
-          <button class="b b-red b-full" id="btn-reveal-final">REVEAL RESULTS</button>
+          <button class="b b-red b-full" id="btn-reveal-championship">REVEAL RESULTS</button>
           <button class="b b-ghost b-full" id="btn-applause">APPLAUSE</button>
         </div>
         <div class="card hidden" id="card-correct">
@@ -81,13 +86,13 @@
     </div>
   </div>
 
-  <div id="modal-final" class="modal hidden">
+  <div id="modal-championship" class="modal hidden">
     <div class="modal-bx modal-w">
-      <h2>Final Round Results</h2>
-      <div id="final-form"></div>
+      <h2>Championship Results</h2>
+      <div id="championship-form"></div>
       <div class="modal-acts">
-        <button class="b b-gold" id="mfinal-go">REVEAL</button>
-        <button class="b b-ghost" id="mfinal-no">CANCEL</button>
+        <button class="b b-gold" id="mchampionship-go">REVEAL</button>
+        <button class="b b-ghost" id="mchampionship-no">CANCEL</button>
       </div>
     </div>
   </div>

@@ -2,10 +2,12 @@ const GameState = require('./game-state');
 
 let gameState = null;
 let io = null;
+let allCategoriesRevealed = {};
 
 function setup(ioInstance, config) {
   io = ioInstance;
   gameState = new GameState(config);
+  allCategoriesRevealed = {};
 
   io.on('connection', (socket) => {
     console.log('Client connected: ' + socket.id);
@@ -22,11 +24,22 @@ function setup(ioInstance, config) {
     socket.on('intro-complete', () => {
       gameState.phase = 'board';
       var cats = gameState.currentRound === 2 ? (gameState.config.categoriesR2 || gameState.config.categories) : gameState.config.categories;
+      allCategoriesRevealed = {};
       io.emit('board-shown', { phase: 'board', board: gameState.board, players: gameState.players, categories: cats });
     });
 
     socket.on('reveal-categories', () => {
-      io.emit('categories-revealed');
+      io.emit('categories-revealed', {});
+    });
+
+    socket.on('reveal-category', (data) => {
+      var idx = data.index;
+      allCategoriesRevealed[idx] = true;
+      io.emit('category-revealed-broadcast', { index: idx, allRevealed: Object.keys(allCategoriesRevealed).length >= gameState.config.columns });
+    });
+
+    socket.on('populate-board', () => {
+      io.emit('board-populated', {});
     });
 
     socket.on('select-clue', (data) => {
@@ -40,15 +53,15 @@ function setup(ioInstance, config) {
         clue: cell.clue,
         answer: cell.answer,
         category: cell.category,
-        isDailyDouble: cell.isDailyDouble,
+        isBonusClue: cell.isBonusClue,
         phase: gameState.phase,
         currentRound: gameState.currentRound,
         timerSeconds: gameState.config.timerSeconds,
         timerRemaining: gameState.timer.remaining
       });
 
-      if (cell.isDailyDouble) {
-        io.emit('daily-double-activated', { col, row });
+      if (cell.isBonusClue) {
+        io.emit('bonus-clue-activated', { col, row });
       }
 
       gameState.startTimer(
@@ -57,11 +70,11 @@ function setup(ioInstance, config) {
       );
     });
 
-    socket.on('daily-double-confirm', () => {
-      gameState.confirmDailyDouble();
+    socket.on('bonus-clue-confirm', () => {
+      gameState.confirmBonusClue();
       const cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
       if (cell) {
-        io.emit('dd-clue-shown', {
+        io.emit('bonus-clue-shown', {
           clue: cell.clue,
           value: cell.value,
           category: cell.category
@@ -142,6 +155,7 @@ function setup(ioInstance, config) {
 
     socket.on('advance-round2', () => {
       gameState.advanceToRound2();
+      allCategoriesRevealed = {};
       var r2Cats = gameState.config.categoriesR2 || gameState.config.categories;
       io.emit('round2-started', {
         board: gameState.board,
@@ -152,25 +166,25 @@ function setup(ioInstance, config) {
       });
     });
 
-    socket.on('advance-final', () => {
-      gameState.advanceToFinal();
+    socket.on('advance-championship', () => {
+      gameState.advanceToChampionship();
       var cats = gameState.currentRound === 2 ? (gameState.config.categoriesR2 || gameState.config.categories) : gameState.config.categories;
-      io.emit('final-started', {
-        phase: 'final',
-        finalPhase: 'wagering',
+      io.emit('championship-started', {
+        phase: 'championship',
+        championshipPhase: 'wagering',
         categories: cats,
-        finalCategory: gameState.config.finalCategory || '',
-        finalClue: gameState.config.finalClue || ''
+        championshipCategory: gameState.config.championshipCategory || '',
+        championshipClue: gameState.config.championshipClue || ''
       });
     });
 
     socket.on('start-think-music', () => {
       gameState.startThinkMusic();
-      io.emit('think-music-start', { finalPhase: 'thinking' });
+      io.emit('think-music-start', { championshipPhase: 'thinking' });
     });
 
-    socket.on('reveal-final', (data) => {
-      gameState.revealFinal();
+    socket.on('reveal-championship', (data) => {
+      gameState.revealChampionship();
       const updatedPlayers = gameState.players.map((p, i) => {
         const wager = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
         const correct = data.correct && data.correct[i] !== undefined ? data.correct[i] : false;
@@ -181,9 +195,9 @@ function setup(ioInstance, config) {
         }
         return { ...p };
       });
-      io.emit('final-revealed', {
+      io.emit('championship-revealed', {
         players: updatedPlayers,
-        finalPhase: 'revealed',
+        championshipPhase: 'revealed',
         answer: data.answer || ''
       });
     });
@@ -198,6 +212,7 @@ function setup(ioInstance, config) {
 
     socket.on('reset-game', () => {
       gameState.reset();
+      allCategoriesRevealed = {};
       io.emit('game-reset', gameState.serialize());
     });
 

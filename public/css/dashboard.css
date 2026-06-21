@@ -5,16 +5,17 @@ html,body{width:100%;min-height:100%;background:#0d0d1a;color:#ddd;font-family:'
 
 /* HEADER */
 #dash-hdr{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#141428;border-bottom:2px solid #2a2a4a;flex-wrap:wrap}
-.hdr-left{display:flex;align-items:baseline;gap:8px;margin-right:auto}
+.hdr-left{display:flex;align-items:baseline;gap:8px;margin:0 auto}
 .hdr-left h1{font-size:1.1rem;color:#ffcc00;letter-spacing:1px}
-.hdr-sub{font-size:.65rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px}
+.hdr-sub{font-size:.65rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px;display:none}
 .hdr-mid{display:flex;align-items:center;gap:6px}
 .badge{padding:2px 10px;border-radius:10px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .badge.idle{background:#2a2a4a;color:#888}
 .badge.intro{background:#4a90d9;color:#fff}
 .badge.board{background:#1a6a3a;color:#8f8}
 .badge.clue{background:#c9902a;color:#1a1a2e}
-.badge.daily-double{background:#c94a7a;color:#fff}
+.badge.bonus-clue{background:#c94a7a;color:#fff}
+.badge.championship{background:#c94a4a;color:#fff}
 .badge.final{background:#c94a4a;color:#fff}
 .badge-r{font-size:.65rem;color:rgba(255,255,255,.3);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:10px}
 .hdr-right{display:flex;gap:4px}
@@ -50,7 +51,7 @@ kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px
 .d-cell-ans{font-size:.5rem;color:rgba(255,255,255,.35);margin-top:2px;text-align:center}
 
 /* SIDEBAR */
-#dash-side{width:240px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+#dash-side{width:240px;display:flex;flex-direction:column;gap:6px;flex-shrink:0;border-right:2px solid #2a2a4a;padding-right:8px}
 .card{background:#141428;border-radius:6px;padding:10px;border:1px solid #2a2a4a}
 .card-lbl{font-size:.55rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
 .card-info{font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:6px;text-align:center}

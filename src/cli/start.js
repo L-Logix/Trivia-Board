@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const chalk = require('chalk');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -68,7 +69,7 @@ function ensureDefaultLogo() {
 }
 
 function main() {
-  console.log(chalk.cyan('\n  Broadcast Engine'));
+  console.log(chalk.cyan('\n  Trivia Broadcast Engine'));
   console.log(chalk.cyan('  ========================================\n'));
 
   if (!fs.existsSync(CONFIG_PATH)) {
@@ -92,8 +93,21 @@ function main() {
     console.log(chalk.green('  \u2713 Server running on http://localhost:' + PORT));
     console.log(chalk.cyan('    Broadcast:  http://localhost:' + PORT + '/broadcast'));
     console.log(chalk.cyan('    Dashboard:  http://localhost:' + PORT + '/dashboard'));
+    console.log(chalk.cyan('    Scoring:    http://localhost:' + PORT + '/helper-scoring'));
+    console.log(chalk.cyan('    Board:     http://localhost:' + PORT + '/helper-board'));
     console.log('');
-    console.log(chalk.yellow('  Drag Broadcast window to TV. Keep Dashboard on your laptop.'));
+    // Show LAN IPs for other devices
+    var ifaces = os.networkInterfaces();
+    Object.keys(ifaces).forEach(function(name) {
+      ifaces[name].forEach(function(info) {
+        if (info.family === 'IPv4' && !info.internal) {
+          console.log(chalk.cyan('  \u2192 LAN: http://' + info.address + ':' + PORT));
+        }
+      });
+    });
+    console.log('');
+    console.log(chalk.yellow('  Drag Broadcast window to TV. Other devices can access'));
+    console.log(chalk.yellow('  Dashboard and Helpers via the LAN address above.'));
     console.log(chalk.yellow('  Press SPACEBAR on Dashboard to start the intro.\n'));
   });
 }

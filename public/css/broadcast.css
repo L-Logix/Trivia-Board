@@ -131,6 +131,31 @@ html,body {
   z-index:1;
 }
 
+/* ===== CATEGORY COVERS (one per category, host reveals individually) ===== */
+#board-cat-covers {
+  position:absolute; top:0; left:0; width:100%;
+  display:grid; gap:2px;
+  z-index:2;
+  height:15%;
+  pointer-events:none;
+}
+.cat-cover {
+  background:#060ce9;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+  border:2px solid #ffcc00;
+  box-shadow:0 0 15px rgba(255,204,0,.15);
+  height:100%;
+  transition:opacity .3s;
+}
+.cat-cover.visible { opacity:1; }
+.cat-cover.revealed { opacity:0; }
+@keyframes catCoverReveal {
+  0%{opacity:1;transform:translateY(0) scaleY(1)}
+  100%{opacity:0;transform:translateY(-100%) scaleY(0)}
+}
+
 /* ===== PRICE COVER (one big cover over all clue cells) ===== */
 #board-grid-wrap {
   flex:1; position:relative;
@@ -241,7 +266,7 @@ html,body {
 }
 
 /* ===== SCORE BAR ===== */
-#board-scores, #clue-scores, #final-scores {
+#board-scores, #clue-scores, #championship-scores {
   position:absolute; bottom:0; left:0;
   width:100%; height:8%;
   background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,#000 100%);
@@ -348,7 +373,7 @@ html,body {
   50%{opacity:.4}
 }
 
-/* ===== DAILY DOUBLE ===== */
+/* ===== BONUS CLUE ===== */
 #phase-dd {
   background:#060ce9;
   overflow:hidden;
@@ -387,48 +412,48 @@ html,body {
   100%{opacity:1;transform:scale(1)}
 }
 
-/* ===== FINAL ===== */
-#phase-final { background:#060ce9; }
-#final-wrap {
+/* ===== CHAMPIONSHIP ===== */
+#phase-championship { background:#060ce9; }
+#championship-wrap {
   width:100%; height:90%;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center; padding:5%;
 }
-#final-hdr {
+#championship-hdr {
   font-family:'Oswald','Impact',sans-serif;
   font-size:4vw; font-weight:700;
   color:#ffcc00; letter-spacing:8px; margin-bottom:25px;
   text-shadow:0 0 50px rgba(255,204,0,.15);
-  animation:finalHdr .8s ease;
+  animation:championshipHdr .8s ease;
 }
-@keyframes finalHdr { 0%{opacity:0;letter-spacing:20px} 100%{opacity:1;letter-spacing:8px} }
-#final-cat {
+@keyframes championshipHdr { 0%{opacity:0;letter-spacing:20px} 100%{opacity:1;letter-spacing:8px} }
+#championship-cat {
   font-family:'Oswald','Impact',sans-serif;
   font-size:1.4vw; letter-spacing:4px;
   color:rgba(255,255,255,.4); text-transform:uppercase; margin-bottom:35px;
 }
-#final-text {
+#championship-text {
   font-family:'Libre Baskerville','Georgia',serif;
   font-size:2.5vw; text-align:center; max-width:80%; line-height:1.4;
 }
-#final-ans {
+#championship-ans {
   font-family:'Libre Baskerville','Georgia',serif;
   font-size:2.2vw; font-weight:700; color:#ffcc00;
   text-align:center; margin-top:35px; padding:16px 45px;
   border:3px solid #ffcc00;
   background:rgba(255,204,0,.05);
   box-shadow:0 0 60px rgba(255,204,0,.15);
-  animation:finalAns 1s cubic-bezier(.175,.885,.32,1.275);
+  animation:championshipAns 1s cubic-bezier(.175,.885,.32,1.275);
 }
-@keyframes finalAns {
+@keyframes championshipAns {
   0%{opacity:0;transform:scale(0) rotateX(90deg)}
   50%{transform:scale(1.1) rotateX(-10deg)}
   100%{opacity:1;transform:scale(1) rotateX(0)}
 }
-#final-results { margin-top:25px; text-align:center; animation:fadeUp .8s ease; }
-.final-row { display:inline-block; margin:0 20px; padding:12px 24px; background:rgba(255,255,255,.06); }
-.final-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
-.final-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
+#championship-results { margin-top:25px; text-align:center; animation:fadeUp .8s ease; }
+.championship-row { display:inline-block; margin:0 20px; padding:12px 24px; background:rgba(255,255,255,.06); }
+.championship-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
+.championship-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
 
 /* ===== OUTRO ===== */
 #phase-outro {

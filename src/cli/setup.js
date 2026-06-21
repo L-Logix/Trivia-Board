@@ -166,7 +166,7 @@ function generateTemplate(config) {
   return csv;
 }
 
-function assignDailyDoubles(columns, rows, count) {
+function assignBonusClues(columns, rows, count) {
   const positions = [];
   const used = new Set();
   while (positions.length < count) {
@@ -202,24 +202,61 @@ function copyAssetFile(srcPath, destPath) {
 async function main() {
   showSplash();
 
+  const configExists = fs.existsSync(CONFIG_PATH);
+  const modeChoices = [
+    { name: 'Typical Trivia (Auto-fills classic TV rules)', value: 'typical' },
+    { name: 'Custom Configuration', value: 'custom' }
+  ];
+  if (configExists) {
+    modeChoices.push({ name: 'Use Existing Configuration (reuse config.json)', value: 'existing' });
+  }
+
   const { mode } = await inquirer.prompt([
     {
       type: 'list',
       name: 'mode',
       message: 'Select configuration mode:',
-      choices: [
-        { name: 'Typical Trivia (Auto-fills classic TV rules)', value: 'typical' },
-        { name: 'Custom Configuration', value: 'custom' }
-      ]
+      choices: modeChoices
     }
   ]);
 
   let config = {};
+  let isExisting = false;
 
-  if (mode === 'typical') {
+  if (mode === 'existing') {
+    isExisting = true;
+    config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+    console.log(chalk.green('\n  \u2713 Loaded existing config.json'));
+    console.log(chalk.cyan('  Current settings summary:\n'));
+    console.log(chalk.cyan('    Columns: ') + (config.columns || 'not set'));
+    console.log(chalk.cyan('    Rows: ') + (config.rows || 'not set'));
+    console.log(chalk.cyan('    Players: ') + ((config.players && config.players.join(', ')) || 'not set'));
+    console.log(chalk.cyan('    Timer: ') + (config.timerSeconds || 'not set') + 's');
+    console.log(chalk.cyan('    Logo: ') + (config.assets && config.assets.logo ? 'yes' : 'no'));
+    console.log(chalk.cyan('    Categories: ') + (config.categories ? config.categories.length : 'not set'));
+    if (config.championshipCategory) console.log(chalk.cyan('    Championship: ') + config.championshipCategory);
+    console.log('');
+    
+    const { modify } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'modify',
+        message: 'Would you like to modify settings or fill in missing values?',
+        default: false
+      }
+    ]);
+    if (!modify) {
+      console.log(chalk.green('\u2713 Config unchanged.\n'));
+      console.log(chalk.cyan('Run ') + chalk.bold('trivia start') + chalk.cyan(' to launch the broadcast server.\n'));
+      process.exit(0);
+    }
+    console.log(chalk.cyan('  \u2192 Proceeding through prompts with existing values as defaults.\n'));
+  }
+
+  if (mode === 'typical' && !isExisting) {
     console.log(chalk.green('\n  \u2713 Auto-filling: 6 columns, 5 rows'));
     console.log(chalk.green('  \u2713 Values: $200-$1000 Single, $400-$2000 Double'));
-    console.log(chalk.green('  \u2713 Daily Doubles: 1 in Round 1, 2 in Round 2'));
+    console.log(chalk.green('  \u2713 Bonus Clues: 1 in Round 1, 2 in Round 2'));
     console.log(chalk.green('  \u2713 Timer: 5 seconds\n'));
 
     config.columns = 6;
@@ -227,30 +264,31 @@ async function main() {
     config.baseValues = [200, 400, 600, 800, 1000];
     config.doubleValues = [400, 800, 1200, 1600, 2000];
     config.doubleRound = true;
-    config.dailyDoublesRound1 = 1;
-    config.dailyDoublesRound2 = 2;
+    config.bonusCluesRound1 = 1;
+    config.bonusCluesRound2 = 2;
     config.timerSeconds = 5;
   } else {
+    const dfl = isExisting ? config : {};
     const answers = await inquirer.prompt([
       {
         type: 'number',
         name: 'columns',
         message: 'Enter number of columns (Categories):',
-        default: 6,
+        default: dfl.columns || 6,
         validate: v => v > 0 && v <= 12
       },
       {
         type: 'number',
         name: 'rows',
         message: 'Enter number of rows (Questions per category):',
-        default: 5,
+        default: dfl.rows || 5,
         validate: v => v > 0 && v <= 10
       },
       {
         type: 'input',
         name: 'baseValues',
         message: 'Enter base point values (comma separated):',
-        default: '200,400,600,800,1000',
+        default: dfl.baseValues ? dfl.baseValues.join(',') : '200,400,600,800,1000',
         filter: v => v.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)),
         validate: v => v.length > 0
       },
@@ -258,20 +296,20 @@ async function main() {
         type: 'confirm',
         name: 'doubleRound',
         message: 'Enable Double Round?',
-        default: true
+        default: dfl.doubleRound !== undefined ? dfl.doubleRound : true
       },
       {
         type: 'number',
-        name: 'dailyDoublesRound1',
-        message: 'How many Daily Doubles in Round 1?:',
-        default: 1,
+        name: 'bonusCluesRound1',
+        message: 'How many Bonus Clues in Round 1?:',
+        default: dfl.bonusCluesRound1 || 1,
         validate: v => v >= 0 && v <= 4
       },
       {
         type: 'number',
-        name: 'dailyDoublesRound2',
-        message: 'How many Daily Doubles in Round 2?:',
-        default: 2,
+        name: 'bonusCluesRound2',
+        message: 'How many Bonus Clues in Round 2?:',
+        default: dfl.bonusCluesRound2 || 2,
         when: a => a.doubleRound,
         validate: v => v >= 0 && v <= 4
       },
@@ -279,22 +317,23 @@ async function main() {
         type: 'number',
         name: 'timerSeconds',
         message: 'Enter Time\'s Up buzzer limit (in seconds):',
-        default: 5,
+        default: dfl.timerSeconds || 5,
         validate: v => v >= 1 && v <= 60
       }
     ]);
 
-    if (answers.doubleRound && !answers.dailyDoublesRound2) answers.dailyDoublesRound2 = 2;
+    if (answers.doubleRound && !answers.bonusCluesRound2) answers.bonusCluesRound2 = 2;
     if (!answers.doubleRound) {
-      answers.dailyDoublesRound2 = 0;
+      answers.bonusCluesRound2 = 0;
       answers.doubleValues = answers.baseValues;
     } else {
+      const dvDefault = dfl.doubleValues ? dfl.doubleValues.join(',') : answers.baseValues.map(v => v * 2).join(',');
       const { doubleValues } = await inquirer.prompt([
         {
           type: 'input',
           name: 'doubleValues',
           message: 'Enter Double Round point values (comma separated):',
-          default: answers.baseValues.map(v => v * 2).join(','),
+          default: dvDefault,
           filter: v => v.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)),
           validate: v => v.length === answers.baseValues.length
         }
@@ -307,8 +346,8 @@ async function main() {
     config.baseValues = answers.baseValues;
     config.doubleValues = answers.doubleValues || answers.baseValues;
     config.doubleRound = answers.doubleRound;
-    config.dailyDoublesRound1 = answers.dailyDoublesRound1;
-    config.dailyDoublesRound2 = answers.dailyDoublesRound2;
+    config.bonusCluesRound1 = answers.bonusCluesRound1;
+    config.bonusCluesRound2 = answers.bonusCluesRound2;
     config.timerSeconds = answers.timerSeconds;
   }
 
@@ -392,32 +431,32 @@ async function main() {
     }
   }
 
-  // Final data
-  console.log(chalk.cyan('\n--- Final Data ---\n'));
-  const { finalPath } = await inquirer.prompt([
+  // Championship data
+  console.log(chalk.cyan('\n--- Championship Data ---\n'));
+  const { championshipPath } = await inquirer.prompt([
     {
       type: 'input',
-      name: 'finalPath',
-      message: 'Enter path to Final CSV file (Category,Clue,Answer - or press Enter to skip):'
+      name: 'championshipPath',
+      message: 'Enter path to Championship CSV file (Category,Clue,Answer - or press Enter to skip):'
     }
   ]);
 
-  if (finalPath && finalPath.trim()) {
-    const resolvedPath = path.resolve(ROOT, finalPath.trim());
-    console.log(chalk.cyan('  \u2192 Reading Final CSV from ' + resolvedPath + '...'));
+  if (championshipPath && championshipPath.trim()) {
+    const resolvedPath = path.resolve(ROOT, championshipPath.trim());
+    console.log(chalk.cyan('  \u2192 Reading Championship CSV from ' + resolvedPath + '...'));
     try {
-      const finalText = fs.readFileSync(resolvedPath, 'utf-8');
-      const finalParsed = parseCsvData(finalText);
-      if (finalParsed.length >= 2) {
-        config.finalCategory = finalParsed[1][0] || 'Final';
-        config.finalClue = finalParsed[1][1] || 'Final clue';
-        config.finalAnswer = finalParsed[1][2] || 'Final answer';
-        console.log(chalk.green('  \u2713 Loaded Final data'));
+      const championshipText = fs.readFileSync(resolvedPath, 'utf-8');
+      const championshipParsed = parseCsvData(championshipText);
+      if (championshipParsed.length >= 2) {
+        config.championshipCategory = championshipParsed[1][0] || 'Championship';
+        config.championshipClue = championshipParsed[1][1] || 'Championship clue';
+        config.championshipAnswer = championshipParsed[1][2] || 'Championship answer';
+        console.log(chalk.green('  \u2713 Loaded Championship data'));
       } else {
-        console.log(chalk.yellow('  \u26a0 Final CSV needs at least 2 rows (header + data)'));
+        console.log(chalk.yellow('  \u26a0 Championship CSV needs at least 2 rows (header + data)'));
       }
     } catch (e) {
-      console.log(chalk.yellow('  \u26a0 Could not load Final: ' + e.message));
+      console.log(chalk.yellow('  \u26a0 Could not load Championship: ' + e.message));
     }
   }
 
@@ -453,13 +492,55 @@ async function main() {
   config.categories = categories;
   config.clues = clues;
   config.answers = answers;
-  config.dailyDoublePositions = {
-    round1: assignDailyDoubles(config.columns, config.rows, config.dailyDoublesRound1),
+  config.bonusCluePositions = {
+    round1: assignBonusClues(config.columns, config.rows, config.bonusCluesRound1),
     round2: config.doubleRound
-      ? assignDailyDoubles(config.columns, config.rows, config.dailyDoublesRound2)
+      ? assignBonusClues(config.columns, config.rows, config.bonusCluesRound2)
       : []
   };
-  config.assets = { logo: false, categoryCover: false, hostIntro: false, timesUp: false, dailyDouble: false, finalThink: false, applause: false, boardFill: false, correct: false, incorrect: false, outro: false };
+  config.assets = { logo: false, categoryCover: false, hostIntro: false, timesUp: false, bonusClue: false, championshipThink: false, applause: false, boardFill: false, correct: false, incorrect: false, outro: false };
+
+  // Naming prompt
+  if (!isExisting || !config.labels) {
+    console.log(chalk.cyan('\n--- Terminology ---\n'));
+    const { jeopStyle } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'jeopStyle',
+        message: 'Use Jeopardy-style terminology? (Daily Double, Final Jeopardy, Double Round)',
+        default: false
+      }
+    ]);
+    config.jeopardyStyle = jeopStyle;
+    config.labels = {};
+    if (jeopStyle) {
+      config.labels.bonusClue = 'DAILY DOUBLE';
+      config.labels.championshipHdr = 'FINAL JEOPARDY';
+      config.labels.championshipSection = 'FINAL ROUND';
+      config.labels.round2Suffix = ' (DOUBLE)';
+    } else {
+      const { customBonus } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'customBonus',
+          message: 'What should Bonus Clues be called?',
+          default: config.labels && config.labels.bonusClue ? config.labels.bonusClue : 'BONUS CLUE'
+        }
+      ]);
+      config.labels.bonusClue = customBonus;
+      const { customChamp } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'customChamp',
+          message: 'What should the Championship phase be called?',
+          default: config.labels && config.labels.championshipHdr ? config.labels.championshipHdr : 'CHAMPIONSHIP'
+        }
+      ]);
+      config.labels.championshipHdr = customChamp;
+      config.labels.championshipSection = customChamp;
+      config.labels.round2Suffix = ' (2X)';
+    }
+  }
 
   console.log(chalk.cyan('\n--- Asset Uploads ---'));
 
@@ -496,10 +577,10 @@ async function main() {
   }
 
   const audioFiles = [
-    { key: 'hostIntro', name: 'host-intro.mp3', label: 'Jeopardy Intro (host-intro.mp3)' },
+    { key: 'hostIntro', name: 'host-intro.mp3', label: 'Intro (host-intro.mp3)' },
     { key: 'timesUp', name: 'times-up.mp3', label: 'Time\'s Up (times-up.mp3)' },
-    { key: 'dailyDouble', name: 'daily-double.mp3', label: 'Daily Double (daily-double.mp3)' },
-    { key: 'finalThink', name: 'final-think.mp3', label: 'Think Music (final-think.mp3)' },
+    { key: 'bonusClue', name: 'daily-double.mp3', label: 'Bonus Clue (daily-double.mp3)' },
+    { key: 'championshipThink', name: 'final-think.mp3', label: 'Think Music (final-think.mp3)' },
     { key: 'applause', name: 'applause.mp3', label: 'Applause (applause.mp3)' },
     { key: 'boardFill', name: 'board-fill.mp3', label: 'Board Fill (board-fill.mp3)' },
     { key: 'correct', name: 'correct.mp3', label: 'Correct Answer (correct.mp3)' },
