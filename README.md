@@ -105,6 +105,4 @@ trivia start
 6. Open the **Host Dashboard** (`http://localhost:3333/dashboard`) on your laptop.
 7. Press **Spacebar** on your dashboard to start the intro sequence!
 
-## License
 
-MIT
