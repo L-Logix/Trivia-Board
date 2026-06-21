@@ -36,16 +36,19 @@ function setup(ioInstance, config) {
         answer: cell.answer,
         category: cell.category,
         isDailyDouble: cell.isDailyDouble,
-        phase: gameState.phase
+        phase: gameState.phase,
+        timerSeconds: gameState.config.timerSeconds,
+        timerRemaining: gameState.timer.remaining
       });
 
       if (cell.isDailyDouble) {
         io.emit('daily-double-activated', { col, row });
       }
 
-      gameState.startTimer(() => {
-        io.emit('times-up');
-      });
+      gameState.startTimer(
+        () => { io.emit('times-up'); },
+        (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
+      );
     });
 
     socket.on('daily-double-confirm', () => {

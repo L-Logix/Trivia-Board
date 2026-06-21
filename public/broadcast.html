@@ -4,69 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Trivia Board - Broadcast</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/broadcast.css">
 </head>
 <body>
-  <div id="init-overlay" class="pre-flight-slate">
-    <img src="img/logo.svg" alt="Trivia Board" class="slate-logo" id="slate-logo">
-    <p class="slate-text">Click anywhere to initialize broadcast audio</p>
+  <div id="init-overlay">
+    <img src="img/logo.svg" alt="" class="init-logo" id="init-logo">
+    <p class="init-text">Click anywhere to initialize<br>broadcast audio</p>
   </div>
 
-  <div id="phase-intro" class="phase hidden">
-    <div class="intro-container">
-      <img src="img/logo.svg" alt="Trivia Board" class="intro-logo" id="intro-logo">
-      <div class="intro-pulse-ring"></div>
+  <div id="phase-logo" class="phase hidden">
+    <div class="logo-bg"></div>
+    <div class="logo-content">
+      <div class="logo-star left">★</div>
+      <div class="logo-star right">★</div>
+      <div class="logo-text">TRIVIA</div>
+      <div class="logo-text sub">BOARD!</div>
+      <div class="logo-byline">A TechnoThatch Production</div>
     </div>
+    <div class="logo-flash" id="logo-flash"></div>
   </div>
 
   <div id="phase-board" class="phase hidden">
-    <div id="game-board">
-      <div id="board-header"></div>
+    <div id="board-wrap">
+      <div id="board-cats"></div>
       <div id="board-grid"></div>
     </div>
-    <div id="score-bar"></div>
+    <div id="board-scores"></div>
   </div>
 
   <div id="phase-clue" class="phase hidden">
-    <div id="clue-container">
-      <div id="clue-category"></div>
-      <div id="clue-value"></div>
+    <div id="clue-wrap">
+      <div id="clue-top">
+        <span id="clue-cat"></span>
+        <span id="clue-val"></span>
+      </div>
       <div id="clue-text"></div>
-      <div id="clue-answer" class="hidden"></div>
-      <div id="clue-timer-ring">
-        <svg viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="54" class="timer-bg"/>
-          <circle cx="60" cy="60" r="54" class="timer-progress" id="timer-progress"/>
-        </svg>
-        <div id="timer-text"></div>
+      <div id="clue-ans" class="hidden"></div>
+      <div id="clue-timer-track">
+        <div id="clue-timer-fill"></div>
       </div>
     </div>
-    <div id="clue-score-bar"></div>
+    <div id="clue-scores"></div>
   </div>
 
-  <div id="phase-daily-double" class="phase hidden">
-    <div id="dd-animation">
-      <div id="dd-flash">DAILY DOUBLE!</div>
-      <div id="dd-sub">Select Your Wager</div>
+  <div id="phase-dd" class="phase hidden">
+    <div id="dd-bg"></div>
+    <div id="dd-wrap">
+      <div class="dd-star left">★</div>
+      <div class="dd-star right">★</div>
+      <div class="dd-title">DAILY</div>
+      <div class="dd-title sub">DOUBLE!</div>
     </div>
+    <div class="dd-flash" id="dd-flash"></div>
   </div>
 
   <div id="phase-final" class="phase hidden">
-    <div id="final-container">
-      <div id="final-header">FINAL SHOWDOWN</div>
-      <div id="final-category"></div>
-      <div id="final-clue"></div>
-      <div id="final-answer" class="hidden"></div>
+    <div id="final-wrap">
+      <div id="final-hdr">FINAL TRIVIA</div>
+      <div id="final-cat"></div>
+      <div id="final-text"></div>
+      <div id="final-ans" class="hidden"></div>
       <div id="final-results"></div>
     </div>
-    <div id="final-score-bar"></div>
+    <div id="final-scores"></div>
   </div>
 
-  <audio id="audio-host-intro" preload="auto"></audio>
-  <audio id="audio-times-up" preload="auto"></audio>
-  <audio id="audio-daily-double" preload="auto"></audio>
-  <audio id="audio-final-think" preload="auto"></audio>
-  <audio id="audio-applause" preload="auto"></audio>
+  <audio id="a-intro" preload="auto"></audio>
+  <audio id="a-timesup" preload="auto"></audio>
+  <audio id="a-dd" preload="auto"></audio>
+  <audio id="a-think" preload="auto"></audio>
+  <audio id="a-applause" preload="auto"></audio>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket-client.js"></script>

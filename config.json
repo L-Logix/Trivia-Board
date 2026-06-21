@@ -34,86 +34,86 @@
   ],
   "clues": [
     [
-      "Clue 1-1",
-      "Clue 2-1",
-      "Clue 3-1",
-      "Clue 4-1",
-      "Clue 5-1",
-      "Clue 6-1"
+      "Clue for category 1",
+      "Clue for category 2",
+      "Clue for category 3",
+      "Clue for category 4",
+      "Clue for category 5",
+      "Clue for category 6"
     ],
     [
-      "Clue 1-2",
-      "Clue 2-2",
-      "Clue 3-2",
-      "Clue 4-2",
-      "Clue 5-2",
-      "Clue 6-2"
+      "Clue for category 1",
+      "Clue for category 2",
+      "Clue for category 3",
+      "Clue for category 4",
+      "Clue for category 5",
+      "Clue for category 6"
     ],
     [
-      "Clue 1-3",
-      "Clue 2-3",
-      "Clue 3-3",
-      "Clue 4-3",
-      "Clue 5-3",
-      "Clue 6-3"
+      "Clue for category 1",
+      "Clue for category 2",
+      "Clue for category 3",
+      "Clue for category 4",
+      "Clue for category 5",
+      "Clue for category 6"
     ],
     [
-      "Clue 1-4",
-      "Clue 2-4",
-      "Clue 3-4",
-      "Clue 4-4",
-      "Clue 5-4",
-      "Clue 6-4"
+      "Clue for category 1",
+      "Clue for category 2",
+      "Clue for category 3",
+      "Clue for category 4",
+      "Clue for category 5",
+      "Clue for category 6"
     ],
     [
-      "Clue 1-5",
-      "Clue 2-5",
-      "Clue 3-5",
-      "Clue 4-5",
-      "Clue 5-5",
-      "Clue 6-5"
+      "Clue for category 1",
+      "Clue for category 2",
+      "Clue for category 3",
+      "Clue for category 4",
+      "Clue for category 5",
+      "Clue for category 6"
     ]
   ],
   "answers": [
     [
-      "Ans 1-1",
-      "Ans 2-1",
-      "Ans 3-1",
-      "Ans 4-1",
-      "Ans 5-1",
-      "Ans 6-1"
+      "Answer for category 1",
+      "Answer for category 2",
+      "Answer for category 3",
+      "Answer for category 4",
+      "Answer for category 5",
+      "Answer for category 6"
     ],
     [
-      "Ans 1-2",
-      "Ans 2-2",
-      "Ans 3-2",
-      "Ans 4-2",
-      "Ans 5-2",
-      "Ans 6-2"
+      "Answer for category 1",
+      "Answer for category 2",
+      "Answer for category 3",
+      "Answer for category 4",
+      "Answer for category 5",
+      "Answer for category 6"
     ],
     [
-      "Ans 1-3",
-      "Ans 2-3",
-      "Ans 3-3",
-      "Ans 4-3",
-      "Ans 5-3",
-      "Ans 6-3"
+      "Answer for category 1",
+      "Answer for category 2",
+      "Answer for category 3",
+      "Answer for category 4",
+      "Answer for category 5",
+      "Answer for category 6"
     ],
     [
-      "Ans 1-4",
-      "Ans 2-4",
-      "Ans 3-4",
-      "Ans 4-4",
-      "Ans 5-4",
-      "Ans 6-4"
+      "Answer for category 1",
+      "Answer for category 2",
+      "Answer for category 3",
+      "Answer for category 4",
+      "Answer for category 5",
+      "Answer for category 6"
     ],
     [
-      "Ans 1-5",
-      "Ans 2-5",
-      "Ans 3-5",
-      "Ans 4-5",
-      "Ans 5-5",
-      "Ans 6-5"
+      "Answer for category 1",
+      "Answer for category 2",
+      "Answer for category 3",
+      "Answer for category 4",
+      "Answer for category 5",
+      "Answer for category 6"
     ]
   ],
   "dailyDoublePositions": {
@@ -134,12 +134,5 @@
       ]
     ]
   },
-  "assets": {
-    "logo": false,
-    "hostIntro": false,
-    "timesUp": false,
-    "dailyDouble": false,
-    "finalThink": false,
-    "applause": false
-  }
+  "assets": {}
 }

@@ -1,302 +1,247 @@
-let currentPhase = 'idle';
-let currentState = null;
+var st = null; // current state
+var audio = {};
 
-const audioElements = {
-  'host-intro': document.getElementById('audio-host-intro'),
-  'times-up': document.getElementById('audio-times-up'),
-  'daily-double': document.getElementById('audio-daily-double'),
-  'final-think': document.getElementById('audio-final-think'),
-  'applause': document.getElementById('audio-applause')
-};
-
-function setAudioSource(name, path) {
-  const el = audioElements[name];
-  if (el) el.src = path;
-}
-
-function playAudio(name) {
-  const el = audioElements[name];
-  if (el) {
-    el.currentTime = 0;
-    el.play().catch(e => console.log('Audio play blocked:', e.message));
-  }
-}
-
-function stopAudio(name) {
-  const el = audioElements[name];
-  if (el) { el.pause(); el.currentTime = 0; }
-}
-
-function showPhase(phaseId) {
-  document.querySelectorAll('.phase').forEach(p => p.classList.add('hidden'));
-  const el = document.getElementById('phase-' + phaseId);
-  if (el) el.classList.remove('hidden');
-  currentPhase = phaseId;
-}
-
-function renderBoard(board, players, categories) {
-  if (!board || !board.length) return;
-  const cols = board.length;
-  const rows = board[0].length;
-
-  const header = document.getElementById('board-header');
-  header.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
-  header.innerHTML = '';
-  for (let c = 0; c < cols; c++) {
-    const div = document.createElement('div');
-    div.className = 'board-header-cell';
-    div.textContent = (categories && categories[c]) || 'Category ' + (c + 1);
-    header.appendChild(div);
-  }
-
-  const grid = document.getElementById('board-grid');
-  grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
-  grid.innerHTML = '';
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const cell = board[c][r];
-      const div = document.createElement('div');
-      div.className = 'board-cell' + (cell.revealed ? ' revealed' : '');
-      div.dataset.col = c;
-      div.dataset.row = r;
-      div.textContent = cell.revealed ? '' : '$' + cell.value;
-      grid.appendChild(div);
-    }
-  }
-
-  renderScoreBar(players, document.getElementById('score-bar'));
-}
-
-function renderScoreBar(players, container) {
-  container.innerHTML = '';
-  if (!players) return;
-  players.forEach(p => {
-    const item = document.createElement('div');
-    item.className = 'score-item';
-    item.innerHTML = '<div class="score-name">' + escapeHtml(p.name) + '</div><div class="score-value">$' + p.score + '</div>';
-    container.appendChild(item);
+function initAudio() {
+  ['intro','timesup','dd','think','applause'].forEach(function(k) {
+    audio[k] = document.getElementById('a-'+k);
   });
 }
 
-function updateScoreBar(players) {
-  renderScoreBar(players, document.getElementById('score-bar'));
-  renderScoreBar(players, document.getElementById('clue-score-bar'));
-  renderScoreBar(players, document.getElementById('final-score-bar'));
+function play(k) {
+  var el = audio[k];
+  if (el) { el.currentTime=0; el.play().catch(function(){}); }
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+function stop(k) {
+  var el = audio[k];
+  if (el) { el.pause(); el.currentTime=0; }
 }
 
-/* ---- Pre-flight Slate ---- */
-document.getElementById('init-overlay').addEventListener('click', function() {
-  const unlockAudio = new Audio('audio/times-up.mp3');
-  unlockAudio.volume = 0;
-  unlockAudio.play().then(() => { unlockAudio.pause(); }).catch(e => console.log('Audio unlock:', e.message));
-  this.style.opacity = '0';
-  setTimeout(() => {
-    this.style.display = 'none';
-    showPhase('board');
-    if (currentState) {
-      renderBoard(currentState.board, currentState.players, currentState.categories || (currentState.config && currentState.config.categories));
-      updateScoreBar(currentState.players);
+function show(id) {
+  document.querySelectorAll('.phase').forEach(function(p) { p.classList.add('hidden'); });
+  var el = document.getElementById('phase-'+id);
+  if (el) el.classList.remove('hidden');
+}
+
+function esc(s) { var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function fmt(s) { return (s>=0?'':'-')+'$'+Math.abs(s); }
+
+/* ---- BOARD ---- */
+function renderBoard(board, players, cats) {
+  if (!board||!board.length) return;
+  var cols=board.length, rows=board[0].length;
+
+  var h=document.getElementById('board-cats');
+  h.style.gridTemplateColumns='repeat('+cols+',1fr)';
+  h.innerHTML='';
+  for (var c=0;c<cols;c++) {
+    var d=document.createElement('div');
+    d.className='board-cat';
+    d.textContent=(cats&&cats[c])||'Category';
+    h.appendChild(d);
+  }
+
+  var g=document.getElementById('board-grid');
+  g.style.gridTemplateColumns='repeat('+cols+',1fr)';
+  g.innerHTML='';
+  for (var r=0;r<rows;r++) {
+    for (var c=0;c<cols;c++) {
+      var cell=board[c][r];
+      var d=document.createElement('div');
+      d.className='board-cell'+(cell.revealed?' revealed':'')+(cell.isDailyDouble?' dd':'');
+      d.textContent=cell.revealed?'':'$'+cell.value;
+      g.appendChild(d);
     }
-  }, 1000);
+  }
+  renderScores(players,document.getElementById('board-scores'));
+}
+
+function renderScores(players,container) {
+  container.innerHTML='';
+  if (!players) return;
+  var html='<div class="scorerow">';
+  players.forEach(function(p) {
+    html+='<div class="score-item"><div class="score-name">'+esc(p.name)+'</div><div class="score-val">'+fmt(p.score)+'</div></div>';
+  });
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+function updateScores(players) {
+  renderScores(players,document.getElementById('board-scores'));
+  renderScores(players,document.getElementById('clue-scores'));
+  renderScores(players,document.getElementById('final-scores'));
+}
+
+/* ---- CLUE ---- */
+function showClue(cell) {
+  document.getElementById('clue-cat').textContent=cell.category||'';
+  document.getElementById('clue-val').textContent=cell.isDailyDouble?'DAILY DOUBLE':'$'+cell.value;
+  document.getElementById('clue-text').textContent=cell.clue||'';
+  document.getElementById('clue-ans').classList.add('hidden');
+  document.getElementById('clue-timer-fill').style.width='100%';
+  show('clue');
+  updateScores(st?st.players:[]);
+}
+
+function showClueFromData(d) {
+  document.getElementById('clue-cat').textContent=d.category||'';
+  document.getElementById('clue-val').textContent=d.isDailyDouble?'DAILY DOUBLE':'$'+(d.value||0);
+  document.getElementById('clue-text').textContent=d.clue||'';
+  document.getElementById('clue-ans').classList.add('hidden');
+  var pct=d.timerSeconds>0?(d.timerRemaining/d.timerSeconds)*100:100;
+  document.getElementById('clue-timer-fill').style.width=pct+'%';
+  show('clue');
+  updateScores(st?st.players:[]);
+}
+
+/* ---- LOGO INTRO ---- */
+function playLogo() {
+  show('logo');
+  var flash=document.getElementById('logo-flash');
+  flash.classList.remove('go');
+  play('intro');
+  var dur=5000;
+  var el=audio['intro'];
+  if (el&&el.duration&&el.duration>1) dur=Math.min(el.duration*1000+500,12000);
+  setTimeout(function() {
+    flash.classList.add('go');
+    setTimeout(function(){flash.classList.remove('go')},300);
+  },dur-1500);
+  setTimeout(function(){socket.emit('intro-complete')},dur);
+}
+
+/* ---- TIMER ---- */
+function setTimer(rem,total) {
+  total=total||(st&&st.config&&st.config.timerSeconds)||5;
+  var pct=total>0?Math.max(0,(rem/total)*100):0;
+  var f=document.getElementById('clue-timer-fill');
+  if(f)f.style.width=pct+'%';
+}
+
+/* ---- DAILY DOUBLE FLASH ---- */
+function ddFlash() {
+  var f=document.getElementById('dd-flash');
+  f.classList.remove('go');
+  setTimeout(function(){f.classList.add('go');setTimeout(function(){f.classList.remove('go')},150)},100);
+  setTimeout(function(){f.classList.add('go');setTimeout(function(){f.classList.remove('go')},150)},500);
+  setTimeout(function(){f.classList.add('go');setTimeout(function(){f.classList.remove('go')},150)},900);
+}
+
+/* ===== INIT OVERLAY ===== */
+document.getElementById('init-overlay').addEventListener('click',function() {
+  var u=new Audio('audio/times-up.mp3');
+  u.volume=0;
+  u.play().then(function(){u.pause()}).catch(function(){});
+  this.style.opacity='0';
+  var self=this;
+  setTimeout(function() {
+    self.style.display='none';
+    if (st) { show('board'); renderBoard(st.board,st.players,st.config.categories); updateScores(st.players); }
+    else show('board');
+  },800);
 });
 
-/* ---- Socket Listeners ---- */
+/* ===== SOCKET ===== */
+initAudio();
 
-socket.on('sync-state', (state) => {
-  currentState = state;
-  if (document.getElementById('init-overlay').style.display === 'none') {
-    switch (state.phase) {
-      case 'idle':
-      case 'board':
-        showPhase('board');
-        renderBoard(state.board, state.players, state.config.categories);
-        updateScoreBar(state.players);
-        break;
-      case 'intro':
-        showPhase('intro');
-        break;
-      case 'clue':
-        if (state.currentClue) {
-          const cell = state.board[state.currentClue.col][state.currentClue.row];
-          showClue(cell, state.currentClue.col, state.currentClue.row);
-        }
-        break;
-      case 'daily-double':
-        showPhase('daily-double');
-        break;
-      case 'final':
-        showFinal(state);
-        break;
+socket.on('sync-state',function(state) {
+  st=state;
+  var o=document.getElementById('init-overlay');
+  if (o.style.display==='none') {
+    switch(state.phase) {
+      case'logo': case'intro': playLogo(); break;
+      case'idle': case'board':
+        show('board'); renderBoard(state.board,state.players,state.config.categories);
+        updateScores(state.players); break;
+      case'clue':
+        if(state.currentClue){var c=state.board[state.currentClue.col][state.currentClue.row];showClue(c)} break;
+      case'daily-double': show('dd'); play('dd'); ddFlash(); break;
+      case'final': showFinal(state); break;
     }
-    updateScoreBar(state.players);
   }
 });
 
-socket.on('intro-started', () => {
-  showPhase('intro');
-  playAudio('host-intro');
-  setTimeout(() => {
-    socket.emit('intro-complete');
-  }, 5000);
+socket.on('intro-started',function(){playLogo()});
+
+socket.on('board-shown',function(d) {
+  stop('intro'); show('board');
+  renderBoard(d.board,d.players,d.categories); updateScores(d.players);
 });
 
-socket.on('board-shown', (data) => {
-  stopAudio('host-intro');
-  showPhase('board');
-  renderBoard(data.board, data.players, data.categories);
+socket.on('clue-opened',function(d){showClueFromData(d)});
+
+socket.on('daily-double-activated',function(){
+  show('dd'); play('dd'); ddFlash();
 });
 
-socket.on('clue-opened', (data) => {
-  showClueFromData(data);
+socket.on('dd-clue-shown',function(d) {
+  show('clue');
+  document.getElementById('clue-cat').textContent=d.category||'';
+  document.getElementById('clue-val').textContent='DAILY DOUBLE';
+  document.getElementById('clue-text').textContent=d.clue||'';
+  document.getElementById('clue-ans').classList.add('hidden');
+  document.getElementById('clue-timer-fill').style.width='100%';
+  updateScores(st?st.players:[]);
 });
 
-socket.on('daily-double-activated', (data) => {
-  playAudio('daily-double');
-  showPhase('daily-double');
-  setTimeout(() => {
-    $('#dd-sub').text('The host is setting the wager...');
-  }, 1500);
+socket.on('timer-tick',function(d){setTimer(d.remaining)});
+
+socket.on('times-up',function(){play('timesup');setTimer(0)});
+
+socket.on('answer-revealed',function(d) {
+  var el=document.getElementById('clue-ans');
+  el.textContent=d.answer; el.classList.remove('hidden');
 });
 
-socket.on('dd-clue-shown', (data) => {
-  showPhase('clue');
-  document.getElementById('clue-category').textContent = data.category || '';
-  document.getElementById('clue-value').textContent = 'DAILY DOUBLE';
-  document.getElementById('clue-text').textContent = data.clue || '';
-  document.getElementById('clue-answer').classList.add('hidden');
-  updateScoreBar(currentState ? currentState.players : []);
-});
-
-socket.on('timer-tick', (data) => {
-  updateTimer(data.remaining, data.running);
-});
-
-socket.on('times-up', () => {
-  playAudio('times-up');
-  updateTimer(0, false);
-});
-
-socket.on('buzz-result', (data) => {
-});
-
-socket.on('answer-revealed', (data) => {
-  const el = document.getElementById('clue-answer');
-  el.textContent = data.answer;
-  el.classList.remove('hidden');
-});
-
-socket.on('board-return', (data) => {
-  showPhase('board');
-  if (currentState) {
-    currentState.revealedCells = data.revealedCells;
-    currentState.phase = data.phase;
-    if (currentState.board[data.col] && currentState.board[data.col][data.row]) {
-      currentState.board[data.col][data.row].revealed = true;
-    }
-    renderBoard(currentState.board, currentState.players, currentState.config.categories);
+socket.on('board-return',function(d) {
+  show('board');
+  if (st) {
+    st.revealedCells=d.revealedCells; st.phase=d.phase;
+    if (st.board[d.col]&&st.board[d.col][d.row]) st.board[d.col][d.row].revealed=true;
+    renderBoard(st.board,st.players,st.config.categories);
   }
 });
 
-socket.on('score-updated', (data) => {
-  if (currentState) {
-    currentState.players = data.players;
-    updateScoreBar(data.players);
+socket.on('score-updated',function(d){if(st){st.players=d.players;updateScores(d.players)}});
+
+socket.on('round2-started',function(d) {
+  if(st){st.board=d.board;st.players=d.players;st.currentRound=2;st.phase='board';st.currentClue=null}
+  show('board'); renderBoard(d.board,d.players,d.categories); updateScores(d.players);
+});
+
+socket.on('final-started',function(d){showFinal(d)});
+
+socket.on('think-music-start',function(){
+  play('think'); if(st)st.finalPhase='thinking';
+  document.getElementById('final-text').textContent='The host is playing the think music...';
+});
+
+socket.on('final-revealed',function(d) {
+  stop('think'); show('final');
+  if (d.answer) { document.getElementById('final-ans').textContent=d.answer; document.getElementById('final-ans').classList.remove('hidden'); }
+  if (d.players) {
+    var html='<div style="margin:15px 0;font-size:1.5vw;color:rgba(255,255,255,.5)">Final Scores</div>';
+    d.players.forEach(function(p){html+='<span class="final-row"><div class="final-r-name">'+esc(p.name)+'</div><div class="final-r-score">'+fmt(p.score)+'</div></span>'});
+    document.getElementById('final-results').innerHTML=html;
   }
+  renderScores(d.players,document.getElementById('final-scores'));
+  play('applause');
 });
 
-socket.on('round2-started', (data) => {
-  if (currentState) {
-    currentState.board = data.board;
-    currentState.players = data.players;
-    currentState.currentRound = 2;
-    currentState.phase = 'board';
-    currentState.currentClue = null;
-  }
-  showPhase('board');
-  renderBoard(data.board, data.players, data.categories);
-  updateScoreBar(data.players);
+socket.on('play-audio',function(d){if(d.audio)play(d.audio)});
+
+socket.on('game-reset',function(state){
+  st=state; show('board');
+  renderBoard(state.board,state.players,state.config.categories);
+  updateScores(state.players);
 });
 
-socket.on('final-started', (data) => {
-  showFinal(data);
-});
-
-socket.on('think-music-start', () => {
-  playAudio('final-think');
-  if (currentState) currentState.finalPhase = 'thinking';
-  document.getElementById('final-clue').textContent = 'The host is playing the think music...';
-});
-
-socket.on('final-revealed', (data) => {
-  stopAudio('final-think');
-  showPhase('final');
-  if (data.answer) {
-    document.getElementById('final-answer').textContent = data.answer;
-    document.getElementById('final-answer').classList.remove('hidden');
-  }
-  if (data.players) {
-    let html = '<div style="margin-top:30px;font-size:1.8vw;">Final Scores:</div>';
-    data.players.forEach(p => {
-      html += '<div style="margin-top:10px;font-size:1.5vw;">' + escapeHtml(p.name) + ': <strong style="color:#ffcc00;">$' + p.score + '</strong></div>';
-    });
-    document.getElementById('final-results').innerHTML = html;
-  }
-  renderScoreBar(data.players, document.getElementById('final-score-bar'));
-  playAudio('applause');
-});
-
-socket.on('play-audio', (data) => {
-  if (data.audio) playAudio(data.audio);
-});
-
-socket.on('game-reset', (state) => {
-  currentState = state;
-  showPhase('board');
-  renderBoard(state.board, state.players, state.config.categories);
-  updateScoreBar(state.players);
-});
-
-/* ---- Helper Functions ---- */
-
-function showClueFromData(data) {
-  document.getElementById('clue-category').textContent = data.category || '';
-  document.getElementById('clue-value').textContent = '$' + (data.value || 0);
-  document.getElementById('clue-text').textContent = data.clue || '';
-  document.getElementById('clue-answer').classList.add('hidden');
-  showPhase('clue');
-  updateScoreBar(currentState ? currentState.players : []);
-}
-
-function showClue(cell, col, row) {
-  document.getElementById('clue-category').textContent = cell.category || '';
-  document.getElementById('clue-value').textContent = cell.isDailyDouble ? 'DAILY DOUBLE' : '$' + cell.value;
-  document.getElementById('clue-text').textContent = cell.clue || '';
-  document.getElementById('clue-answer').classList.add('hidden');
-  showPhase('clue');
-}
-
-function showFinal(data) {
-  showPhase('final');
-  document.getElementById('final-category').textContent = data.categories ? data.categories.join(', ') : '';
-  document.getElementById('final-clue').textContent = '';
-  document.getElementById('final-answer').classList.add('hidden');
-  document.getElementById('final-results').innerHTML = '';
-  if (currentState) updateScoreBar(currentState.players);
-}
-
-function updateTimer(remaining, running) {
-  const total = (currentState && currentState.config && currentState.config.timerSeconds) || 5;
-  const pct = total > 0 ? (remaining / total) * 100 : 0;
-  const circumference = 339.292;
-  const offset = circumference - (pct / 100) * circumference;
-  const progress = document.getElementById('timer-progress');
-  if (progress) progress.style.strokeDashoffset = offset;
-  const text = document.getElementById('timer-text');
-  if (text) text.textContent = Math.ceil(remaining);
+function showFinal(d) {
+  show('final');
+  document.getElementById('final-cat').textContent=d.categories?d.categories.join(', '):'';
+  document.getElementById('final-text').textContent='';
+  document.getElementById('final-ans').classList.add('hidden');
+  document.getElementById('final-results').innerHTML='';
+  if (st) updateScores(st.players);
 }

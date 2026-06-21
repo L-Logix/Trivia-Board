@@ -61,7 +61,7 @@ class GameState {
     }
   }
 
-  startTimer(callback) {
+  startTimer(onTimesUp, onTick) {
     this.timer.remaining = this.config.timerSeconds;
     this.timer.running = true;
     this.timer.interval = setInterval(() => {
@@ -69,7 +69,9 @@ class GameState {
       if (this.timer.remaining <= 0) {
         this.timer.remaining = 0;
         this.stopTimer();
-        if (callback) callback();
+        if (onTimesUp) onTimesUp();
+      } else {
+        if (onTick) onTick(this.timer.remaining);
       }
     }, 100);
   }

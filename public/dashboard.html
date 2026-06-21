@@ -7,63 +7,74 @@
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
-  <div id="dash-container">
-    <header id="dash-header">
-      <h1>Trivia Board &mdash; Host Dashboard</h1>
-      <div id="dash-controls">
-        <button id="btn-start-intro" class="btn btn-primary">START INTRO (SPACE)</button>
-        <button id="btn-advance-round2" class="btn btn-warning">ADVANCE TO ROUND 2</button>
-        <button id="btn-advance-final" class="btn btn-danger">ADVANCE TO FINAL</button>
-        <button id="btn-reset" class="btn btn-secondary">RESET GAME</button>
+  <div id="dash">
+    <header id="dash-hdr">
+      <div class="hdr-left">
+        <h1>TRIVIA BOARD</h1>
+        <span class="hdr-sub">Host Dashboard</span>
       </div>
-      <div id="round-indicator">Round 1</div>
+      <div class="hdr-mid">
+        <span id="phase-badge" class="badge idle">IDLE</span>
+        <span id="round-badge" class="badge-r">ROUND 1</span>
+      </div>
+      <div class="hdr-right">
+        <button id="btn-intro" class="b b-gold">START <kbd>SPACE</kbd></button>
+        <button id="btn-r2" class="b b-blue">ROUND 2</button>
+        <button id="btn-final" class="b b-red">FINAL</button>
+        <button id="btn-reset" class="b b-ghost">RESET</button>
+      </div>
     </header>
 
-    <main id="dash-main">
-      <section id="dash-grid-section">
-        <div id="dash-board-header"></div>
-        <div id="dash-board-grid"></div>
-      </section>
-      <section id="dash-sidebar">
-        <div id="dash-timer-panel">
-          <div id="dash-timer-display">0.0</div>
-          <div class="timer-label">seconds remaining</div>
+    <div id="dash-body">
+      <div id="dash-grid">
+        <div id="dash-cats"></div>
+        <div id="dash-vals"></div>
+      </div>
+      <aside id="dash-side">
+        <div class="card" id="card-timer">
+          <div class="card-lbl">TIMER</div>
+          <div id="timer-num">0.0</div>
         </div>
-        <div id="dash-dd-panel" class="hidden">
-          <h3>Daily Double Controls</h3>
-          <div class="dd-buttons">
-            <button class="btn btn-dd" data-dd-amount="100">+$100</button>
-            <button class="btn btn-dd" data-dd-amount="500">+$500</button>
-            <button class="btn btn-dd" data-dd-amount="-100">-$100</button>
-            <button class="btn btn-dd" data-dd-amount="-500">-$500</button>
-          </div>
-          <button id="btn-dd-confirm" class="btn btn-primary">CONFIRM WAGER & SHOW CLUE</button>
+        <div class="card hidden" id="card-clue">
+          <div class="card-lbl">CLUE CONTROLS</div>
+          <div id="clue-info" class="card-info"></div>
+          <button class="b b-gold b-full" id="btn-reveal">REVEAL ANSWER</button>
+          <button class="b b-blue b-full" id="btn-board">RETURN TO BOARD</button>
         </div>
-        <div id="dash-clue-controls" class="hidden">
-          <button id="btn-reveal-answer" class="btn btn-primary">REVEAL ANSWER</button>
-          <button id="btn-return-board" class="btn btn-warning">RETURN TO BOARD</button>
+        <div class="card hidden" id="card-dd">
+          <div class="card-lbl">DAILY DOUBLE</div>
+          <button class="b b-gold b-full" id="btn-dd-show">SHOW CLUE</button>
         </div>
-        <div id="dash-final-controls" class="hidden">
-          <h3>Final Showdown</h3>
-          <button id="btn-start-think" class="btn btn-primary">START THINK MUSIC (30s)</button>
-          <button id="btn-reveal-final" class="btn btn-danger">REVEAL FINAL ANSWER</button>
-          <button id="btn-play-applause" class="btn btn-secondary">PLAY APPLAUSE</button>
+        <div class="card hidden" id="card-final">
+          <div class="card-lbl">FINAL ROUND</div>
+          <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
+          <button class="b b-red b-full" id="btn-reveal-final">REVEAL RESULTS</button>
+          <button class="b b-ghost b-full" id="btn-applause">APPLAUSE</button>
         </div>
-      </section>
-    </main>
+      </aside>
+    </div>
 
-    <section id="dash-players">
-      <div id="player-panels"></div>
-    </section>
+    <div id="dash-players"></div>
+  </div>
 
-    <div id="reset-confirm-modal" class="modal hidden">
-      <div class="modal-content">
-        <h2>Reset Game?</h2>
-        <p>This will clear all scores and progress. Are you sure?</p>
-        <div class="modal-buttons">
-          <button id="modal-reset-yes" class="btn btn-danger">YES, RESET</button>
-          <button id="modal-reset-no" class="btn btn-secondary">CANCEL</button>
-        </div>
+  <div id="modal-reset" class="modal hidden">
+    <div class="modal-bx">
+      <h2>Reset Game?</h2>
+      <p>All scores and progress will be lost.</p>
+      <div class="modal-acts">
+        <button class="b b-red" id="mreset-yes">YES</button>
+        <button class="b b-ghost" id="mreset-no">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-final" class="modal hidden">
+    <div class="modal-bx modal-w">
+      <h2>Final Round Results</h2>
+      <div id="final-form"></div>
+      <div class="modal-acts">
+        <button class="b b-gold" id="mfinal-go">REVEAL</button>
+        <button class="b b-ghost" id="mfinal-no">CANCEL</button>
       </div>
     </div>
   </div>
