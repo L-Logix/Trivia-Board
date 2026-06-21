@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#060ce9"/>
+  <text x="400" y="180" font-family="Arial Black, Impact, sans-serif" font-size="80" font-weight="900" fill="#ffcc00" text-anchor="middle" letter-spacing="4">TRIVIA</text>
+  <text x="400" y="270" font-family="Arial Black, Impact, sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">BOARD!</text>
+  <circle cx="400" cy="340" r="30" fill="none" stroke="#ffcc00" stroke-width="4"/>
+  <polygon points="400,320 410,340 430,340 415,355 420,375 400,365 380,375 385,355 370,340 390,340" fill="#ffcc00"/>
+</svg>
