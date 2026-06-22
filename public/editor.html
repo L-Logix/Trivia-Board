@@ -54,6 +54,8 @@ h1 { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.2rem; col
 .form-row .form-group { flex: 1; min-width: 200px; }
 .champ-form { max-width: 600px; margin: 0 auto; }
 .settings-form { max-width: 600px; margin: 0 auto; }
+.preset-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.preset-row .b { flex: 1; min-width: 140px; padding: 8px 12px; font-size: .78rem; }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1000; align-items: center; justify-content: center; }
 .modal-overlay.active { display: flex; }
 .modal { background: #0a0a2e; border: 2px solid rgba(255,204,0,.3); border-radius: 12px; padding: 24px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
@@ -228,6 +230,14 @@ function renderSettings() {
       '<div class="form-group"><label>Bonus Clues Round 2</label><input type="number" id="setBC2" value="' + (c.bonusCluesRound2 || 0) + '" min="0" max="10"></div>' +
     '</div>' +
     '<div class="form-group"><label>Players (comma separated)</label><input type="text" id="setPlayers" value="' + esc((c.players || []).join(', ')) + '"></div>' +
+    '<div class="form-row">' +
+      '<div class="form-group"><label>Value Preset</label>' +
+        '<div class="preset-row">' +
+          '<button class="b b-ghost" onclick="applyPreset(\'traditional\')">Traditional (100,200,300,400,500)</button>' +
+          '<button class="b b-ghost" onclick="applyPreset(\'modern\')">Modern (200,400,600,800,1000)</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
     '<div class="form-group"><label>Round 1 Values (comma separated)</label><input type="text" id="setValues" value="' + esc((c.baseValues || []).join(', ')) + '"></div>' +
     '<div class="form-group"><label>Round 2 Values (comma separated)</label><input type="text" id="setDoubleValues" value="' + esc((c.doubleValues || []).join(', ')) + '"></div>' +
     '</div>';
@@ -383,6 +393,39 @@ function delCategory(round, col) {
   });
   c.columns--;
   renderAll();
+}
+
+/* ===== VALUE PRESETS ===== */
+function applyPreset(type) {
+  var c = getConfig();
+  if (!c) return;
+  var base, dbl;
+  if (type === 'traditional') {
+    base = [100, 200, 300, 400, 500];
+    dbl = [200, 400, 600, 800, 1000];
+  } else {
+    base = [200, 400, 600, 800, 1000];
+    dbl = [400, 800, 1200, 1600, 2000];
+  }
+  c.baseValues = base;
+  c.doubleValues = dbl;
+  c.rows = base.length;
+  // Resize clues/answers arrays
+  while (c.clues.length < c.rows) { c.clues.push([]); c.answers.push([]); }
+  while (c.clues.length > c.rows) { c.clues.pop(); c.answers.pop(); }
+  for (var r = 0; r < c.rows; r++) {
+    if (!c.clues[r]) c.clues[r] = [];
+    if (!c.answers[r]) c.answers[r] = [];
+    while (c.clues[r].length < c.columns) c.clues[r].push('');
+    while (c.answers[r].length < c.columns) c.answers[r].push('');
+  }
+  if (c.doubleRound && (!c.categoriesR2 || !c.cluesR2)) {
+    c.categoriesR2 = c.categories.slice();
+    c.cluesR2 = c.clues.map(function(row) { return row.slice(); });
+    c.answersR2 = c.answers.map(function(row) { return row.slice(); });
+  }
+  renderAll();
+  showToast('Applied ' + type + ' preset (' + base.join(',') + ')');
 }
 
 /* ===== SAVE ===== */

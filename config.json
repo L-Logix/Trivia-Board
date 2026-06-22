@@ -2,18 +2,18 @@
   "columns": 6,
   "rows": 5,
   "baseValues": [
+    100,
+    200,
+    300,
+    400,
+    500
+  ],
+  "doubleValues": [
     200,
     400,
     600,
     800,
     1000
-  ],
-  "doubleValues": [
-    400,
-    800,
-    1200,
-    1600,
-    2000
   ],
   "doubleRound": true,
   "bonusCluesRound1": 1,

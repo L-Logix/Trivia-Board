@@ -285,20 +285,75 @@ async function main() {
 
   if (mode === 'typical' && !isExisting) {
     console.log(chalk.green('\n  \u2713 Auto-filling: 6 columns, 5 rows'));
-    console.log(chalk.green('  \u2713 Values: $200-$1000 Single, $400-$2000 Double'));
     console.log(chalk.green('  \u2713 Bonus Clues: 1 in Round 1, 2 in Round 2'));
     console.log(chalk.green('  \u2713 Timer: 5 seconds\n'));
 
     config.columns = 6;
     config.rows = 5;
-    config.baseValues = [200, 400, 600, 800, 1000];
-    config.doubleValues = [400, 800, 1200, 1600, 2000];
     config.doubleRound = true;
     config.bonusCluesRound1 = 1;
     config.bonusCluesRound2 = 2;
     config.timerSeconds = 5;
+
+    console.log(chalk.cyan('\n  Value Preset:'));
+    const { vp } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'vp',
+        message: 'Choose value preset:',
+        choices: [
+          { name: 'Traditional (100,200,300,400,500 / 200,400,600,800,1000)', value: 'traditional' },
+          { name: 'Modern (200,400,600,800,1000 / 400,800,1200,1600,2000)', value: 'modern' }
+        ],
+        default: 'modern'
+      }
+    ]);
+    if (vp === 'traditional') {
+      config.baseValues = [100, 200, 300, 400, 500];
+      config.doubleValues = [200, 400, 600, 800, 1000];
+    } else {
+      config.baseValues = [200, 400, 600, 800, 1000];
+      config.doubleValues = [400, 800, 1200, 1600, 2000];
+    }
   } else {
     const dfl = isExisting ? config : {};
+    let presetValues = null;
+    let presetDouble = null;
+    if (isExisting && dfl.baseValues) {
+      const isTrad = dfl.baseValues[0] === 100;
+      console.log(chalk.cyan('\n  Current values: ') + dfl.baseValues.join(',') + ' / ' + (dfl.doubleValues || dfl.baseValues.map(v => v*2)).join(','));
+      const { changePreset } = await inquirer.prompt([
+        { type: 'confirm', name: 'changePreset', message: 'Switch to different value preset?', default: false }
+      ]);
+      if (changePreset) {
+        const { vp } = await inquirer.prompt([
+          {
+            type: 'list', name: 'vp', message: 'Choose value preset:',
+            choices: [
+              { name: 'Traditional (100,200,300,400,500 / 200,400,600,800,1000)', value: 'traditional' },
+              { name: 'Modern (200,400,600,800,1000 / 400,800,1200,1600,2000)', value: 'modern' },
+              { name: 'Custom (manual entry)', value: 'custom' }
+            ], default: isTrad ? 'traditional' : 'modern'
+          }
+        ]);
+        if (vp === 'traditional') { presetValues = [100,200,300,400,500]; presetDouble = [200,400,600,800,1000]; }
+        else if (vp === 'modern') { presetValues = [200,400,600,800,1000]; presetDouble = [400,800,1200,1600,2000]; }
+      }
+    } else if (!isExisting) {
+      console.log(chalk.cyan('\n  Value Preset:'));
+      const { vp } = await inquirer.prompt([
+        {
+          type: 'list', name: 'vp', message: 'Choose value preset:',
+          choices: [
+            { name: 'Traditional (100,200,300,400,500 / 200,400,600,800,1000)', value: 'traditional' },
+            { name: 'Modern (200,400,600,800,1000 / 400,800,1200,1600,2000)', value: 'modern' },
+            { name: 'Custom (manual entry)', value: 'custom' }
+          ], default: 'modern'
+        }
+      ]);
+      if (vp === 'traditional') { presetValues = [100,200,300,400,500]; presetDouble = [200,400,600,800,1000]; }
+      else if (vp === 'modern') { presetValues = [200,400,600,800,1000]; presetDouble = [400,800,1200,1600,2000]; }
+    }
     const answers = await inquirer.prompt([
       {
         type: 'number',
@@ -320,7 +375,8 @@ async function main() {
         message: 'Enter base point values (comma separated):',
         default: dfl.baseValues ? dfl.baseValues.join(',') : '200,400,600,800,1000',
         filter: v => v.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)),
-        validate: v => v.length > 0
+        validate: v => v.length > 0,
+        when: () => !presetValues
       },
       {
         type: 'confirm',
@@ -352,12 +408,17 @@ async function main() {
       }
     ]);
 
+    if (presetValues) {
+      answers.baseValues = presetValues;
+      answers.doubleValues = presetDouble;
+    }
     if (answers.doubleRound && !answers.bonusCluesRound2) answers.bonusCluesRound2 = 2;
     if (!answers.doubleRound) {
       answers.bonusCluesRound2 = 0;
-      answers.doubleValues = answers.baseValues;
+      if (!presetDouble) answers.doubleValues = answers.baseValues;
     } else {
-      const dvDefault = dfl.doubleValues ? dfl.doubleValues.join(',') : answers.baseValues.map(v => v * 2).join(',');
+      const dvDefault = presetDouble ? presetDouble.join(',') : (dfl.doubleValues ? dfl.doubleValues.join(',') : answers.baseValues.map(v => v * 2).join(','));
+      if (!presetDouble) {
       const { doubleValues } = await inquirer.prompt([
         {
           type: 'input',
@@ -369,6 +430,7 @@ async function main() {
         }
       ]);
       answers.doubleValues = doubleValues;
+      }
     }
 
     config.columns = answers.columns;
