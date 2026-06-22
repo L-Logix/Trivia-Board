@@ -6,12 +6,27 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![npm](https://img.shields.io/badge/npm-v10-blue)](https://npmjs.com/)
 [![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)]()
 [![PRs](https://img.shields.io/badge/PRs-welcome-blue)]()
+[![Maintenance](https://img.shields.io/badge/maintained-yes-brightgreen)]()
+[![GitHub stars](https://img.shields.io/github/stars/yourname/trivia-broadcast?style=social)]()
+[![GitHub issues](https://img.shields.io/github/issues/yourname/trivia-broadcast)]()
+[![GitHub last commit](https://img.shields.io/github/last-commit/yourname/trivia-broadcast)]()
+[![GitHub release](https://img.shields.io/github/v/release/yourname/trivia-broadcast)]()
+[![WebSocket](https://img.shields.io/badge/WebSocket-Socket.IO-black)]()
+[![Express](https://img.shields.io/badge/Express-v4-blue)]()
+[![CSS3](https://img.shields.io/badge/CSS3-Grid%20%7C%20Flexbox-blue)]()
+[![JavaScript](https://img.shields.io/badge/JS-ES6+-yellow)]()
+[![Accessibility](https://img.shields.io/badge/a11y-friendly-brightgreen)]()
+[![Contributions](https://img.shields.io/badge/contributions-open-blue)]()
+[![Code size](https://img.shields.io/github/languages/code-size/yourname/trivia-broadcast)]()
+[![Top language](https://img.shields.io/github/languages/top/yourname/trivia-broadcast)]()
+[![GitHub code size](https://img.shields.io/github/repo-size/yourname/trivia-broadcast)]()
 
 ---
 
-**Zero Jeopardy! branding** — fully customizable terminology, logo, audio, and visuals.
+**Fully customizable** — terminology, logo, audio, visuals, and rules. No trademarked content included.
 
 </div>
 
@@ -101,7 +116,7 @@ Opens on port **3333**. Open `http://localhost:3333` in your browser, or use the
 5. **Bonus Clues** — when found, broadcast shows animation + sound; host selects player + wager, then reveals the clue and starts the timer
 6. **Answer** — host reveals answer, marks correct/incorrect (bonus wager auto-applied)
 7. **Round 2** — same flow with doubled values
-8. **Championship** — final question with wager and think music
+8. **Championship** — final question with wager and think music; host reveals results then shows winner with outro music
 
 ## Asset Files
 

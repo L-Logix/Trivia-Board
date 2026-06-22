@@ -118,12 +118,10 @@ function setLogo(el) {
 }
 
 /* ===== BOARD ===== */
-function renderBoard(board, players, cats) {
-  if (!board || !board.length) return;
-  var cols = board.length, rows = board[0].length;
-  categoriesCoverVisible = true;
-  priceCoverVisible = true;
+var boardInitialized = false;
 
+function initBoardStructure(board, cats) {
+  var cols = board.length, rows = board[0].length;
   var h = document.getElementById('board-cats');
   h.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
   h.innerHTML = '';
@@ -133,8 +131,7 @@ function renderBoard(board, players, cats) {
     d.textContent = (cats && cats[c]) || 'Category';
     h.appendChild(d);
   }
-
-  // Per-category covers
+  // Category covers (full opacity)
   var cc = document.getElementById('board-cat-covers');
   if (cc) {
     cc.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
@@ -149,8 +146,7 @@ function renderBoard(board, players, cats) {
       cc.appendChild(cover);
     }
   }
-
-  // Price cover - one big cover over entire grid
+  // Price cover
   var coverEl = document.getElementById('board-price-cover');
   var coverInner = coverEl ? coverEl.querySelector('.price-cover-inner') : null;
   if (coverEl) coverEl.classList.remove('revealed');
@@ -162,7 +158,7 @@ function renderBoard(board, players, cats) {
       coverInner.style.backgroundImage = '';
     }
   }
-
+  // Grid
   var g = document.getElementById('board-grid');
   g.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
   g.innerHTML = '';
@@ -175,6 +171,36 @@ function renderBoard(board, players, cats) {
       d.style.opacity = cell.revealed ? '1' : '0';
       g.appendChild(d);
     }
+  }
+  boardInitialized = true;
+}
+
+function updateBoardCells(board) {
+  var cols = board.length, rows = board[0].length;
+  var g = document.getElementById('board-grid');
+  if (!g) return;
+  // Update cell classes only (don't recreate grid)
+  var cells = g.querySelectorAll('.board-cell');
+  for (var r = 0; r < rows; r++) {
+    for (var c = 0; c < cols; c++) {
+      var cell = board[c][r];
+      var idx = r * cols + c;
+      var el = cells[idx];
+      if (el) {
+        el.className = 'board-cell' + (cell.revealed ? ' revealed' : '');
+        el.textContent = cell.revealed ? '' : '$' + cell.value;
+        el.style.opacity = cell.revealed ? '1' : '0';
+      }
+    }
+  }
+}
+
+function renderBoard(board, players, cats) {
+  if (!board || !board.length) return;
+  if (!boardInitialized) {
+    initBoardStructure(board, cats);
+  } else {
+    updateBoardCells(board);
   }
   renderScores(players, document.getElementById('board-scores'));
 }
@@ -349,11 +375,12 @@ document.getElementById('init-overlay').addEventListener('click', function() {
     self.style.display = 'none';
     if (st && st.phase !== 'idle') {
       var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
+      boardInitialized = false;
       show('board');
       setPromo();
       renderBoard(st.board, st.players, cats);
       updateScores(st.players);
-    } else { show('board'); setPromo(); }
+    } else { boardInitialized = false; show('board'); setPromo(); }
   }, 800);
 });
 
@@ -368,6 +395,7 @@ socket.on('sync-state', function(state) {
       case 'logo': case 'intro': playLogo(); break;
       case 'idle': case 'board':
         var cats = state.currentRound === 2 && state.config.categoriesR2 ? state.config.categoriesR2 : state.config.categories;
+        boardInitialized = false;
         show('board'); setPromo(); renderBoard(state.board, state.players, cats);
         updateScores(state.players); break;
       case 'clue':
@@ -385,6 +413,7 @@ socket.on('board-shown', function(d) {
   setPromo();
   categoriesCoverVisible = true;
   priceCoverVisible = true;
+  boardInitialized = false;
   renderBoard(d.board, d.players, d.categories);
   updateScores(d.players);
 });
@@ -471,6 +500,7 @@ socket.on('score-updated', function(d) {
 
 socket.on('round2-started', function(d) {
   if (st) { st.board = d.board; st.players = d.players; st.currentRound = 2; st.phase = 'board'; st.currentClue = null; }
+  boardInitialized = false;
   show('board'); setPromo(); renderBoard(d.board, d.players, d.categories); updateScores(d.players);
 });
 
@@ -519,6 +549,7 @@ socket.on('cell-value-set', function(d) {
 socket.on('game-reset', function(state) {
   st = state;
   var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
+  boardInitialized = false;
   show('board');
   setPromo();
   renderBoard(state.board, state.players, cats);

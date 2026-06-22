@@ -176,7 +176,10 @@ document.getElementById('mchampionship-no').addEventListener('click',function(){
 document.getElementById('btn-correct').addEventListener('click',function(){socket.emit('answer-correct')});
 document.getElementById('btn-incorrect').addEventListener('click',function(){socket.emit('answer-incorrect')});
 document.getElementById('btn-board-correct').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
-document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
+document.getElementById('btn-reveal-categories').addEventListener('click',function(){
+  // Start full-screen category reveal flow from first category
+  socket.emit('reveal-category', { index: 0 });
+});
 document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
 document.getElementById('btn-cat-reveal-name').addEventListener('click',function(){
   catRevealState = 'name';
@@ -261,8 +264,8 @@ socket.on('board-shown',function(d){
 socket.on('clue-opened',function(d){
   if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase}
   setPhase(d.phase);
+  renderPlayers(st ? st.players : []);
   if(d.isBonusClue) {
-    // Trigger the bonus clue activated handler logic
     var sel = document.getElementById('bc-player');
     var lbl = document.getElementById('bc-card-lbl');
     if (lbl) lbl.textContent = label('bonusClue') || 'BONUS CLUE';

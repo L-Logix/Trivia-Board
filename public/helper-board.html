@@ -93,7 +93,7 @@
     document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
     document.getElementById('btn-board').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
     document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
-    document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
+    document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-category', { index: 0 })});
     document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
   </script>
 </body>

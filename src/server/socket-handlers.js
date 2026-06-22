@@ -256,6 +256,12 @@ function setup(ioInstance, config) {
       io.emit('play-audio', { audio: data.audio });
     });
 
+    socket.on('show-winner', () => {
+      io.emit('show-winner', {
+        players: gameState.players.map(p => ({ ...p }))
+      });
+    });
+
     socket.on('play-outro', () => {
       io.emit('outro');
     });
