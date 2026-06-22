@@ -95,3 +95,10 @@ kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px
 .f-row input[type=checkbox]{width:18px;height:18px;accent-color:#ffcc00}
 
 .hidden{display:none!important}
+.card-lbl-sub{font-size:.5rem;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;margin-top:6px}
+.p-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.7rem}
+.p-row .p-name{min-width:40px;font-size:.7rem}
+.p-val{display:flex;align-items:center;gap:4px;flex:1}
+.p-label{font-size:.6rem;color:rgba(255,255,255,.45);white-space:nowrap}
+.champ-wager-input{width:70px;padding:3px 5px;background:#0d0d1a;border:1px solid #2a2a4a;border-radius:3px;color:#ffcc00;font-size:.7rem;font-weight:700;text-align:center}
+.champ-correct-cb{width:16px;height:16px;accent-color:#ffcc00;cursor:pointer}

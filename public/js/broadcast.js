@@ -529,9 +529,12 @@ socket.on('think-music-start', function() {
 socket.on('championship-revealed', function(d) {
   show('championship');
   playChampionshipReveal();
+  document.getElementById('championship-cat-wager').classList.add('hidden');
+  document.getElementById('championship-cat').classList.remove('hidden');
   if (d.answer) { document.getElementById('championship-ans').textContent = d.answer; document.getElementById('championship-ans').classList.remove('hidden'); }
   if (d.players) {
-    var html = '<div style="margin:15px 0;font-size:1.3vw;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase">Final Scores</div>';
+    var lbl = d.hasMore ? 'Scores After Question ' + ((d.questionIndex || 0) + 1) : 'Final Scores';
+    var html = '<div style="margin:15px 0;font-size:1.3vw;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase">' + lbl + '</div>';
     d.players.forEach(function(p) { html += '<span class="championship-row"><div class="championship-r-name">' + esc(p.name) + '</div><div class="championship-r-score">' + fmt(p.score) + '</div></span>'; });
     document.getElementById('championship-results').innerHTML = html;
   }
@@ -670,9 +673,40 @@ socket.on('hide-category-reveal', function() {
 function showChampionship(d) {
   show('championship');
   document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
-  document.getElementById('championship-cat').textContent = d.championshipCategory || (d.categories ? d.categories.join(', ') : '');
+  document.getElementById('championship-cat').textContent = d.championshipCategory || '';
   document.getElementById('championship-text').textContent = d.championshipClue || '';
   document.getElementById('championship-ans').classList.add('hidden');
   document.getElementById('championship-results').innerHTML = '';
+  var wagerEl = document.getElementById('championship-cat-wager');
+  var catEl = document.getElementById('championship-cat');
+  var textEl = document.getElementById('championship-text');
+  if (d.championshipPhase === 'wagering') {
+    if (wagerEl) {
+      wagerEl.classList.remove('hidden');
+      var subj = wagerEl.querySelector('.champ-wager-subject');
+      if (subj) subj.textContent = d.category || d.championshipCategory || '';
+    }
+    if (catEl) catEl.classList.add('hidden');
+    if (textEl) textEl.classList.add('hidden');
+    document.getElementById('championship-ans').classList.add('hidden');
+    document.getElementById('championship-hdr').textContent = label('championshipSection') || 'CHAMPIONSHIP';
+  } else {
+    if (wagerEl) wagerEl.classList.add('hidden');
+    if (catEl) catEl.classList.remove('hidden');
+    document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
+  }
   if (st) updateScores(st.players);
 }
+
+socket.on('championship-started', function(d) { showChampionship(d); });
+
+socket.on('championship-clue-shown', function(d) {
+  document.getElementById('championship-cat-wager').classList.add('hidden');
+  document.getElementById('championship-cat').classList.remove('hidden');
+  document.getElementById('championship-cat').textContent = d.category || '';
+  document.getElementById('championship-text').classList.remove('hidden');
+  document.getElementById('championship-text').textContent = d.clue || '';
+  document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
+  document.getElementById('championship-ans').classList.add('hidden');
+  if (st) st.championshipPhase = 'showing';
+});

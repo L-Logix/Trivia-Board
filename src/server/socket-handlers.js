@@ -231,13 +231,23 @@ function setup(ioInstance, config) {
 
     socket.on('advance-championship', () => {
       gameState.advanceToChampionship();
-      var cats = gameState.currentRound === 2 ? (gameState.config.categoriesR2 || gameState.config.categories) : gameState.config.categories;
+      const q = gameState.getCurrentChampionshipQuestion();
       io.emit('championship-started', {
         phase: 'championship',
         championshipPhase: 'wagering',
-        categories: cats,
-        championshipCategory: gameState.config.championshipCategory || '',
-        championshipClue: gameState.config.championshipClue || ''
+        category: q.category,
+        totalQuestions: (gameState.config.championshipQuestions || []).length,
+        questionIndex: gameState.currentChampionshipIndex
+      });
+    });
+
+    socket.on('start-championship-clue', () => {
+      gameState.showChampionshipClue();
+      const q = gameState.getCurrentChampionshipQuestion();
+      io.emit('championship-clue-shown', {
+        championshipPhase: 'showing',
+        clue: q.clue,
+        category: q.category
       });
     });
 
@@ -246,7 +256,7 @@ function setup(ioInstance, config) {
       io.emit('think-music-start', { championshipPhase: 'thinking' });
     });
 
-    socket.on('reveal-championship', (data) => {
+    socket.on('reveal-championship-answer', (data) => {
       gameState.revealChampionship();
       const updatedPlayers = gameState.players.map((p, i) => {
         const wager = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
@@ -258,10 +268,26 @@ function setup(ioInstance, config) {
         }
         return { ...p };
       });
+      const q = gameState.getCurrentChampionshipQuestion();
+      const hasMore = gameState.hasMoreChampionshipQuestions();
       io.emit('championship-revealed', {
         players: updatedPlayers,
         championshipPhase: 'revealed',
-        answer: data.answer || ''
+        answer: q.answer,
+        hasMore: hasMore,
+        questionIndex: gameState.currentChampionshipIndex
+      });
+    });
+
+    socket.on('next-championship-question', () => {
+      gameState.advanceToNextChampionshipQuestion();
+      const q = gameState.getCurrentChampionshipQuestion();
+      io.emit('championship-started', {
+        phase: 'championship',
+        championshipPhase: 'wagering',
+        category: q.category,
+        totalQuestions: (gameState.config.championshipQuestions || []).length,
+        questionIndex: gameState.currentChampionshipIndex
       });
     });
 
@@ -309,7 +335,7 @@ function setup(ioInstance, config) {
       if (data.championshipCategory) gameState.config.championshipCategory = data.championshipCategory;
       if (data.championshipClue) gameState.config.championshipClue = data.championshipClue;
       if (data.championshipAnswer) gameState.config.championshipAnswer = data.championshipAnswer;
-      if (data.championshipCategory) gameState.config.championshipCategory = data.championshipCategory;
+      if (data.championshipQuestions) gameState.config.championshipQuestions = data.championshipQuestions;
       gameState._initBoard();
       io.emit('sync-state', gameState.serialize());
       // Also save to config.json for persistence

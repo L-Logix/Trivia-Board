@@ -12,10 +12,22 @@ class GameState {
     this.championshipWagers = {};
     this.championshipAnswers = {};
     this.championshipPhase = null;
+    this.currentChampionshipIndex = 0;
     this.bonusCluePlayerIndex = null;
     this.bonusClueWager = 0;
     this.stats = this._initStats();
     this._initBoard();
+    // Normalize championship questions
+    if (!this.config.championshipQuestions) {
+      this.config.championshipQuestions = [];
+      if (this.config.championshipCategory) {
+        this.config.championshipQuestions.push({
+          category: this.config.championshipCategory,
+          clue: this.config.championshipClue || '',
+          answer: this.config.championshipAnswer || ''
+        });
+      }
+    }
   }
 
   _initStats() {
@@ -213,15 +225,36 @@ class GameState {
 
   advanceToChampionship() {
     this.phase = 'championship';
+    this.currentChampionshipIndex = 0;
     this.championshipPhase = 'wagering';
+    this.championshipWagers = {};
   }
 
   startThinkMusic() {
     this.championshipPhase = 'thinking';
   }
 
+  showChampionshipClue() {
+    this.championshipPhase = 'showing';
+  }
+
   revealChampionship() {
     this.championshipPhase = 'revealed';
+  }
+
+  hasMoreChampionshipQuestions() {
+    return this.currentChampionshipIndex + 1 < (this.config.championshipQuestions || []).length;
+  }
+
+  advanceToNextChampionshipQuestion() {
+    this.currentChampionshipIndex++;
+    this.championshipPhase = 'wagering';
+    this.championshipWagers = {};
+  }
+
+  getCurrentChampionshipQuestion() {
+    const qs = this.config.championshipQuestions || [];
+    return qs[this.currentChampionshipIndex] || { category: '', clue: '', answer: '' };
   }
 
   allRevealed() {
@@ -243,6 +276,7 @@ class GameState {
     this.championshipWagers = {};
     this.championshipAnswers = {};
     this.championshipPhase = null;
+    this.currentChampionshipIndex = 0;
     this.bonusCluePlayerIndex = null;
     this.bonusClueWager = 0;
     this.stats = this._initStats();
@@ -454,6 +488,8 @@ class GameState {
       championshipPhase: this.championshipPhase,
       championshipWagers: { ...this.championshipWagers },
       championshipAnswers: { ...this.championshipAnswers },
+      currentChampionshipIndex: this.currentChampionshipIndex,
+      championshipQuestions: this.config.championshipQuestions,
       bonusCluePlayerIndex: this.bonusCluePlayerIndex,
       bonusClueWager: this.bonusClueWager
     };

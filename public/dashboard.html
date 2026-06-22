@@ -58,11 +58,22 @@
         </div>
         <div class="card hidden" id="card-championship">
           <div class="card-lbl">CHAMPIONSHIP</div>
-          <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
-          <button class="b b-red b-full" id="btn-reveal-championship">REVEAL RESULTS</button>
-          <button class="b b-gold b-full" id="btn-show-winner">SHOW WINNER</button>
-          <button class="b b-ghost b-full" id="btn-show-stats">SHOW STATS</button>
-          <button class="b b-ghost b-full" id="btn-applause">APPLAUSE</button>
+          <div class="card-info" id="champ-question-info"></div>
+          <div id="champ-wager-area" class="hidden">
+            <div class="card-lbl-sub">WAGERS</div>
+            <div id="champ-wager-inputs"></div>
+            <button class="b b-gold b-full" id="btn-champ-show-clue">SHOW CLUE</button>
+          </div>
+          <div id="champ-clue-area" class="hidden">
+            <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
+            <button class="b b-red b-full" id="btn-reveal-championship">REVEAL ANSWER</button>
+          </div>
+          <div id="champ-reveal-area" class="hidden">
+            <button class="b b-blue b-full" id="btn-next-champ-question">NEXT QUESTION</button>
+            <button class="b b-gold b-full" id="btn-show-winner">SHOW WINNER</button>
+            <button class="b b-ghost b-full" id="btn-show-stats">SHOW STATS</button>
+            <button class="b b-ghost b-full" id="btn-applause">APPLAUSE</button>
+          </div>
         </div>
         <div class="card hidden" id="card-cat-reveal">
           <div class="card-lbl">CATEGORY REVEAL</div>
@@ -99,17 +110,6 @@
       <div class="modal-acts">
         <button class="b b-red" id="mreset-yes">YES</button>
         <button class="b b-ghost" id="mreset-no">CANCEL</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modal-championship" class="modal hidden">
-    <div class="modal-bx modal-w">
-      <h2>Championship Results</h2>
-      <div id="championship-form"></div>
-      <div class="modal-acts">
-        <button class="b b-gold" id="mchampionship-go">REVEAL</button>
-        <button class="b b-ghost" id="mchampionship-no">CANCEL</button>
       </div>
     </div>
   </div>

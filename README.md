@@ -4,7 +4,7 @@
 
 **v1.0.0** — A professional dual-screen trivia game engine for live hosting
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm-v10-blue)](https://npmjs.com/)
 [![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)]()

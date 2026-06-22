@@ -637,23 +637,36 @@ async function main() {
   ]);
 
   if (championshipPath && championshipPath.trim()) {
-    const resolvedPath = path.resolve(ROOT, championshipPath.trim());
-    console.log(chalk.cyan('  \u2192 Reading Championship CSV from ' + resolvedPath + '...'));
-    try {
-      const championshipText = fs.readFileSync(resolvedPath, 'utf-8');
-      const championshipParsed = parseCsvData(championshipText);
-      if (championshipParsed.length >= 2) {
-        config.championshipCategory = championshipParsed[1][0] || 'Championship';
-        config.championshipClue = championshipParsed[1][1] || 'Championship clue';
-        config.championshipAnswer = championshipParsed[1][2] || 'Championship answer';
-        console.log(chalk.green('  \u2713 Loaded Championship data'));
-      } else {
-        console.log(chalk.yellow('  \u26a0 Championship CSV needs at least 2 rows (header + data)'));
+      const resolvedPath = path.resolve(ROOT, championshipPath.trim());
+      console.log(chalk.cyan('  \u2192 Reading Championship CSV from ' + resolvedPath + '...'));
+      try {
+        const championshipCsvText = fs.readFileSync(resolvedPath, 'utf-8');
+        const championshipParsed = parseCsvData(championshipCsvText);
+        if (championshipParsed.length >= 2) {
+          var questions = [];
+          for (var ci = 1; ci < championshipParsed.length; ci++) {
+            var row = championshipParsed[ci];
+            if (row.length < 3) continue;
+            questions.push({
+              category: row[0] || ('Championship ' + ci),
+              clue: row[1] || 'Championship clue',
+              answer: row[2] || 'Championship answer'
+            });
+          }
+          if (questions.length > 0) {
+            config.championshipQuestions = questions;
+            config.championshipCategory = questions[0].category;
+            config.championshipClue = questions[0].clue;
+            config.championshipAnswer = questions[0].answer;
+            console.log(chalk.green('  \u2713 Loaded ' + questions.length + ' Championship question(s)'));
+          }
+        } else {
+          console.log(chalk.yellow('  \u26a0 Championship CSV needs at least 2 rows (header + data)'));
+        }
+      } catch (e) {
+        console.log(chalk.yellow('  \u26a0 Could not load Championship: ' + e.message));
       }
-    } catch (e) {
-      console.log(chalk.yellow('  \u26a0 Could not load Championship: ' + e.message));
     }
-  }
   }
   }
 
