@@ -627,6 +627,14 @@ socket.on('category-reveal-name', function(d) {
   show('cat-reveal');
 });
 
+socket.on('reveal-all-category-covers', function() {
+  var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
+  covers.forEach(function(c) {
+    c.classList.remove('visible');
+    c.classList.add('revealed');
+  });
+});
+
 socket.on('hide-category-reveal', function() {
   show('board');
   setPromo();

@@ -48,6 +48,7 @@ function setup(ioInstance, config) {
 
     socket.on('hide-category-reveal', () => {
       io.emit('hide-category-reveal', {});
+      io.emit('reveal-all-category-covers');
     });
 
     socket.on('select-clue', (data) => {

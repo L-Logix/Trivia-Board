@@ -286,6 +286,7 @@ socket.on('clue-opened',function(d){
 socket.on('bonus-clue-shown', function(d) {
   if (st) { st.phase = 'clue'; }
   setPhase('clue');
+  if (st) renderPlayers(st.players);
   side('card-clue');
   side('card-correct');
   document.getElementById('clue-info').textContent = (d.category || '') + ' - ' + (label('bonusClue') || 'BONUS CLUE');

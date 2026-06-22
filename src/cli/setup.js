@@ -349,6 +349,78 @@ async function main() {
     config.bonusCluesRound1 = answers.bonusCluesRound1;
     config.bonusCluesRound2 = answers.bonusCluesRound2;
     config.timerSeconds = answers.timerSeconds;
+
+    // Bonus clue positioning
+    var totalBC1 = answers.bonusCluesRound1 || 0;
+    var totalBC2 = answers.doubleRound ? (answers.bonusCluesRound2 || 0) : 0;
+    if (totalBC1 > 0 || totalBC2 > 0) {
+      var { positionMethod } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'positionMethod',
+          message: 'How should Bonus Clue positions be chosen?',
+          choices: [
+            { name: 'I choose — manually enter column + row for each', value: 'manual' },
+            { name: 'They choose — auto-assign random positions', value: 'auto' }
+          ],
+          default: 'auto'
+        }
+      ]);
+      config.bonusClueMethod = positionMethod;
+
+      if (positionMethod === 'manual') {
+        function colLetter(n) { return String.fromCharCode(65 + n); }
+        function parseCell(ref) {
+          var m = ref.toUpperCase().match(/^([A-Z])(\d+)$/);
+          if (!m) return null;
+          var col = m[1].charCodeAt(0) - 65;
+          var row = parseInt(m[2]) - 1;
+          return { col: col, row: row };
+        }
+        function colChoices(rows) {
+          var opts = [];
+          for (var i = 0; i < config.columns; i++) opts.push(colLetter(i));
+          return opts;
+        }
+        config.bonusCluePositions = { round1: [], round2: [] };
+
+        if (totalBC1 > 0) {
+          console.log(chalk.cyan('\n  Position Bonus Clues for Round 1:'));
+          for (var b = 0; b < totalBC1; b++) {
+            var pos = null;
+            while (!pos) {
+              var { cellRef } = await inquirer.prompt([
+                { type: 'input', name: 'cellRef', message: '  Column letter + row number for Bonus Clue ' + (b + 1) + ' (e.g. C3):' }
+              ]);
+              pos = parseCell(cellRef);
+              if (!pos || pos.col >= config.columns || pos.row >= config.rows) {
+                console.log(chalk.yellow('    Invalid position. Columns: A-' + colLetter(config.columns - 1) + ', Rows: 1-' + config.rows));
+                pos = null;
+              }
+            }
+            config.bonusCluePositions.round1.push([pos.col, pos.row]);
+          }
+        }
+
+        if (totalBC2 > 0) {
+          console.log(chalk.cyan('\n  Position Bonus Clues for Round 2:'));
+          for (var b = 0; b < totalBC2; b++) {
+            var pos = null;
+            while (!pos) {
+              var { cellRef } = await inquirer.prompt([
+                { type: 'input', name: 'cellRef', message: '  Column letter + row number for Bonus Clue ' + (b + 1) + ' (e.g. C3):' }
+              ]);
+              pos = parseCell(cellRef);
+              if (!pos || pos.col >= config.columns || pos.row >= config.rows) {
+                console.log(chalk.yellow('    Invalid position. Columns: A-' + colLetter(config.columns - 1) + ', Rows: 1-' + config.rows));
+                pos = null;
+              }
+            }
+            config.bonusCluePositions.round2.push([pos.col, pos.row]);
+          }
+        }
+      }
+    }
   }
 
   // Generate template CSV
@@ -539,12 +611,14 @@ async function main() {
   config.categories = categories;
   config.clues = clues;
   config.answers = answers;
-  config.bonusCluePositions = {
-    round1: assignBonusClues(config.columns, config.rows, config.bonusCluesRound1),
-    round2: config.doubleRound
-      ? assignBonusClues(config.columns, config.rows, config.bonusCluesRound2)
-      : []
-  };
+  if (!config.bonusCluePositions) {
+    config.bonusCluePositions = {
+      round1: assignBonusClues(config.columns, config.rows, config.bonusCluesRound1),
+      round2: config.doubleRound
+        ? assignBonusClues(config.columns, config.rows, config.bonusCluesRound2)
+        : []
+    };
+  }
   if (!isExisting) {
     config.assets = { logo: false, categoryCover: false, hostIntro: false, timesUp: false, bonusClue: false, championshipThink: false, applause: false, boardFill: false, correct: false, incorrect: false, outro: false };
   } else if (!config.assets) {
