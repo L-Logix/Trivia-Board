@@ -70,22 +70,30 @@ function setup(ioInstance, config) {
 
       if (cell.isBonusClue) {
         io.emit('bonus-clue-activated', { col, row });
+      } else {
+        gameState.startTimer(
+          () => { io.emit('times-up'); },
+          (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
+        );
       }
-
-      gameState.startTimer(
-        () => { io.emit('times-up'); },
-        (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
-      );
     });
 
-    socket.on('bonus-clue-confirm', () => {
+    socket.on('bonus-clue-wager', (data) => {
+      const { playerIndex, wager } = data;
+      gameState.setBonusClueWager(playerIndex, wager);
       gameState.confirmBonusClue();
       const cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
       if (cell) {
+        gameState.startTimer(
+          () => { io.emit('times-up'); },
+          (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
+        );
         io.emit('bonus-clue-shown', {
           clue: cell.clue,
           value: cell.value,
-          category: cell.category
+          category: cell.category,
+          playerIndex: playerIndex,
+          wager: wager
         });
       }
     });
@@ -112,11 +120,37 @@ function setup(ioInstance, config) {
       }
     });
 
+    socket.on('hide-answer', () => {
+      io.emit('answer-hidden');
+    });
+
     socket.on('answer-correct', () => {
+      if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
+        var pi = gameState.bonusCluePlayerIndex;
+        gameState.adjustScore(pi, gameState.bonusClueWager);
+        gameState.bonusCluePlayerIndex = null;
+        gameState.bonusClueWager = 0;
+        io.emit('score-updated', {
+          players: gameState.players.map(p => ({ ...p })),
+          playerIndex: pi,
+          delta: 0
+        });
+      }
       io.emit('answer-correct');
     });
 
     socket.on('answer-incorrect', () => {
+      if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
+        var pi = gameState.bonusCluePlayerIndex;
+        gameState.adjustScore(pi, -gameState.bonusClueWager);
+        gameState.bonusCluePlayerIndex = null;
+        gameState.bonusClueWager = 0;
+        io.emit('score-updated', {
+          players: gameState.players.map(p => ({ ...p })),
+          playerIndex: pi,
+          delta: 0
+        });
+      }
       io.emit('answer-incorrect');
     });
 
@@ -138,6 +172,14 @@ function setup(ioInstance, config) {
       const cell = gameState.rehideCell(col, row);
       if (cell) {
         io.emit('clue-rehidden', { col, row, board: gameState.board, revealedCells: gameState.revealedCells });
+      }
+    });
+
+    socket.on('toggle-bonus-clue', (data) => {
+      const { col, row } = data;
+      const cell = gameState.toggleBonusClue(col, row);
+      if (cell) {
+        io.emit('cell-value-set', { col, row, value: cell.value, board: gameState.board });
       }
     });
 

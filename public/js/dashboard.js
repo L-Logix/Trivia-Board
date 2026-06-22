@@ -38,7 +38,8 @@ function renderGrid(board,cats){
     d.dataset.col=c;d.dataset.row=r;
     if (!cell.revealed) {
       d.addEventListener('click',mkClick(c,r));
-      d.addEventListener('contextmenu',function(e){e.preventDefault()});
+      d.addEventListener('contextmenu',function(e){e.preventDefault();socket.emit('toggle-bonus-clue',{col:c,row:r})});
+      d.title = 'Left-click to select, right-click to toggle Bonus Clue';
     } else {
       d.addEventListener('click',function(){socket.emit('rehide-clue',{col:c,row:r})});
       d.title = 'Click to re-hide';
@@ -111,6 +112,7 @@ function updScores(players){if(!players)return;players.forEach(function(p,i){var
 
 var currentCategoryIndex = 0;
 var totalCategories = 0;
+var catRevealState = 'cover'; // 'cover' or 'name'
 
 function side(id){['card-clue','card-bonus','card-championship','card-correct','card-populate','card-cat-reveal'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
 function setTimer(v){document.getElementById('timer-num').textContent=v.toFixed(1)}
@@ -142,8 +144,18 @@ document.getElementById('btn-intro').addEventListener('click',function(){socket.
 document.getElementById('btn-r2').addEventListener('click',function(){socket.emit('advance-round2')});
 document.getElementById('btn-championship').addEventListener('click',function(){socket.emit('advance-championship')});
 document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
+document.getElementById('btn-hide-answer').addEventListener('click',function(){socket.emit('hide-answer')});
 document.getElementById('btn-board').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
-document.getElementById('btn-bonus-show').addEventListener('click',function(){socket.emit('bonus-clue-confirm');side('card-clue');side('card-correct')});
+document.getElementById('btn-bonus-show').addEventListener('click',function(){
+  var playerSel = document.getElementById('bc-player');
+  var wagerInp = document.getElementById('bc-wager');
+  var pi = parseInt(playerSel ? playerSel.value : '0');
+  var w = parseInt(wagerInp ? wagerInp.value : '0');
+  if (w < 0) w = 0;
+  socket.emit('bonus-clue-wager', { playerIndex: pi, wager: w });
+  side('card-clue');
+  side('card-correct');
+});
 document.getElementById('btn-think').addEventListener('click',function(){socket.emit('start-think-music')});
 document.getElementById('btn-reveal-championship').addEventListener('click',openChampionship);
 document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
@@ -164,21 +176,35 @@ document.getElementById('btn-correct').addEventListener('click',function(){socke
 document.getElementById('btn-incorrect').addEventListener('click',function(){socket.emit('answer-incorrect')});
 document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
 document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
-document.getElementById('btn-cat-prev').addEventListener('click',function(){
-  var idx = currentCategoryIndex - 1;
-  if (idx < 0) idx = totalCategories - 1;
-  currentCategoryIndex = idx;
-  socket.emit('reveal-category', { index: idx });
-  document.getElementById('cat-reveal-info').textContent = 'Category ' + (idx + 1) + ' of ' + totalCategories;
+document.getElementById('btn-cat-reveal-name').addEventListener('click',function(){
+  catRevealState = 'name';
+  socket.emit('reveal-category-name', { index: currentCategoryIndex });
+  document.getElementById('btn-cat-reveal-name').classList.add('hidden');
+  var isLast = currentCategoryIndex >= totalCategories - 1;
+  if (isLast) {
+    document.getElementById('btn-cat-done').classList.remove('hidden');
+  } else {
+    document.getElementById('btn-cat-next').classList.remove('hidden');
+  }
+  document.getElementById('cat-reveal-info').textContent = 'Category ' + (currentCategoryIndex + 1) + ' of ' + totalCategories + ' - Revealed';
 });
 document.getElementById('btn-cat-next').addEventListener('click',function(){
-  var idx = currentCategoryIndex + 1;
-  if (idx >= totalCategories) idx = 0;
-  currentCategoryIndex = idx;
-  socket.emit('reveal-category', { index: idx });
-  document.getElementById('cat-reveal-info').textContent = 'Category ' + (idx + 1) + ' of ' + totalCategories;
+  catRevealState = 'cover';
+  currentCategoryIndex++;
+  document.getElementById('btn-cat-reveal-name').classList.remove('hidden');
+  document.getElementById('btn-cat-next').classList.add('hidden');
+  document.getElementById('btn-cat-done').classList.add('hidden');
+  socket.emit('reveal-category', { index: currentCategoryIndex });
+  document.getElementById('cat-reveal-info').textContent = 'Category ' + (currentCategoryIndex + 1) + ' of ' + totalCategories;
 });
-document.getElementById('btn-cat-close').addEventListener('click',function(){socket.emit('hide-category-reveal')});
+document.getElementById('btn-cat-done').addEventListener('click',function(){
+  catRevealState = 'cover';
+  currentCategoryIndex = 0;
+  document.getElementById('btn-cat-reveal-name').classList.add('hidden');
+  document.getElementById('btn-cat-next').classList.add('hidden');
+  document.getElementById('btn-cat-done').classList.add('hidden');
+  socket.emit('hide-category-reveal');
+});
 
 /* ===== SOCKET ===== */
 socket.on('sync-state',function(state){
@@ -215,10 +241,45 @@ socket.on('board-shown',function(d){
 socket.on('clue-opened',function(d){
   if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase}
   setPhase(d.phase);
-  if(d.isBonusClue) side('card-bonus');
-  else { side('card-clue'); side('card-correct'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); }
+  if(d.isBonusClue) {
+    // Trigger the bonus clue activated handler logic
+    var sel = document.getElementById('bc-player');
+    var lbl = document.getElementById('bc-card-lbl');
+    if (lbl) lbl.textContent = label('bonusClue') || 'BONUS CLUE';
+    if (sel && st && st.players) {
+      sel.innerHTML = '';
+      st.players.forEach(function(p, i) {
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = p.name + ' ($' + p.score + ')';
+        sel.appendChild(opt);
+      });
+    }
+    var wagerInp = document.getElementById('bc-wager');
+    if (wagerInp) wagerInp.value = d.value || 0;
+    side('card-bonus');
+  } else { side('card-clue'); side('card-correct'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); }
 });
-socket.on('bonus-clue-activated',function(){setPhase('bonus-clue');side('card-bonus')});
+socket.on('bonus-clue-activated',function(){
+  setPhase('bonus-clue');
+  var sel = document.getElementById('bc-player');
+  var lbl = document.getElementById('bc-card-lbl');
+  if (lbl) lbl.textContent = label('bonusClue') || 'BONUS CLUE';
+  if (sel && st && st.players) {
+    sel.innerHTML = '';
+    st.players.forEach(function(p, i) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p.name + ' ($' + p.score + ')';
+      sel.appendChild(opt);
+    });
+  }
+  var wagerInp = document.getElementById('bc-wager');
+  if (wagerInp && st && st.currentClue && st.board && st.board[st.currentClue.col] && st.board[st.currentClue.col][st.currentClue.row]) {
+    wagerInp.value = st.board[st.currentClue.col][st.currentClue.row].value;
+  }
+  side('card-bonus');
+});
 socket.on('timer-tick',function(d){setTimer(d.remaining)});
 socket.on('times-up',function(){setTimer(0)});
 socket.on('buzz-result',function(d){document.querySelectorAll('.p-panel').forEach(function(p){p.classList.remove('buzz')});if(d.success){var el=document.querySelector('.p-panel[data-index="'+d.playerIndex+'"]');if(el)el.classList.add('buzz')}});
@@ -257,15 +318,34 @@ socket.on('game-reset',function(state){
   renderGrid(state.board,cats);
   renderPlayers(state.players);setRound(1);setPhase('idle');side(null);setTimer(0);categoriesRevealed=false;boardPopulated=false
 });
-socket.on('category-revealed-broadcast',function(d){
+socket.on('category-reveal-cover',function(d){
   categoriesRevealed=true;
+  catRevealState = 'cover';
   var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
   totalCategories = cats.length;
   currentCategoryIndex = d.index;
   document.getElementById('cat-reveal-info').textContent = 'Category ' + (d.index + 1) + ' of ' + totalCategories;
+  document.getElementById('btn-cat-reveal-name').classList.remove('hidden');
+  document.getElementById('btn-cat-next').classList.add('hidden');
+  document.getElementById('btn-cat-done').classList.add('hidden');
   side('card-cat-reveal');
 });
+socket.on('category-reveal-name',function(d){
+  catRevealState = 'name';
+  document.getElementById('btn-cat-reveal-name').classList.add('hidden');
+  var isLast = currentCategoryIndex >= totalCategories - 1;
+  if (isLast) {
+    document.getElementById('btn-cat-done').classList.remove('hidden');
+  } else {
+    document.getElementById('btn-cat-next').classList.remove('hidden');
+  }
+  document.getElementById('cat-reveal-info').textContent = 'Category ' + (currentCategoryIndex + 1) + ' of ' + totalCategories + ' - Revealed';
+});
 socket.on('hide-category-reveal',function(){
+  catRevealState = 'cover';
+  document.getElementById('btn-cat-reveal-name').classList.add('hidden');
+  document.getElementById('btn-cat-next').classList.add('hidden');
+  document.getElementById('btn-cat-done').classList.add('hidden');
   side('card-populate');
   if (st) {
     var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;

@@ -440,6 +440,11 @@ socket.on('answer-revealed', function(d) {
   el.classList.remove('hidden');
 });
 
+socket.on('answer-hidden', function() {
+  var el = document.getElementById('clue-ans');
+  if (el) el.classList.add('hidden');
+});
+
 socket.on('board-return', function(d) {
   show('board');
   setPromo();

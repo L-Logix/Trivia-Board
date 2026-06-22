@@ -12,6 +12,8 @@ class GameState {
     this.championshipWagers = {};
     this.championshipAnswers = {};
     this.championshipPhase = null;
+    this.bonusCluePlayerIndex = null;
+    this.bonusClueWager = 0;
     this._initBoard();
   }
 
@@ -97,6 +99,15 @@ class GameState {
     this.championshipWagers[playerIndex] = amount;
   }
 
+  setBonusClueWager(playerIndex, amount) {
+    this.bonusCluePlayerIndex = playerIndex;
+    this.bonusClueWager = amount;
+  }
+
+  getBonusClueWager() {
+    return { playerIndex: this.bonusCluePlayerIndex, wager: this.bonusClueWager };
+  }
+
   setChampionshipAnswer(playerIndex, correct) {
     this.championshipAnswers[playerIndex] = correct;
   }
@@ -121,6 +132,24 @@ class GameState {
     const cell = this.getCell(col, row);
     if (!cell) return null;
     cell.value = value;
+    return cell;
+  }
+
+  toggleBonusClue(col, row) {
+    const cell = this.getCell(col, row);
+    if (!cell) return null;
+    cell.isBonusClue = !cell.isBonusClue;
+    // Update bonusCluePositions tracking
+    const bcKey = 'round' + this.currentRound;
+    if (!this.config.bonusCluePositions) this.config.bonusCluePositions = { round1: [], round2: [] };
+    if (!this.config.bonusCluePositions[bcKey]) this.config.bonusCluePositions[bcKey] = [];
+    const pos = this.config.bonusCluePositions[bcKey];
+    const existingIdx = pos.findIndex(([pc, pr]) => pc === col && pr === row);
+    if (cell.isBonusClue) {
+      if (existingIdx === -1) pos.push([col, row]);
+    } else {
+      if (existingIdx !== -1) pos.splice(existingIdx, 1);
+    }
     return cell;
   }
 
@@ -167,6 +196,8 @@ class GameState {
     this.championshipWagers = {};
     this.championshipAnswers = {};
     this.championshipPhase = null;
+    this.bonusCluePlayerIndex = null;
+    this.bonusClueWager = 0;
     this.stopTimer();
     this._initBoard();
   }
@@ -196,7 +227,9 @@ class GameState {
       timer: { remaining: this.timer.remaining, running: this.timer.running },
       championshipPhase: this.championshipPhase,
       championshipWagers: { ...this.championshipWagers },
-      championshipAnswers: { ...this.championshipAnswers }
+      championshipAnswers: { ...this.championshipAnswers },
+      bonusCluePlayerIndex: this.bonusCluePlayerIndex,
+      bonusClueWager: this.bonusClueWager
     };
   }
 }
