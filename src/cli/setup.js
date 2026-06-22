@@ -72,24 +72,47 @@ function parseCsvData(csvText) {
 function buildSimpleBoard(parsed, columns, rows, values) {
   const header = parsed[0].map(h => h.trim().toLowerCase());
   const isSimple = header.length >= 3 && header[0] === 'category' && header[1] === 'clue' && header[2] === 'answer';
-
   if (!isSimple) return null;
 
+  const hasValue = header.length >= 4 && header[3] === 'value';
   const groups = {};
   for (let i = 1; i < parsed.length; i++) {
     const row = parsed[i];
     if (row.length < 3) continue;
-    const cat = row[0].trim();
-    const clue = row[1].trim();
-    const ans = row[2].trim();
+    const cat = (row[0] || '').trim();
+    const clue = (row[1] || '').trim();
+    const ans = (row[2] || '').trim();
+    const val = hasValue && row[3] ? parseInt(row[3].trim()) : NaN;
     if (!cat) continue;
     if (!groups[cat]) groups[cat] = [];
-    groups[cat].push({ clue, answer: ans });
+    groups[cat].push({ clue, answer: ans, value: isNaN(val) ? null : val });
   }
 
   const catNames = Object.keys(groups);
   const usedCats = catNames.slice(0, columns);
   while (usedCats.length < columns) usedCats.push('Category ' + (usedCats.length + 1));
+
+  // Sort each category's clues by value (ascending) if values provided
+  for (const cat of usedCats) {
+    const items = groups[cat] || [];
+    const hasValues = items.some(i => i.value !== null);
+    if (hasValues) {
+      items.sort((a, b) => (a.value || 0) - (b.value || 0));
+    }
+    // Assign to rows by matching value or position
+    const sorted = [];
+    const valuesArr = values || [];
+    for (let vi = 0; vi < valuesArr.length; vi++) {
+      const matchVal = valuesArr[vi];
+      const idx = items.findIndex(i => i.value === matchVal);
+      if (idx >= 0) {
+        sorted.push(items.splice(idx, 1)[0]);
+      } else {
+        sorted.push(items[vi] || { clue: 'Clue text', answer: 'Answer text' });
+      }
+    }
+    groups[cat] = sorted;
+  }
 
   const clues = [];
   const answers = [];
@@ -100,8 +123,8 @@ function buildSimpleBoard(parsed, columns, rows, values) {
       const cat = usedCats[c];
       const items = groups[cat] || [];
       const item = items[r] || {};
-      clueRow.push(item.clue || (clueRow.length > 0 ? clueRow[0] : 'Clue text'));
-      ansRow.push(item.answer || (ansRow.length > 0 ? ansRow[0] : 'Answer text'));
+      clueRow.push(item.clue || 'Clue text');
+      ansRow.push(item.answer || 'Answer text');
     }
     clues.push(clueRow);
     answers.push(ansRow);
@@ -148,7 +171,7 @@ function escapeCsv(val) {
 }
 
 function generateTemplate(config) {
-  let csv = 'Category,Clue,Answer\n';
+  let csv = 'Category,Clue,Answer,Value\n';
   const sampleCats = ['History', 'Science', 'Pop Culture', 'Geography', 'Sports', 'Movies'].slice(0, config.columns);
   const sampleQs = [
     ['This president was born in 1732', 'Who is George Washington?'],
@@ -160,7 +183,8 @@ function generateTemplate(config) {
   for (let c = 0; c < config.columns; c++) {
     for (let r = 0; r < config.rows; r++) {
       const q = sampleQs[r % sampleQs.length];
-      csv += escapeCsv(sampleCats[c] || 'Category ' + (c+1)) + ',' + escapeCsv(q[0]) + ',' + escapeCsv(q[1]) + '\n';
+      const val = (config.baseValues || [200,400,600,800,1000])[r] || ((r+1)*200);
+      csv += escapeCsv(sampleCats[c] || 'Category ' + (c+1)) + ',' + escapeCsv(q[0]) + ',' + escapeCsv(q[1]) + ',' + val + '\n';
     }
   }
   return csv;
@@ -250,6 +274,12 @@ async function main() {
       console.log(chalk.cyan('Run ') + chalk.bold('trivia start') + chalk.cyan(' to launch the broadcast server.\n'));
       process.exit(0);
     }
+    const { updateContent } = await inquirer.prompt([
+      { type: 'confirm', name: 'updateContent', message: 'Update content (Round 2, Championship, Players)?', default: false }
+    ]);
+    const { updateAssets } = await inquirer.prompt([
+      { type: 'confirm', name: 'updateAssets', message: 'Update assets (images, audio)?', default: false }
+    ]);
     console.log(chalk.cyan('  \u2192 Proceeding through prompts with existing values as defaults.\n'));
   }
 
@@ -369,54 +399,45 @@ async function main() {
       config.bonusClueMethod = positionMethod;
 
       if (positionMethod === 'manual') {
-        function colLetter(n) { return String.fromCharCode(65 + n); }
-        function parseCell(ref) {
-          var m = ref.toUpperCase().match(/^([A-Z])(\d+)$/);
-          if (!m) return null;
-          var col = m[1].charCodeAt(0) - 65;
-          var row = parseInt(m[2]) - 1;
-          return { col: col, row: row };
-        }
-        function colChoices(rows) {
-          var opts = [];
-          for (var i = 0; i < config.columns; i++) opts.push(colLetter(i));
-          return opts;
-        }
         config.bonusCluePositions = { round1: [], round2: [] };
+
+        function pickRandomCol() { return Math.floor(Math.random() * config.columns); }
 
         if (totalBC1 > 0) {
           console.log(chalk.cyan('\n  Position Bonus Clues for Round 1:'));
+          console.log(chalk.gray('    (Enter the value row number — column is chosen randomly)'));
           for (var b = 0; b < totalBC1; b++) {
-            var pos = null;
-            while (!pos) {
-              var { cellRef } = await inquirer.prompt([
-                { type: 'input', name: 'cellRef', message: '  Column letter + row number for Bonus Clue ' + (b + 1) + ' (e.g. C3):' }
+            var rowNum = null;
+            while (rowNum === null) {
+              var { bRow } = await inquirer.prompt([
+                { type: 'input', name: 'bRow', message: '  Row number for Bonus Clue ' + (b + 1) + ' (1-' + config.rows + '):' }
               ]);
-              pos = parseCell(cellRef);
-              if (!pos || pos.col >= config.columns || pos.row >= config.rows) {
-                console.log(chalk.yellow('    Invalid position. Columns: A-' + colLetter(config.columns - 1) + ', Rows: 1-' + config.rows));
-                pos = null;
+              rowNum = parseInt(bRow);
+              if (isNaN(rowNum) || rowNum < 1 || rowNum > config.rows) {
+                console.log(chalk.yellow('    Enter a number between 1 and ' + config.rows));
+                rowNum = null;
               }
             }
-            config.bonusCluePositions.round1.push([pos.col, pos.row]);
+            config.bonusCluePositions.round1.push([pickRandomCol(), rowNum - 1]);
           }
         }
 
         if (totalBC2 > 0) {
           console.log(chalk.cyan('\n  Position Bonus Clues for Round 2:'));
+          console.log(chalk.gray('    (Enter the value row number — column is chosen randomly)'));
           for (var b = 0; b < totalBC2; b++) {
-            var pos = null;
-            while (!pos) {
-              var { cellRef } = await inquirer.prompt([
-                { type: 'input', name: 'cellRef', message: '  Column letter + row number for Bonus Clue ' + (b + 1) + ' (e.g. C3):' }
+            var rowNum = null;
+            while (rowNum === null) {
+              var { bRow } = await inquirer.prompt([
+                { type: 'input', name: 'bRow', message: '  Row number for Bonus Clue ' + (b + 1) + ' (1-' + config.rows + '):' }
               ]);
-              pos = parseCell(cellRef);
-              if (!pos || pos.col >= config.columns || pos.row >= config.rows) {
-                console.log(chalk.yellow('    Invalid position. Columns: A-' + colLetter(config.columns - 1) + ', Rows: 1-' + config.rows));
-                pos = null;
+              rowNum = parseInt(bRow);
+              if (isNaN(rowNum) || rowNum < 1 || rowNum > config.rows) {
+                console.log(chalk.yellow('    Enter a number between 1 and ' + config.rows));
+                rowNum = null;
               }
             }
-            config.bonusCluePositions.round2.push([pos.col, pos.row]);
+            config.bonusCluePositions.round2.push([pickRandomCol(), rowNum - 1]);
           }
         }
       }
@@ -495,6 +516,7 @@ async function main() {
 
   // Round 2 data
   if (config.doubleRound) {
+    if (!isExisting || updateContent) {
     console.log(chalk.cyan('\n--- Round 2 Data ---\n'));
     let skipR2 = false;
     if (isExisting && config.r2Categories) {
@@ -530,9 +552,11 @@ async function main() {
       }
     }
     }
+    }
   }
 
   // Championship data
+  if (!isExisting || updateContent) {
   console.log(chalk.cyan('\n--- Championship Data ---\n'));
   let skipChamp = false;
   if (isExisting && config.championshipCategory) {
@@ -569,7 +593,9 @@ async function main() {
     }
   }
   }
+  }
 
+  if (!isExisting || updateContent) {
   let skipPlayers = false;
   if (isExisting && config.players && config.players.length > 0) {
     const { reusePlayers } = await inquirer.prompt([
@@ -589,6 +615,7 @@ async function main() {
   ]);
 
   config.players = playerInput;
+  }
   }
 
   // Fallback placeholder data
@@ -667,6 +694,7 @@ async function main() {
     }
   }
 
+  if (!isExisting || updateAssets) {
   console.log(chalk.cyan('\n--- Asset Uploads ---'));
 
   const { logoPath } = await inquirer.prompt([
@@ -760,6 +788,7 @@ async function main() {
         console.log(chalk.green('  \u2713 ' + af.label + ' copied'));
       }
     }
+  }
   }
 
   // Save round 2 data

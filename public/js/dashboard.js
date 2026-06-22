@@ -159,6 +159,7 @@ document.getElementById('btn-bonus-show').addEventListener('click',function(){
 document.getElementById('btn-think').addEventListener('click',function(){socket.emit('start-think-music')});
 document.getElementById('btn-reveal-championship').addEventListener('click',openChampionship);
 document.getElementById('btn-show-winner').addEventListener('click',function(){socket.emit('show-winner')});
+document.getElementById('btn-show-stats').addEventListener('click',function(){socket.emit('show-stats')});
 document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
 document.getElementById('btn-reset').addEventListener('click',function(){document.getElementById('modal-reset').classList.remove('hidden')});
 document.getElementById('mreset-yes').addEventListener('click',function(){document.getElementById('modal-reset').classList.add('hidden');socket.emit('reset-game')});
@@ -349,6 +350,7 @@ socket.on('game-reset',function(state){
   renderGrid(state.board,cats);
   renderPlayers(state.players);setRound(1);setPhase('idle');side(null);setTimer(0);categoriesRevealed=false;boardPopulated=false
 });
+socket.on('show-stats',function(){window.open('/stats','_blank')});
 socket.on('category-reveal-cover',function(d){
   categoriesRevealed=true;
   catRevealState = 'cover';

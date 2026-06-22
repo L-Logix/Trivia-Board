@@ -158,7 +158,7 @@ html,body {
 }
 .cat-cover {
   background:#060ce9;
-  background-size:contain;
+  background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
   border:2px solid #ffcc00;
@@ -192,7 +192,7 @@ html,body {
 .price-cover-inner {
   width:100%; height:100%;
   background:#060ce9;
-  background-size:contain;
+  background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
   border:3px solid #ffcc00;
@@ -421,10 +421,22 @@ html,body {
 /* Cover layer — fills entire screen, flips up to reveal name */
 #cat-cover-layer {
   position:absolute; inset:0;
-  background:#060ce9;
+  background: radial-gradient(ellipse at 50% 45%, #0a10a0 0%, #060ce9 60%);
   z-index:2;
   transform-origin:center top;
   transition:transform .7s cubic-bezier(.68,-0.55,.27,1.55), opacity .3s ease;
+}
+#cat-cover-layer::after {
+  content:'?';
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:clamp(60px, 20vmin, 20vw);
+  font-weight:700;
+  color:rgba(255,255,255,.04);
+  pointer-events:none;
+  letter-spacing:0;
 }
 #cat-cover-layer.cover-flip {
   transform:rotateX(95deg);
@@ -620,4 +632,27 @@ html,body {
 }
 #board-wrap.filling {
   animation:boardFillEntrance .5s ease;
+
+/* ===== SCORE TICKER ===== */
+#score-ticker-wrap {
+  position:fixed; bottom:0; left:0; width:100%; height:44px; z-index:999;
+  background:rgba(6,12,233,.92); border-top:2px solid #ffcc00;
+  overflow:hidden; pointer-events:none;
+}
+#score-ticker {
+  display:flex; white-space:nowrap;
+  animation:tickerScroll 30s linear infinite;
+}
+#score-ticker .ticker-item {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:0 30px; font-family:'Oswald',sans-serif;
+  font-size:20px; color:#fff; height:44px;
+  border-right:1px solid rgba(255,204,0,.25);
+}
+#score-ticker .ticker-item .ti-name { color:#ffcc00; font-weight:700; }
+#score-ticker .ticker-item .ti-score { color:#fff; font-weight:500; }
+@keyframes tickerScroll {
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
 }

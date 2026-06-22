@@ -19,138 +19,138 @@
   "bonusCluesRound1": 1,
   "bonusCluesRound2": 2,
   "timerSeconds": 5,
-  "championshipCategory": "FINAL JEOPARDY",
-  "championshipClue": "\nFinalists:\nAlex\n\nBlake\n\nCasey\n\nDrew\n\nOnly one of them won.\n\nTimeline\n3:55 PM — Principal posts a sheet on the bulletin board.\n\nThe sheet shows only the winner’s name.\n\n4:02 PM — Alex walks past the board.\n\n4:04 PM — Blake walks past the board.\n\n4:06 PM — Casey walks past the board.\n\n4:08 PM — Drew walks past the board.\n\nEach finalist is alone when they pass.\nYou do not know who actually looked at the paper.\n\n4:10 PM — All four finalists meet in the hallway.\nYou ask them all at once:\n\n“Right now, do you know for sure who won the talent show?”\n\nTheir answers:\n\nAlex: “Yes, I know for sure.”\n\nBlake: “No, I don’t know.”\n\nCasey: “I don’t know, but I know that Alex knows.”\n\nDrew: “I didn’t know before, but after hearing Casey, now I know for sure who won.”\n\nAll four are answering honestly.\nNone of them have talked to anyone else.\nNone of them saw anyone else look at the board.\n\nWho won the talent show?",
-  "championshipAnswer": "Alex",
+  "championshipCategory": "Ancient Cities",
+  "championshipClue": "Founded by seafaring traders, this city became one of the Mediterranean’s greatest powers.\nThough later destroyed by Rome, its legacy survives in famous explorers, alphabetic influences, and a legendary queen whose name still appears in literature today.",
+  "championshipAnswer": "Carthage",
   "players": [
     "Daddy",
-    "Seeya",
-    "Achchi"
+    "Achchi",
+    "Seeya"
   ],
   "categories": [
     "Passport, Please",
-    "UNESCO‑World‑Heritage Sites",
-    "Dad, You Should Know This",
     "Stars, Stripes & Road Signs",
     "Screen Legends & Small‑Screen Classics",
-    "Global Grub"
+    "Taking Care of Business",
+    "In the Know",
+    "Structurally Sound"
   ],
   "clues": [
     [
       "This capital, whose Māori name means “the great harbor of Tara,” sits on a fault line and is known for its fierce winds whipping through Cook Strait.",
-      "Once a royal palace, this museum’s glass pyramid entrance now welcomes millions seeking a certain enigmatic Renaissance smile.",
-      "The first Father’s Day was organized here by Sonora Smart Dodd to honor her widowed father, a Civil War veteran who raised six children alone.",
       "This city, once the U.S. capital, is home to Independence Hall, where both the Declaration and Constitution were debated.",
       "This spooky sitcom family lived at 1313 Mockingbird Lane and featured a Frankenstein‑like dad named Herman.",
-      "Traditionally made from buffalo milk, this soft cheese is a key ingredient in a classic Margherita pizza."
+      "When packing a first-aid kit for countries like Japan or the UAE, travelers must leave behind over-the-counter cold medicines containing this specific decongestant ingredient, as it is classified as a banned stimulant.",
+      "Long before the arrival of private 24-hour networks, generations of Sri Lankans relied strictly on this flagship evening state news broadcast.",
+      "This real‑estate developer, known for emphasizing innovation in property planning, once said that “it starts with being creative and applying various development strategies,” a philosophy he’s repeated in interviews and community talks alike."
     ],
     [
       "Once home to Phoenicians and Moors, this nation uniquely touches both the Atlantic and the Mediterranean, giving it two distinct maritime identities.",
-      "Completed in the 5th century BCE, this marble temple dedicated to Athena crowns a rocky outcrop overlooking the city below.",
-      "In 1966, this president issued the first national proclamation for Father’s Day, though it wouldn’t become law until 1972.",
       "The geographic center of the contiguous U.S. lies in this state, known for wheat fields, prairies, and the occasional twister.",
       "Humphrey Bogart delivered the line “Here’s looking at you, kid” in this wartime romance set in Morocco.",
-      "These Japanese skewers of grilled chicken are a staple of izakaya pubs."
+      "Modern silver prices are increasingly dictated by its status as an industrial commodity, specifically due to its massive use as a microscopic electrical conductor inside the photovoltaic cells of these green energy panels.",
+      "Presenting an existential threat to digital news publishers, this specific industry term describes Google or Perplexity search results pages that use generative AI to completely answer a query on-screen, eliminating the user's need to click a link to read the original article.",
+      "Completed in the 21st century, this tower’s design was inspired by a regional flower, and its shadow can stretch across an entire artificial lake on certain afternoons."
     ],
     [
       "These twin towers, joined by a skybridge, dominate a capital whose name means “muddy confluence,” referring to the meeting of two rivers.",
-      "Inspired by seashells and sails, this landmark’s construction required over a million tiles to achieve its iconic white sheen.",
-      "This Southeast Asian nation celebrates Father’s Day on December 5, honoring the birthday of its long‑reigning monarch.",
       "Formed in a volcanic caldera, this impossibly blue lake plunges nearly 2,000 feet, making it the deepest in the nation.",
       "This actor’s deep, resonant voice brought menace to Darth Vader, even though he never wore the suit.",
-      "Layers of filo dough, chopped nuts, and honey syrup make up this sweet Middle Eastern dessert."
+      "To easily check if your tires have enough tread depth to safely grip wet roads, you can insert an upside-down penny into the groove to see if it covers the top of this president's head.",
+      "Long before becoming a household name in consumer advocacy, this future National Radio Hall of Fame inductee built his initial fortune in his twenties by capitalizing on Carter-era airline deregulation to launch an Atlanta-based agency chain called Action Travel. After 9/11, he added to his resume by spending 21 years as a volunteer officer in the Georgia State Defense Force, eventually retiring at the rank of Major.",
+      "Often mistaken for sails or shells, this building’s construction was so complex that its architect resigned long before its opening — yet it remains the defining silhouette of its harbor."
     ],
     [
       "Separated from mainland Africa millions of years ago, this island’s isolation produced lemurs, baobabs, and over 90% endemic species.",
-      "For over three decades, this Canadian tower held the title of tallest free‑standing structure, offering views across Lake Ontario.",
-      "In Germany, Father’s Day festivities often involve wagons of beer and countryside hikes under this name meaning “Men’s Day.”",
       "This Midwestern city’s 630‑foot stainless‑steel arch commemorates America’s westward expansion.",
       "Maxwell Smart often answered calls with his shoe in this 1960s spy parody created by Mel Brooks.",
-      "This fiery North African chili paste adds heat to couscous, stews, and grilled meats."
+      "Organic gardeners take care of annoying pests like spider mites and scale by spraying foliage with this naturally bitter oil extracted from an evergreen tree native to India.",
+      "In the United States, this major geographical feature serves as the official boundary line determining whether a commercial radio station's call letters must begin with a \"W\" or a \"K.\"",
+      "Built in the early 20th century, this colossal sculpture watches over a city once known for gold rushes, and its granite faces required decades of drilling and dynamite."
     ],
     [
       "This nation, whose name comes from the Spanish for “dove,” is the only South American country with coastlines on two different oceans.",
-      "This ancient stone circle aligns with the midsummer sunrise, though its exact purpose—ritual, burial, or astronomical—remains debated.",
-      "Despite stereotypes about ties and tools, Americans spend the most Father’s Day money on this category of gifts.",
       "Some of the tallest trees on Earth—towering coast redwoods—grow in this California national park.",
       "Charlton Heston parted the Red Sea—on screen, at least—in this 1956 biblical epic.",
-      "Made from cubed radish, this Korean fermented dish is a crunchy cousin of kimchi."
+      "Taking care of your home's energy bill means ensuring your attic insulation has a high enough number on this letter-based rating scale, which measures its resistance to heat flow.",
+      "Before underwater cables spanned the English Channel, this global news agency, founded in 1851, famously used a fleet of over 45 carrier pigeons to bridge the gap in the European telegraph lines between Brussels and Aachen.",
+      "Recognized worldwide despite often being partially invisible, this structure’s signature color was originally chosen to help it stand out during wartime naval construction."
     ]
   ],
   "answers": [
     [
       "What is Wellington?",
-      "What is the Louvre?",
-      "What is Spokane?",
       "What is Philadelphia?",
       "Who are The Munsters?",
-      "What is mozzarella?"
+      "What is pseudoephedrine?",
+      "What is Rupavahini Puvath?",
+      "Who is Gerry Andrady?"
     ],
     [
       "What is Spain?",
-      "What is the Parthenon?",
-      "Who is Lyndon B. Johnson?",
       "What is Kansas?",
       "What is Casablanca?",
-      "What is yakitori?"
+      "What are solar panels?",
+      "What is a zero-click search? OR What are AI Overviews?",
+      "What is the Burj Khalifa?"
     ],
     [
       "What is Kuala Lumpur?",
-      "What is the Sydney Opera House?",
-      "What is Thailand?",
       "What is Crater Lake?",
       "Who is James Earl Jones?",
-      "What is baklava?"
+      "Who is Abraham Lincoln?",
+      "Who is Clark Howard?",
+      "What is the Sydney Opera House?"
     ],
     [
       "What is Madagascar?",
-      "What is the CN Tower?",
-      "What is Männertag?",
       "What is St. Louis?",
       "What is Get Smart?",
-      "What is harissa?"
+      "What is neem oil?",
+      "What is the Mississippi River?",
+      "What is Mount Rushmore?"
     ],
     [
       "What is Colombia?",
-      "What is Stonehenge?",
-      "What is clothing?",
       "What is Redwood National Park?",
       "What is The Ten Commandments?",
-      "What is kkakdugi?"
+      "What is an R-value?",
+      "What is Reuters?",
+      "What is the Golden Gate Bridge?"
     ]
   ],
   "bonusCluePositions": {
     "round1": [
       [
-        0,
-        4
+        4,
+        2
       ]
     ],
     "round2": [
       [
-        0,
-        2
+        4,
+        0
       ],
       [
-        3,
-        3
+        5,
+        4
       ]
     ]
   },
   "assets": {
-    "logo": "jpg",
-    "categoryCover": "jpg",
-    "hostIntro": true,
+    "logo": "png",
+    "categoryCover": "png",
+    "hostIntro": false,
     "timesUp": true,
     "bonusClue": true,
     "championshipThink": true,
-    "applause": false,
+    "applause": true,
     "boardFill": true,
     "correct": true,
     "incorrect": true,
     "outro": true,
     "introVideo": true,
-    "promoImage": "png"
+    "promoImage": "jpg"
   },
   "jeopardyStyle": true,
   "labels": {
@@ -161,7 +161,7 @@
   },
   "categoriesR2": [
     "Capitals of the World… Literally",
-    "Fathers, Forefathers & Father Figures",
+    "Varied Wisdom",
     "Earth, Wind & Where Is That?",
     "Nature’s Rulebook",
     "Decades on the Dial",
@@ -170,84 +170,84 @@
   "cluesR2": [
     [
       "Formed when two historic cities united in 1873, this capital straddles the Danube and boasts the Chain Bridge and Buda Castle.",
-      "This cinematic father revealed his identity in one of film’s most famous twists, telling his son the truth.",
+      "Used by many banking, shopping, and cloud‑storage services, this feature requires you to confirm a login attempt by approving a prompt on a trusted device, adding a second layer beyond just a password.",
       "It’s the only U.S. state whose name is just one syllable.",
       "Represented by the symbol “K,” this essential mineral helps regulate nerve and muscle function.",
-      "This Motown group harmonized their way to fame with the hit “My Girl.”",
+      "This 1994 British documentary series, directed by Faris Kermani and broadcast on Channel 4, provided an early, fly-on-the-wall look at the daily operations of police officers in the Gulshan-e-Iqbal precinct.",
       "This western state is home to a massive saltwater lake visible from space."
     ],
     [
       "With winter temperatures often plunging below –20°F, this Mongolian capital is the coldest in the world.",
-      "Known for his sweaters and gentle wisdom, this TV dad raised the Huxtable family.",
+      "Synthesized when ultraviolet radiation interacts with the skin, this compound supports calcium absorption and immune regulation, especially in low‑sunlight regions.",
       "Flowing from the Swiss Alps to the North Sea, this river forms part of the France–Germany border.",
       "Located at the back of the brain, this structure coordinates movement and balance.",
-      "This Norwegian band hit No. 1 with their synth‑pop classic “Take On Me.”",
+      "Known for their 1978 film Up in Smoke, this comedy duo—made up of Richard \"Cheech\" Marin and Tommy Chong—became famous for their laid-back routines and counter-culture humor.",
       "Stretching over 3,300 miles, this U.S. highway is the longest continuous road in the nation."
     ],
     [
       "Sharing its name with a popular tea, this Sri Lankan capital sits on the island’s western coast.",
-      "This animated Texas dad sells propane and propane accessories in Arlen.",
+      "Often used in recommendation engines, this technique adjusts itself based on exposure to new data, refining predictions without being explicitly reprogrammed.",
       "Home to K2, this rugged Asian mountain range spans Pakistan, India, and China.",
       "Animals that rely on external sources for body heat are described by this scientific term.",
-      "Released in 1977, this Fleetwood Mac album became one of the best‑selling of all time.",
+      "Known at one point as the \"King of the Airwaves,\" this station became the most influential broadcaster in South Asia, famously introducing listeners to the latest Bollywood film hits.",
       "This Virginia town marks the northern end of the scenic Blue Ridge Parkway."
     ],
     [
       "Known for its medieval Old Town and digital‑forward society, this Baltic capital blends ancient walls with modern tech.",
-      "This literary father teaches his children empathy while defending a man falsely accused.",
+      "Essential for proper nerve function and red‑blood‑cell formation, this vitamin becomes especially critical when dietary sources exclude animal products.",
       "With some of the warmest waters on Earth, this sea lies between Africa and the Arabian Peninsula.",
       "Towering and anvil‑shaped, these clouds are the hallmark of thunderstorms.",
-      "This Baroque composer wrote a set of violin concertos representing the seasons of the year.",
+      "Marking a major technological leap, this broadcaster launched in 1979 as Sri Lanka’s first independent television station.",
       "Formed in a volcanic crater, this lake in Oregon is the deepest in the United States."
     ],
     [
       "Formerly known as Astana, this Central Asian capital adopted a new name in 2019 to honor its former president.",
-      "This Shakespearean king’s tragic decision to divide his kingdom among his daughters leads to ruin.",
+      "Rooted in mid‑century theories about machine reasoning, this field now powers systems that can classify images, generate text, and detect patterns humans might miss.",
       "With over 17,000 islands, this nation is the world’s largest archipelago.",
       "This gas law states that pressure and volume of a gas are inversely related.",
-      "Known as the “Father of the Blues,” this musician helped popularize the genre in the early 1900s.",
+      "This decade saw the traditional radio dial begin to face obsolescence as the industry shifted toward this new technology, which allowed for the first mainstream, high-quality audio streaming over computer networks.",
       "The northernmost point of the contiguous U.S. lies in this state’s remote Angle Inlet."
     ]
   ],
   "answersR2": [
     [
       "What is Budapest?",
-      "Who is Darth Vader?",
+      "What is an authentication prompt?",
       "What is Maine?",
       "What is potassium?",
-      "Who are The Temptations?",
+      "What is Karachi Kops?",
       "What is Utah?"
     ],
     [
       "What is Ulaanbaatar?",
-      "Who is Cliff Huxtable?",
+      "What is Vitamin D?",
       "What is the Rhine?",
       "What is the cerebellum?",
-      "Who is a‑ha?",
+      "Who are Cheech and Chong?",
       "What is U.S. Route 20?"
     ],
     [
       "What is Colombo?",
-      "Who is Hank Hill?",
+      "What is machine learning?",
       "What are the Karakoram Mountains?",
       "What is ectothermic?",
-      "What is Rumours?",
+      "What is Radio Ceylon OR Sri Lanka Broadcasting Corporation OR SLBC?",
       "What is Afton?"
     ],
     [
       "What is Tallinn?",
-      "Who is Atticus Finch?",
+      "What is Vitamin B12?",
       "What is the Red Sea?",
       "What are cumulonimbus clouds?",
-      "Who is Vivaldi?",
+      "What is ITN (Independent Television Network)?",
       "What is Crater Lake?"
     ],
     [
       "What is Nur‑Sultan?",
-      "Who is King Lear?",
+      "What is artificial intelligence?",
       "What is Indonesia?",
       "What is Boyle’s Law?",
-      "Who is W.C. Handy?",
+      "What is the Internet OR Web Streaming?",
       "What is Minnesota?"
     ]
   ]

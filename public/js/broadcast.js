@@ -218,6 +218,7 @@ function revealCategoryCovers() {
 }
 
 function revealPriceCover() {
+  play('boardfill');
   var coverEl = document.getElementById('board-price-cover');
   if (coverEl) coverEl.classList.add('revealed');
   var cells = document.querySelectorAll('.board-cell:not(.revealed)');
@@ -226,7 +227,6 @@ function revealPriceCover() {
       c.classList.add('flip-in');
     }, i * 35 + 50);
   });
-  play('boardfill');
   priceCoverVisible = false;
 }
 
@@ -245,6 +245,19 @@ function updateScores(players) {
   renderScores(players, document.getElementById('board-scores'));
   renderScores(players, document.getElementById('clue-scores'));
   if (document.getElementById('championship-scores')) renderScores(players, document.getElementById('championship-scores'));
+  updateTicker(players);
+}
+
+function updateTicker(players) {
+  var el = document.getElementById('score-ticker');
+  if (!el || !players) return;
+  var html = '';
+  for (var i = 0; i < 3; i++) {
+    players.forEach(function(p) {
+      html += '<div class="ticker-item"><span class="ti-name">' + esc(p.name) + '</span><span class="ti-score">' + fmt(p.score) + '</span></div>';
+    });
+  }
+  el.innerHTML = html;
 }
 
 /* ===== CLUE ===== */
@@ -456,6 +469,8 @@ socket.on('bonus-clue-shown', function(d) {
 socket.on('timer-tick', function(d) { setTimer(d.remaining); });
 
 socket.on('times-up', function() {
+  var ao = document.getElementById('answer-overlay');
+  if (ao && ao.className) return;
   play('timesup');
   setTimer(0);
   var tu = document.getElementById('times-up-overlay');
@@ -578,6 +593,10 @@ socket.on('show-winner', function(d) {
   play('outro');
 });
 
+socket.on('show-stats', function() {
+  window.open('/stats', '_blank');
+});
+
 socket.on('outro', function() {
   show('outro');
   var lg = document.getElementById('outro-logo');
@@ -593,12 +612,14 @@ socket.on('outro', function() {
 });
 
 socket.on('category-reveal-cover', function(d) {
-  // Reveal this category's cover on the board grid (so when we return, it's gone)
-  var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
-  if (covers[d.index]) {
-    covers[d.index].classList.remove('visible');
-    covers[d.index].classList.add('revealed');
-    covers[d.index].style.animation = 'catCoverReveal .5s cubic-bezier(.68,-0.55,.27,1.55) forwards';
+  // Reveal this category's cover on the board grid by position (not filtered index)
+  var cc = document.getElementById('board-cat-covers');
+  if (cc) {
+    var cover = cc.children[d.index];
+    if (cover) {
+      cover.classList.remove('visible');
+      cover.classList.add('revealed');
+    }
   }
   // Show full-screen blue cover (entire screen is the cover)
   var coverLayer = document.getElementById('cat-cover-layer');
@@ -628,11 +649,13 @@ socket.on('category-reveal-name', function(d) {
 });
 
 socket.on('reveal-all-category-covers', function() {
-  var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
-  covers.forEach(function(c) {
-    c.classList.remove('visible');
-    c.classList.add('revealed');
-  });
+  var cc = document.getElementById('board-cat-covers');
+  if (cc) {
+    [].slice.call(cc.children).forEach(function(c) {
+      c.classList.remove('visible');
+      c.classList.add('revealed');
+    });
+  }
 });
 
 socket.on('hide-category-reveal', function() {

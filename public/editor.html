@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Content Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #060ce9; color: #fff; font-family: 'Inter', sans-serif; min-height: 100vh; padding: 20px; }
+h1 { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.2rem; color: #ffcc00; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 3px solid rgba(255,204,0,.3); padding-bottom: 0; }
+.tab { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1rem; padding: 10px 24px; cursor: pointer; background: rgba(255,255,255,.08); color: rgba(255,255,255,.6); border: none; border-radius: 8px 8px 0 0; text-transform: uppercase; letter-spacing: 1px; transition: all .2s; }
+.tab:hover { background: rgba(255,255,255,.15); color: #fff; }
+.tab.active { background: #ffcc00; color: #060ce9; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.btn { font-family: 'Inter', sans-serif; font-weight: 600; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: .85rem; transition: all .2s; }
+.btn-gold { background: #ffcc00; color: #060ce9; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1.1rem; padding: 12px 32px; letter-spacing: 1px; text-transform: uppercase; }
+.btn-gold:hover { background: #ffd633; transform: scale(1.02); }
+.btn-blue { background: rgba(255,255,255,.1); color: #fff; }
+.btn-blue:hover { background: rgba(255,255,255,.2); }
+.btn-danger { background: #e63946; color: #fff; }
+.btn-danger:hover { background: #ff4757; }
+.btn-sm { padding: 4px 10px; font-size: .75rem; }
+.action-bar { display: flex; gap: 12px; align-items: center; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+.grid-wrap { overflow-x: auto; }
+.grid { display: table; width: 100%; border-collapse: collapse; min-width: 600px; }
+.grid th, .grid td { border: 1px solid rgba(255,255,255,.15); padding: 6px; text-align: left; vertical-align: top; position: relative; }
+.grid th { background: rgba(255,204,0,.15); font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; color: #ffcc00; padding: 8px 6px; text-align: center; }
+.grid th input { background: transparent; border: 1px solid rgba(255,204,0,.3); color: #ffcc00; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .8rem; text-transform: uppercase; width: 100%; padding: 4px; border-radius: 4px; text-align: center; }
+.grid th input:focus { outline: none; border-color: #ffcc00; }
+.val-label { font-family: 'Oswald', sans-serif; font-weight: 600; color: #ffcc00; text-align: center; white-space: nowrap; min-width: 70px; padding: 6px 10px !important; vertical-align: middle !important; font-size: .9rem; }
+.val-label input { background: transparent; border: 1px solid rgba(255,204,0,.3); color: #ffcc00; font-family: 'Oswald', sans-serif; font-weight: 600; width: 100%; padding: 3px; border-radius: 4px; text-align: center; font-size: .9rem; }
+.val-label input:focus { outline: none; border-color: #ffcc00; }
+.cell-wrap { display: flex; flex-direction: column; gap: 4px; }
+.cell-wrap textarea { background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12); color: #fff; font-family: 'Inter', sans-serif; font-size: .75rem; padding: 6px; border-radius: 4px; resize: vertical; min-height: 40px; width: 100%; }
+.cell-wrap textarea:focus { outline: none; border-color: #ffcc00; }
+.cell-wrap .label { font-size: .6rem; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .5px; }
+.bonus-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.bonus-row label { font-size: .65rem; color: rgba(255,255,255,.5); cursor: pointer; }
+.bonus-row input[type=checkbox] { accent-color: #ffcc00; cursor: pointer; }
+.cell-bonus { border-color: #ffcc00 !important; box-shadow: 0 0 8px rgba(255,204,0,.4); }
+.row-actions { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+.footer-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: 1px; color: #ffcc00; margin-bottom: 6px; }
+.form-group input, .form-group textarea { background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12); color: #fff; font-family: 'Inter', sans-serif; font-size: .9rem; padding: 10px 12px; border-radius: 6px; width: 100%; }
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: #ffcc00; }
+.form-group textarea { min-height: 100px; resize: vertical; }
+.form-row { display: flex; gap: 20px; flex-wrap: wrap; }
+.form-row .form-group { flex: 1; min-width: 200px; }
+.champ-form { max-width: 600px; margin: 0 auto; }
+.settings-form { max-width: 600px; margin: 0 auto; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: #0a0a2e; border: 2px solid rgba(255,204,0,.3); border-radius: 12px; padding: 24px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+.modal h2 { font-family: 'Oswald', sans-serif; font-weight: 700; color: #ffcc00; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.modal textarea { background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.12); color: #fff; font-family: 'Inter', monospace; font-size: .8rem; padding: 12px; border-radius: 6px; width: 100%; min-height: 250px; resize: vertical; }
+.modal textarea:focus { outline: none; border-color: #ffcc00; }
+.modal-actions { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
+.toast { position: fixed; bottom: 30px; right: 30px; background: #00c853; color: #fff; font-weight: 600; padding: 12px 24px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: all .3s; z-index: 2000; font-size: .9rem; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #e63946; }
+.col-header { display: flex; align-items: center; gap: 4px; }
+.col-header .del-cat { background: none; border: none; color: rgba(255,255,255,.3); cursor: pointer; font-size: .8rem; padding: 0 2px; line-height: 1; }
+.col-header .del-cat:hover { color: #e63946; }
+.row-num { font-size: .6rem; color: rgba(255,255,255,.3); position: absolute; top: 2px; right: 4px; }
+.empty-state { text-align: center; padding: 60px 20px; color: rgba(255,255,255,.4); }
+.empty-state p { font-size: 1.1rem; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<h1>Game Content Editor</h1>
+
+<div class="action-bar">
+  <button class="btn btn-gold" onclick="doSave()">SAVE</button>
+  <button class="btn btn-blue" onclick="openImportCsv()">Import CSV</button>
+  <button class="btn btn-blue" onclick="addRow()">Add Row</button>
+  <button class="btn btn-blue" onclick="addCategory()">Add Category</button>
+</div>
+
+<div class="tabs" id="tabBar"></div>
+
+<div class="tab-content" id="tabRound1"></div>
+<div class="tab-content" id="tabRound2"></div>
+<div class="tab-content" id="tabChampionship"></div>
+<div class="tab-content" id="tabSettings"></div>
+
+<div class="modal-overlay" id="csvModal">
+  <div class="modal">
+    <h2>Import CSV</h2>
+    <p style="color:rgba(255,255,255,.5);margin-bottom:12px;font-size:.85rem;">Paste CSV with columns: Category, Clue, Answer, Value (one per row)</p>
+    <textarea id="csvText" placeholder="Category,Clue,Answer,Value&#10;History,This was the first president...,Who is Washington?,200"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-blue" onclick="closeImportCsv()">Cancel</button>
+      <button class="btn btn-gold" onclick="importCsv()">Import</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="js/socket-client.js"></script>
+<script>
+var st = null;
+var editingRound = 1;
+
+socket.on('sync-state', function(state) {
+  st = state;
+  buildTabs();
+  renderAll();
+});
+
+function renderAll() {
+  renderRound(1);
+  if (st.config.doubleRound) renderRound(2);
+  renderChampionship();
+  renderSettings();
+}
+
+function buildTabs() {
+  var bar = document.getElementById('tabBar');
+  bar.innerHTML = '';
+  var tabs = [{ id: 'tabRound1', label: 'Round 1' }];
+  if (st && st.config.doubleRound) tabs.push({ id: 'tabRound2', label: 'Round 2' });
+  tabs.push({ id: 'tabChampionship', label: 'Championship' }, { id: 'tabSettings', label: 'Settings' });
+  tabs.forEach(function(t, i) {
+    var btn = document.createElement('button');
+    btn.className = 'tab' + (i === 0 ? ' active' : '');
+    btn.textContent = t.label;
+    btn.onclick = function() { switchTab(t.id); };
+    bar.appendChild(btn);
+  });
+  switchTab('tabRound1');
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(function(el) {
+    if (el.textContent.toLowerCase().replace(/\\s/g,'') === id.replace('tab','').toLowerCase()) el.classList.add('active');
+  });
+  var map = { tabRound1: 'Round 1', tabRound2: 'Round 2', tabChampionship: 'Championship', tabSettings: 'Settings' };
+  document.querySelectorAll('.tab').forEach(function(el) {
+    if (el.textContent === map[id]) el.classList.add('active');
+  });
+}
+
+function getConfig() {
+  return st ? st.config : null;
+}
+
+/* ===== ROUND RENDERING ===== */
+function renderRound(round) {
+  var c = getConfig();
+  if (!c) return;
+  var el = document.getElementById('tabRound' + round);
+  var isR2 = round === 2;
+  if (isR2 && !c.doubleRound) { el.innerHTML = ''; return; }
+  var cats = isR2 ? (c.categoriesR2 || c.categories) : c.categories;
+  var clues = isR2 ? (c.cluesR2 || c.clues) : c.clues;
+  var answers = isR2 ? (c.answersR2 || c.answers) : c.answers;
+  var values = isR2 ? c.doubleValues : c.baseValues;
+  var cols = c.columns;
+  var rows = c.rows;
+  var bcPos = c.bonusCluePositions || { round1: [], round2: [] };
+  var bcKey = 'round' + round;
+  var bc = bcPos[bcKey] || [];
+
+  function isBC(col, row) {
+    return bc.some(function(p) { return p[0] === col && p[1] === row; });
+  }
+
+  var h = '<div class="grid-wrap"><table class="grid"><thead><tr><th style="width:80px;background:transparent;border:none;">Value</th>';
+  for (var c2 = 0; c2 < cols; c2++) {
+    h += '<th><div class="col-header"><input type="text" value="' + esc(cats[c2] || '') + '" data-round="' + round + '" data-cat="' + c2 + '" onchange="setCat(' + round + ',' + c2 + ',this.value)"><button class="del-cat" onclick="delCategory(' + round + ',' + c2 + ')" title="Delete category">&#10005;</button></div></th>';
+  }
+  h += '</tr></thead><tbody>';
+  for (var r = 0; r < rows; r++) {
+    h += '<tr>';
+    h += '<td class="val-label"><input type="text" value="' + (values[r] || '') + '" data-round="' + round + '" data-row="' + r + '" onchange="setValue(' + round + ',' + r + ',this.value)"></td>';
+    for (var c3 = 0; c3 < cols; c3++) {
+      var clue = (clues[r] && clues[r][c3]) || '';
+      var ans = (answers[r] && answers[r][c3]) || '';
+      var bonus = isBC(c3, r);
+      h += '<td class="' + (bonus ? 'cell-bonus' : '') + '"><div class="cell-wrap">';
+      h += '<div class="label">CLUE</div><textarea data-round="' + round + '" data-row="' + r + '" data-col="' + c3 + '" data-type="clue" onchange="setClue(' + round + ',' + r + ',' + c3 + ',this.value)">' + esc(clue) + '</textarea>';
+      h += '<div class="label">ANSWER</div><textarea data-round="' + round + '" data-row="' + r + '" data-col="' + c3 + '" data-type="answer" onchange="setAnswer(' + round + ',' + r + ',' + c3 + ',this.value)">' + esc(ans) + '</textarea>';
+      h += '<div class="bonus-row"><input type="checkbox" id="bc-' + round + '-' + c3 + '-' + r + '" ' + (bonus ? 'checked' : '') + ' onchange="toggleBC(' + round + ',' + c3 + ',' + r + ',this.checked)"><label for="bc-' + round + '-' + c3 + '-' + r + '">Bonus Clue</label></div>';
+      h += '<span class="row-num">' + (values[r] || '') + '</span>';
+      h += '</div></td>';
+    }
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  h += '<div class="footer-actions">';
+  h += '<button class="btn btn-blue" onclick="addRowRound(' + round + ')">+ Add Row</button>';
+  h += '<button class="btn btn-blue" onclick="addCategoryRound(' + round + ')">+ Add Category</button>';
+  h += '<button class="btn btn-danger btn-sm" onclick="delRow(' + round + ',' + (rows - 1) + ')">Delete Last Row</button>';
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function renderChampionship() {
+  var c = getConfig();
+  if (!c) return;
+  var el = document.getElementById('tabChampionship');
+  el.innerHTML = '<div class="champ-form">' +
+    '<div class="form-group"><label>Category Name</label><input type="text" id="champCat" value="' + esc(c.championshipCategory || '') + '"></div>' +
+    '<div class="form-group"><label>Clue</label><textarea id="champClue">' + esc(c.championshipClue || '') + '</textarea></div>' +
+    '<div class="form-group"><label>Answer</label><textarea id="champAnswer">' + esc(c.championshipAnswer || '') + '</textarea></div>' +
+    '</div>';
+}
+
+function renderSettings() {
+  var c = getConfig();
+  if (!c) return;
+  var el = document.getElementById('tabSettings');
+  el.innerHTML = '<div class="settings-form">' +
+    '<div class="form-row">' +
+      '<div class="form-group"><label>Timer (seconds)</label><input type="number" id="setTimer" value="' + (c.timerSeconds || 5) + '" min="1" max="120"></div>' +
+      '<div class="form-group"><label>Bonus Clues Round 1</label><input type="number" id="setBC1" value="' + (c.bonusCluesRound1 || 0) + '" min="0" max="10"></div>' +
+      '<div class="form-group"><label>Bonus Clues Round 2</label><input type="number" id="setBC2" value="' + (c.bonusCluesRound2 || 0) + '" min="0" max="10"></div>' +
+    '</div>' +
+    '<div class="form-group"><label>Players (comma separated)</label><input type="text" id="setPlayers" value="' + esc((c.players || []).join(', ')) + '"></div>' +
+    '<div class="form-group"><label>Round 1 Values (comma separated)</label><input type="text" id="setValues" value="' + esc((c.baseValues || []).join(', ')) + '"></div>' +
+    '<div class="form-group"><label>Round 2 Values (comma separated)</label><input type="text" id="setDoubleValues" value="' + esc((c.doubleValues || []).join(', ')) + '"></div>' +
+    '</div>';
+}
+
+/* ===== DATA MUTATORS ===== */
+function setCat(round, col, val) {
+  var c = getConfig();
+  if (!c) return;
+  if (round === 1) {
+    c.categories[col] = val;
+  } else {
+    if (!c.categoriesR2) c.categoriesR2 = c.categories.slice();
+    c.categoriesR2[col] = val;
+  }
+}
+
+function setValue(round, row, val) {
+  var c = getConfig();
+  if (!c) return;
+  var n = parseInt(val) || 0;
+  if (round === 1) c.baseValues[row] = n;
+  else c.doubleValues[row] = n;
+}
+
+function setClue(round, row, col, val) {
+  var c = getConfig();
+  if (!c) return;
+  var arr = round === 1 ? c.clues : (c.cluesR2 || c.clues);
+  if (!arr[row]) arr[row] = [];
+  arr[row][col] = val;
+}
+
+function setAnswer(round, row, col, val) {
+  var c = getConfig();
+  if (!c) return;
+  var arr = round === 1 ? c.answers : (c.answersR2 || c.answers);
+  if (!arr[row]) arr[row] = [];
+  arr[row][col] = val;
+}
+
+function toggleBC(round, col, row, checked) {
+  var c = getConfig();
+  if (!c) return;
+  var key = 'round' + round;
+  if (!c.bonusCluePositions) c.bonusCluePositions = { round1: [], round2: [] };
+  if (!c.bonusCluePositions[key]) c.bonusCluePositions[key] = [];
+  var pos = c.bonusCluePositions[key];
+  var idx = -1;
+  for (var i = 0; i < pos.length; i++) {
+    if (pos[i][0] === col && pos[i][1] === row) { idx = i; break; }
+  }
+  if (checked && idx === -1) pos.push([col, row]);
+  else if (!checked && idx !== -1) pos.splice(idx, 1);
+  renderRound(round);
+}
+
+function addRow() {
+  var c = getConfig();
+  if (!c) return;
+  var cols = c.columns;
+  var r = c.rows;
+  [1, 2].forEach(function(round) {
+    var clues = round === 1 ? c.clues : (c.cluesR2 || c.clues);
+    var ans = round === 1 ? c.answers : (c.answersR2 || c.answers);
+    if (!clues[r]) clues[r] = [];
+    if (!ans[r]) ans[r] = [];
+    for (var ci = 0; ci < cols; ci++) {
+      if (clues[r][ci] === undefined) clues[r][ci] = '';
+      if (ans[r][ci] === undefined) ans[r][ci] = '';
+    }
+    var vals = round === 1 ? c.baseValues : c.doubleValues;
+    if (vals[r] === undefined) vals[r] = vals[r - 1] ? vals[r - 1] + 200 : 200;
+  });
+  c.rows++;
+  renderAll();
+}
+
+function addRowRound(round) {
+  var c = getConfig();
+  if (!c) return;
+  var r = c.rows;
+  var clues = round === 1 ? c.clues : (c.cluesR2 || c.clues);
+  var ans = round === 1 ? c.answers : (c.answersR2 || c.answers);
+  if (!clues[r]) clues[r] = [];
+  if (!ans[r]) ans[r] = [];
+  for (var ci = 0; ci < c.columns; ci++) {
+    if (clues[r][ci] === undefined) clues[r][ci] = '';
+    if (ans[r][ci] === undefined) ans[r][ci] = '';
+  }
+  var vals = round === 1 ? c.baseValues : c.doubleValues;
+  var prev = r > 0 ? vals[r - 1] : 200;
+  vals[r] = prev + 200;
+  c.rows++;
+  renderAll();
+}
+
+function delRow(round, row) {
+  var c = getConfig();
+  if (!c || c.rows <= 1) return;
+  var clues = round === 1 ? c.clues : (c.cluesR2 || c.clues);
+  var ans = round === 1 ? c.answers : (c.answersR2 || c.answers);
+  clues.splice(row, 1);
+  ans.splice(row, 1);
+  var vals = round === 1 ? c.baseValues : c.doubleValues;
+  vals.splice(row, 1);
+  c.rows--;
+  renderAll();
+}
+
+function addCategory() {
+  var c = getConfig();
+  if (!c) return;
+  var col = c.columns;
+  c.categories.push('Category ' + (col + 1));
+  [1, 2].forEach(function(round) {
+    var clues = round === 1 ? c.clues : (c.cluesR2 || c.clues);
+    var ans = round === 1 ? c.answers : (c.answersR2 || c.answers);
+    for (var r = 0; r < c.rows; r++) {
+      if (!clues[r]) clues[r] = [];
+      if (!ans[r]) ans[r] = [];
+      clues[r][col] = '';
+      ans[r][col] = '';
+    }
+    var cats = round === 1 ? c.categories : (c.categoriesR2 || c.categories);
+    if (cats && cats.length < col + 1) cats.push('Category ' + (col + 1));
+  });
+  c.columns++;
+  renderAll();
+}
+
+function addCategoryRound(round) {
+  addCategory();
+}
+
+function delCategory(round, col) {
+  var c = getConfig();
+  if (!c || c.columns <= 1) return;
+  c.categories.splice(col, 1);
+  [1, 2].forEach(function(rnd) {
+    var clues = rnd === 1 ? c.clues : (c.cluesR2 || c.clues);
+    var ans = rnd === 1 ? c.answers : (c.answersR2 || c.answers);
+    for (var r = 0; r < c.rows; r++) {
+      if (clues[r]) clues[r].splice(col, 1);
+      if (ans[r]) ans[r].splice(col, 1);
+    }
+    var cats = rnd === 1 ? c.categories : (c.categoriesR2 || c.categories);
+    if (cats && cats.length > col) cats.splice(col, 1);
+    var key = 'round' + rnd;
+    if (c.bonusCluePositions && c.bonusCluePositions[key]) {
+      c.bonusCluePositions[key] = c.bonusCluePositions[key].filter(function(p) { return p[0] !== col; }).map(function(p) { return [p[0] > col ? p[0] - 1 : p[0], p[1]]; });
+    }
+  });
+  c.columns--;
+  renderAll();
+}
+
+/* ===== SAVE ===== */
+function doSave() {
+  var c = getConfig();
+  if (!c) return;
+
+  // Collect championship data
+  var champCat = document.getElementById('champCat');
+  var champClue = document.getElementById('champClue');
+  var champAnswer = document.getElementById('champAnswer');
+  if (champCat) c.championshipCategory = champCat.value;
+  if (champClue) c.championshipClue = champClue.value;
+  if (champAnswer) c.championshipAnswer = champAnswer.value;
+
+  // Collect settings
+  var setTimer = document.getElementById('setTimer');
+  var setBC1 = document.getElementById('setBC1');
+  var setBC2 = document.getElementById('setBC2');
+  var setPlayers = document.getElementById('setPlayers');
+  var setVals = document.getElementById('setValues');
+  var setDVals = document.getElementById('setDoubleValues');
+  if (setTimer) c.timerSeconds = parseInt(setTimer.value) || 5;
+  if (setBC1) c.bonusCluesRound1 = parseInt(setBC1.value) || 0;
+  if (setBC2) c.bonusCluesRound2 = parseInt(setBC2.value) || 0;
+  if (setPlayers) c.players = setPlayers.value.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+  if (setVals) c.baseValues = setVals.value.split(',').map(function(s) { return parseInt(s.trim()) || 0; });
+  if (setDVals) c.doubleValues = setDVals.value.split(',').map(function(s) { return parseInt(s.trim()) || 0; });
+
+  // Ensure arrays are properly sized
+  c.rows = c.baseValues.length;
+  c.columns = c.categories.length;
+
+  // Ensure R2 data exists if doubleRound
+  if (c.doubleRound) {
+    if (!c.categoriesR2 || c.categoriesR2.length !== c.columns) {
+      c.categoriesR2 = c.categories.slice();
+    }
+    if (!c.cluesR2 || c.cluesR2.length !== c.rows) {
+      c.cluesR2 = c.clues.map(function(row) { return row.slice(); });
+    }
+    if (!c.answersR2 || c.answersR2.length !== c.rows) {
+      c.answersR2 = c.answers.map(function(row) { return row.slice(); });
+    }
+    // Fix padding
+    for (var r = 0; r < c.rows; r++) {
+      if (!c.cluesR2[r]) c.cluesR2[r] = [];
+      if (!c.answersR2[r]) c.answersR2[r] = [];
+      while (c.cluesR2[r].length < c.columns) c.cluesR2[r].push('');
+      while (c.answersR2[r].length < c.columns) c.answersR2[r].push('');
+    }
+  }
+
+  // Fix padding for round 1
+  for (var r2 = 0; r2 < c.rows; r2++) {
+    if (!c.clues[r2]) c.clues[r2] = [];
+    if (!c.answers[r2]) c.answers[r2] = [];
+    while (c.clues[r2].length < c.columns) c.clues[r2].push('');
+    while (c.answers[r2].length < c.columns) c.answers[r2].push('');
+  }
+
+  var payload = {
+    categories: c.categories,
+    clues: c.clues,
+    answers: c.answers,
+    values: c.baseValues,
+    doubleValues: c.doubleValues,
+    columns: c.columns,
+    rows: c.rows,
+    bonusCluesRound1: c.bonusCluesRound1 ?? 0,
+    bonusCluesRound2: c.bonusCluesRound2 ?? 0,
+    bonusCluePositions: c.bonusCluePositions || { round1: [], round2: [] },
+    championshipCategory: c.championshipCategory || '',
+    championshipClue: c.championshipClue || '',
+    championshipAnswer: c.championshipAnswer || ''
+  };
+
+  // Round 2 data
+  if (c.doubleRound) {
+    payload.r2Categories = c.categoriesR2 || c.categories;
+    payload.r2Clues = c.cluesR2 || c.clues;
+    payload.r2Answers = c.answersR2 || c.answers;
+  }
+
+  socket.emit('save-edits', payload);
+  showToast('Saved successfully!');
+}
+
+/* ===== CSV IMPORT ===== */
+function openImportCsv() {
+  document.getElementById('csvModal').classList.add('active');
+  document.getElementById('csvText').value = '';
+  document.getElementById('csvText').focus();
+}
+
+function closeImportCsv() {
+  document.getElementById('csvModal').classList.remove('active');
+}
+
+function importCsv() {
+  var text = document.getElementById('csvText').value.trim();
+  if (!text) { showToast('Paste CSV content first', true); return; }
+  var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+  if (lines.length < 2) { showToast('CSV must have a header row and at least one data row', true); return; }
+
+  var header = parseCsvLine(lines[0]);
+  var catIdx = -1, clueIdx = -1, ansIdx = -1, valIdx = -1;
+  for (var i = 0; i < header.length; i++) {
+    var h = header[i].toLowerCase().trim();
+    if (h === 'category') catIdx = i;
+    else if (h === 'clue') clueIdx = i;
+    else if (h === 'answer') ansIdx = i;
+    else if (h === 'value') valIdx = i;
+  }
+  if (catIdx === -1 || clueIdx === -1 || ansIdx === -1) {
+    showToast('CSV must have at least Category, Clue, Answer columns', true);
+    return;
+  }
+
+  var groups = {};
+  for (var l = 1; l < lines.length; l++) {
+    var row = parseCsvLine(lines[l]);
+    if (row.length <= catIdx || row.length <= clueIdx || row.length <= ansIdx) continue;
+    var cat = (row[catIdx] || '').trim();
+    if (!cat) continue;
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push({
+      clue: (row[clueIdx] || '').trim(),
+      answer: (row[ansIdx] || '').trim(),
+      value: valIdx >= 0 && row[valIdx] ? parseInt(row[valIdx].trim()) : null
+    });
+  }
+
+  var catNames = Object.keys(groups);
+  if (catNames.length === 0) { showToast('No valid data found', true); return; }
+
+  var c = getConfig();
+  if (!c) return;
+
+  c.categories = catNames;
+  c.columns = catNames.length;
+  c.rows = 0;
+  catNames.forEach(function(cat) {
+    var items = groups[cat];
+    var hasVals = items.some(function(it) { return it.value !== null; });
+    if (hasVals) items.sort(function(a, b) { return (a.value || 0) - (b.value || 0); });
+    if (items.length > c.rows) c.rows = items.length;
+  });
+
+  c.clues = [];
+  c.answers = [];
+  var newVals = [];
+  for (var ri = 0; ri < c.rows; ri++) {
+    c.clues[ri] = [];
+    c.answers[ri] = [];
+    var maxVal = 0;
+    for (var ci = 0; ci < c.columns; ci++) {
+      var cat = c.categories[ci];
+      var items = groups[cat] || [];
+      var item = items[ri] || {};
+      c.clues[ri][ci] = item.clue || '';
+      c.answers[ri][ci] = item.answer || '';
+      if (item.value && item.value > maxVal) maxVal = item.value;
+    }
+    newVals[ri] = maxVal > 0 ? maxVal : (ri + 1) * 200;
+  }
+  c.baseValues = newVals;
+  c.doubleValues = newVals.map(function(v) { return v * 2; });
+
+  if (c.doubleRound) {
+    c.categoriesR2 = c.categories.slice();
+    c.cluesR2 = c.clues.map(function(row) { return row.slice(); });
+    c.answersR2 = c.answers.map(function(row) { return row.slice(); });
+  }
+
+  // Clear bonus clues
+  c.bonusCluePositions = { round1: [], round2: [] };
+
+  closeImportCsv();
+  renderAll();
+  showToast('Imported ' + c.columns + ' categories x ' + c.rows + ' rows');
+}
+
+function parseCsvLine(line) {
+  var result = [];
+  var current = '';
+  var inQuotes = false;
+  for (var i = 0; i < line.length; i++) {
+    var ch = line[i];
+    if (inQuotes) {
+      if (ch === '"' && i + 1 < line.length && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        result.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+/* ===== UTILITY ===== */
+function esc(s) {
+  if (typeof s !== 'string') return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML.replace(/'/g, '&#39;');
+}
+
+function showToast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '') + ' show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>

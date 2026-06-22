@@ -14,7 +14,54 @@ class GameState {
     this.championshipPhase = null;
     this.bonusCluePlayerIndex = null;
     this.bonusClueWager = 0;
+    this.stats = this._initStats();
     this._initBoard();
+  }
+
+  _initStats() {
+    var s = { game: {}, players: [] };
+    s.game = {
+      cluesShown: 0, cluesAnswered: 0, correctTotal: 0, incorrectTotal: 0,
+      bonusCluesFound: 0, bonusCluesCorrect: 0, bonusCluesIncorrect: 0,
+      timesUp: 0, totalValueAvailable: 0, totalValueEarned: 0,
+      totalBuzzTimeMs: 0, round1Correct: 0, round1Incorrect: 0,
+      round2Correct: 0, round2Incorrect: 0, championshipCorrect: 0, championshipIncorrect: 0,
+      categories: {}, valueBuckets: {}, roundsPlayed: 0,
+      longestAnswerStreak: 0, currentAnswerStreak: 0,
+      longestIncorrectStreak: 0, currentIncorrectStreak: 0,
+      categoryBreakdown: {}
+    };
+    var catNames = this.config.categories || [];
+    for (var i = 0; i < catNames.length; i++) {
+      s.game.categoryBreakdown[catNames[i]] = { shown: 0, correct: 0, incorrect: 0 };
+    }
+    for (var pi = 0; pi < this.config.players.length; pi++) {
+      var name = this.config.players[pi];
+      s.players.push({
+        name: name,
+        correctCount: 0, incorrectCount: 0, accuracy: 0,
+        totalEarned: 0, totalLost: 0, netScore: 0,
+        timesCorrect: 0, timesIncorrect: 0,
+        bonusCluesAttempted: 0, bonusCluesCorrect: 0,
+        totalClueValueSelected: 0,
+        largestCorrectValue: 0, largestIncorrectValue: 0,
+        averageCorrectValue: 0, averageIncorrectValue: 0,
+        correctValues: [], incorrectValues: [],
+        correctStreak: 0, longestCorrectStreak: 0,
+        incorrectStreak: 0, longestIncorrectStreak: 0,
+        round1Correct: 0, round1Incorrect: 0,
+        round2Correct: 0, round2Incorrect: 0,
+        championshipCorrect: 0, championshipIncorrect: 0,
+        correctByValue: {}, incorrectByValue: {},
+        correctByCategory: {}, incorrectByCategory: {},
+        pointsByRound: { 1: 0, 2: 0, championship: 0 },
+        buzzCount: 0, timesTimedOut: 0,
+        timesUpWhileAnswering: 0,
+        clueValuesCorrect: [], clueValuesIncorrect: [],
+        responseTimes: []
+      });
+    }
+    return s;
   }
 
   _initBoard() {
@@ -198,8 +245,187 @@ class GameState {
     this.championshipPhase = null;
     this.bonusCluePlayerIndex = null;
     this.bonusClueWager = 0;
+    this.stats = this._initStats();
     this.stopTimer();
     this._initBoard();
+  }
+
+  recordClueShown(col, row, isBonus) {
+    var cell = this.getCell(col, row);
+    if (!cell) return;
+    this.stats.game.cluesShown++;
+    if (this.currentRound === 1) this.stats.game.round1Correct += 0;
+    this.stats.game.totalValueAvailable += cell.value;
+    var catName = cell.category;
+    if (this.stats.game.categoryBreakdown[catName]) {
+      this.stats.game.categoryBreakdown[catName].shown++;
+    }
+    if (isBonus) this.stats.game.bonusCluesFound++;
+  }
+
+  recordClueAnswered(col, row, isCorrect, playerIndex, isBonus) {
+    var cell = this.getCell(col, row);
+    if (!cell) return;
+    this.stats.game.cluesAnswered++;
+    var roundKey = this.currentRound === 1 ? 'round1' : 'round2';
+    var catName = cell.category;
+
+    if (isCorrect) {
+      this.stats.game.correctTotal++;
+      this.stats.game[roundKey + 'Correct']++;
+      this.stats.game.currentIncorrectStreak = 0;
+      this.stats.game.currentAnswerStreak++;
+      if (this.stats.game.currentAnswerStreak > this.stats.game.longestAnswerStreak) {
+        this.stats.game.longestAnswerStreak = this.stats.game.currentAnswerStreak;
+      }
+      this.stats.game.totalValueEarned += cell.value;
+      if (isBonus) this.stats.game.bonusCluesCorrect++;
+      if (this.stats.game.categoryBreakdown[catName]) {
+        this.stats.game.categoryBreakdown[catName].correct++;
+      }
+    } else {
+      this.stats.game.incorrectTotal++;
+      this.stats.game[roundKey + 'Incorrect']++;
+      this.stats.game.currentAnswerStreak = 0;
+      this.stats.game.currentIncorrectStreak++;
+      if (this.stats.game.currentIncorrectStreak > this.stats.game.longestIncorrectStreak) {
+        this.stats.game.longestIncorrectStreak = this.stats.game.currentIncorrectStreak;
+      }
+      if (isBonus) this.stats.game.bonusCluesIncorrect++;
+      if (this.stats.game.categoryBreakdown[catName]) {
+        this.stats.game.categoryBreakdown[catName].incorrect++;
+      }
+    }
+
+    if (playerIndex >= 0 && playerIndex < this.stats.players.length) {
+      var ps = this.stats.players[playerIndex];
+      var val = cell.value;
+      if (isCorrect) {
+        ps.correctCount++;
+        ps.totalEarned += val;
+        ps.correctValues.push(val);
+        ps.correctStreak++;
+        ps.incorrectStreak = 0;
+        if (ps.correctStreak > ps.longestCorrectStreak) ps.longestCorrectStreak = ps.correctStreak;
+        if (val > ps.largestCorrectValue) ps.largestCorrectValue = val;
+        ps.correctByValue[val] = (ps.correctByValue[val] || 0) + 1;
+        ps.correctByCategory[catName] = (ps.correctByCategory[catName] || 0) + 1;
+        ps.pointsByRound[this.currentRound === 1 ? 1 : 2] += val;
+      } else {
+        ps.incorrectCount++;
+        ps.totalLost += val;
+        ps.incorrectValues.push(val);
+        ps.incorrectStreak++;
+        ps.correctStreak = 0;
+        if (ps.incorrectStreak > ps.longestIncorrectStreak) ps.longestIncorrectStreak = ps.incorrectStreak;
+        if (val > ps.largestIncorrectValue) ps.largestIncorrectValue = val;
+        ps.incorrectByValue[val] = (ps.incorrectByValue[val] || 0) + 1;
+        ps.incorrectByCategory[catName] = (ps.incorrectByCategory[catName] || 0) + 1;
+        ps.pointsByRound[this.currentRound === 1 ? 1 : 2] -= val;
+      }
+      var total = ps.correctCount + ps.incorrectCount;
+      ps.accuracy = total > 0 ? Math.round(ps.correctCount / total * 10000) / 100 : 0;
+      ps.netScore = ps.totalEarned - ps.totalLost;
+      if (ps.correctValues.length > 0) {
+        ps.averageCorrectValue = Math.round(ps.correctValues.reduce(function(a,b){return a+b;},0) / ps.correctValues.length);
+      }
+      if (ps.incorrectValues.length > 0) {
+        ps.averageIncorrectValue = Math.round(ps.incorrectValues.reduce(function(a,b){return a+b;},0) / ps.incorrectValues.length);
+      }
+      ps.totalClueValueSelected += val;
+    }
+  }
+
+  recordBonusClueAttempt(playerIndex) {
+    if (playerIndex >= 0 && playerIndex < this.stats.players.length) {
+      this.stats.players[playerIndex].bonusCluesAttempted++;
+    }
+  }
+
+  recordChampionshipResult(playerIndex, isCorrect) {
+    if (playerIndex >= 0 && playerIndex < this.stats.players.length) {
+      var ps = this.stats.players[playerIndex];
+      if (isCorrect) {
+        ps.championshipCorrect++;
+        ps.correctCount++;
+        ps.pointsByRound.championship += (this.championshipWagers[playerIndex] || 0);
+        this.stats.game.championshipCorrect++;
+      } else {
+        ps.championshipIncorrect++;
+        ps.incorrectCount++;
+        ps.pointsByRound.championship -= (this.championshipWagers[playerIndex] || 0);
+        this.stats.game.championshipIncorrect++;
+      }
+      var total = ps.correctCount + ps.incorrectCount;
+      ps.accuracy = total > 0 ? Math.round(ps.correctCount / total * 10000) / 100 : 0;
+    }
+  }
+
+  recordTimesUp() {
+    this.stats.game.timesUp++;
+  }
+
+  recordBuzzTime(ms) {
+    this.stats.game.totalBuzzTimeMs += ms;
+  }
+
+  getPlayerStats() {
+    var out = { game: {}, players: [] };
+    out.game = {
+      totalCluesShown: this.stats.game.cluesShown,
+      totalCluesAnswered: this.stats.game.cluesAnswered,
+      totalCorrect: this.stats.game.correctTotal,
+      totalIncorrect: this.stats.game.incorrectTotal,
+      totalAccuracy: this.stats.game.cluesAnswered > 0
+        ? Math.round(this.stats.game.correctTotal / this.stats.game.cluesAnswered * 10000) / 100
+        : 0,
+      totalTimesUp: this.stats.game.timesUp,
+      totalValueEarned: this.stats.game.totalValueEarned,
+      totalValueAvailable: this.stats.game.totalValueAvailable,
+      bonusCluesFound: this.stats.game.bonusCluesFound,
+      bonusCluesCorrect: this.stats.game.bonusCluesCorrect,
+      bonusCluesIncorrect: this.stats.game.bonusCluesIncorrect,
+      longestAnswerStreak: this.stats.game.longestAnswerStreak,
+      longestIncorrectStreak: this.stats.game.longestIncorrectStreak,
+      roundsPlayed: this.currentRound,
+      categoryBreakdown: this.stats.game.categoryBreakdown,
+      round1Correct: this.stats.game.round1Correct,
+      round1Incorrect: this.stats.game.round1Incorrect,
+      round2Correct: this.stats.game.round2Correct,
+      round2Incorrect: this.stats.game.round2Incorrect,
+      championshipCorrect: this.stats.game.championshipCorrect,
+      championshipIncorrect: this.stats.game.championshipIncorrect
+    };
+    for (var i = 0; i < this.players.length; i++) {
+      var ps = this.stats.players[i];
+      var p = this.players[i];
+      out.players.push({
+        name: ps.name,
+        score: p.score,
+        correctCount: ps.correctCount,
+        incorrectCount: ps.incorrectCount,
+        accuracy: ps.accuracy,
+        totalEarned: ps.totalEarned,
+        totalLost: ps.totalLost,
+        netScore: ps.netScore,
+        bonusCluesAttempted: ps.bonusCluesAttempted,
+        bonusCluesCorrect: ps.bonusCluesCorrect,
+        largestCorrectValue: ps.largestCorrectValue,
+        largestIncorrectValue: ps.largestIncorrectValue,
+        averageCorrectValue: ps.averageCorrectValue,
+        averageIncorrectValue: ps.averageIncorrectValue,
+        longestCorrectStreak: ps.longestCorrectStreak,
+        longestIncorrectStreak: ps.longestIncorrectStreak,
+        correctByValue: ps.correctByValue,
+        incorrectByValue: ps.incorrectByValue,
+        correctByCategory: ps.correctByCategory,
+        incorrectByCategory: ps.incorrectByCategory,
+        pointsByRound: ps.pointsByRound,
+        correctValues: ps.correctValues,
+        incorrectValues: ps.incorrectValues
+      });
+    }
+    return out;
   }
 
   serialize() {

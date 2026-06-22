@@ -56,6 +56,8 @@ function setup(ioInstance, config) {
       const cell = gameState.selectClue(col, row);
       if (!cell) return;
 
+      gameState.recordClueShown(col, row, cell.isBonusClue);
+
       io.emit('clue-opened', {
         col, row,
         value: cell.value,
@@ -73,7 +75,7 @@ function setup(ioInstance, config) {
         io.emit('bonus-clue-activated', { col, row });
       } else {
         gameState.startTimer(
-          () => { io.emit('times-up'); },
+          () => { gameState.recordTimesUp(); io.emit('times-up'); },
           (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
         );
       }
@@ -83,10 +85,11 @@ function setup(ioInstance, config) {
       const { playerIndex, wager } = data;
       gameState.setBonusClueWager(playerIndex, wager);
       gameState.confirmBonusClue();
+      gameState.recordBonusClueAttempt(playerIndex);
       const cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
       if (cell) {
         gameState.startTimer(
-          () => { io.emit('times-up'); },
+          () => { gameState.recordTimesUp(); io.emit('times-up'); },
           (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
         );
         io.emit('bonus-clue-shown', {
@@ -125,9 +128,11 @@ function setup(ioInstance, config) {
       io.emit('answer-hidden');
     });
 
-    socket.on('answer-correct', () => {
+    socket.on('answer-correct', (data) => {
+      gameState.stopTimer();
+      var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
       if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
-        var pi = gameState.bonusCluePlayerIndex;
+        pi = gameState.bonusCluePlayerIndex;
         gameState.adjustScore(pi, gameState.bonusClueWager);
         gameState.bonusCluePlayerIndex = null;
         gameState.bonusClueWager = 0;
@@ -137,12 +142,16 @@ function setup(ioInstance, config) {
           delta: 0
         });
       }
+      if (gameState.currentClue) {
+        gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, true, pi !== null ? pi : -1, false);
+      }
       io.emit('answer-correct');
     });
 
-    socket.on('answer-incorrect', () => {
+    socket.on('answer-incorrect', (data) => {
+      var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
       if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
-        var pi = gameState.bonusCluePlayerIndex;
+        pi = gameState.bonusCluePlayerIndex;
         gameState.adjustScore(pi, -gameState.bonusClueWager);
         gameState.bonusCluePlayerIndex = null;
         gameState.bonusClueWager = 0;
@@ -151,6 +160,9 @@ function setup(ioInstance, config) {
           playerIndex: pi,
           delta: 0
         });
+      }
+      if (gameState.currentClue) {
+        gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi !== null ? pi : -1, false);
       }
       io.emit('answer-incorrect');
     });
@@ -263,6 +275,10 @@ function setup(ioInstance, config) {
       });
     });
 
+    socket.on('show-stats', () => {
+      io.emit('show-stats');
+    });
+
     socket.on('play-outro', () => {
       io.emit('outro');
     });
@@ -271,6 +287,37 @@ function setup(ioInstance, config) {
       gameState.reset();
       allCategoriesRevealed = {};
       io.emit('game-reset', gameState.serialize());
+    });
+
+    socket.on('save-edits', (data) => {
+      if (data.categories) gameState.config.categories = data.categories;
+      if (data.clues) gameState.config.clues = data.clues;
+      if (data.answers) gameState.config.answers = data.answers;
+      if (data.values) gameState.config.baseValues = data.values;
+      if (data.doubleValues) gameState.config.doubleValues = data.doubleValues;
+      if (data.r2Categories) gameState.config.categoriesR2 = data.r2Categories;
+      if (data.r2Clues) gameState.config.cluesR2 = data.r2Clues;
+      if (data.r2Answers) gameState.config.answersR2 = data.r2Answers;
+      if (data.bonusCluePositions) {
+        gameState.config.bonusCluePositions = data.bonusCluePositions;
+        gameState.usedBonusClues = { round1: [], round2: [] };
+      }
+      if (data.columns) gameState.config.columns = data.columns;
+      if (data.rows) gameState.config.rows = data.rows;
+      if (data.bonusCluesRound1 !== undefined) gameState.config.bonusCluesRound1 = data.bonusCluesRound1;
+      if (data.bonusCluesRound2 !== undefined) gameState.config.bonusCluesRound2 = data.bonusCluesRound2;
+      if (data.championshipCategory) gameState.config.championshipCategory = data.championshipCategory;
+      if (data.championshipClue) gameState.config.championshipClue = data.championshipClue;
+      if (data.championshipAnswer) gameState.config.championshipAnswer = data.championshipAnswer;
+      if (data.championshipCategory) gameState.config.championshipCategory = data.championshipCategory;
+      gameState._initBoard();
+      io.emit('sync-state', gameState.serialize());
+      // Also save to config.json for persistence
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        fs.writeFileSync(path.join(__dirname, '..', '..', 'config.json'), JSON.stringify(gameState.config, null, 2));
+      } catch(e) {}
     });
 
     socket.on('disconnect', () => {

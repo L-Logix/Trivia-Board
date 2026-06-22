@@ -39,6 +39,23 @@ function start(port, config, callback) {
     res.sendFile(path.join(PUBLIC_DIR, 'helper-board.html'));
   });
 
+  app.get('/editor', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'editor.html'));
+  });
+
+  app.get('/stats', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'stats.html'));
+  });
+
+  app.get('/api/stats', (req, res) => {
+    var gs = socketHandlers.getGameState();
+    if (gs) {
+      res.json(gs.getPlayerStats());
+    } else {
+      res.json({ game: {}, players: [] });
+    }
+  });
+
   socketHandlers.setup(io, config);
 
   server.listen(port, '0.0.0.0', () => {

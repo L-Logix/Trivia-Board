@@ -40,6 +40,8 @@ Built for live hosted trivia events. A zero-UI broadcast display drives the audi
 | **Dashboard** | `/dashboard` | Host controls (grid, scoring, reveals) |
 | **Scoring Helper** | `/helper-scoring` | Secondary scoring controls |
 | **Board Helper** | `/helper-board` | Secondary board controls |
+| **Editor** | `/editor` | Game content editor (questions, categories, bonus clues) |
+| **Stats** | `/stats` | Post-game statistics with charts and printable reports |
 
 ## Features
 
@@ -54,6 +56,10 @@ Built for live hosted trivia events. A zero-UI broadcast display drives the audi
 - **Network accessible** — other devices can reach dashboard/helpers on the LAN
 - **Revealed cell editing** — double-click values, right-click toggle bonus clue
 - **Show/hide answers** — host controls answer visibility per clue
+- **Content editor** — `/editor` for live editing questions, categories, values, bonus clues
+- **Post-game stats** — `/stats` with charts, per-player breakdowns, and printable reports
+- **Scrolling score ticker** — live player scores on broadcast display
+- **100+ tracked stats** — accuracy, streaks, value buckets, category performance, and more
 
 ## Installation
 
@@ -85,13 +91,19 @@ The setup wizard walks you through:
 
 ### CSV Format
 
-Each row is one question with three columns:
+Each row is one question with four columns:
 
-| Category | Clue | Answer |
-|----------|------|--------|
-| History | This president was born in 1732 | Who is George Washington? |
+| Category | Clue | Answer | Value |
+|----------|------|--------|-------|
+| History | This president was born in 1732 | Who is George Washington? | 200 |
+| History | H2O is the chemical formula for this | What is water? | 400 |
 
-Row 1 must be the header row: `Category, Clue, Answer`.
+Row 1 must be the header row: `Category, Clue, Answer, Value`.
+
+- The **Value** column is optional but recommended. When present, clues are automatically sorted by value within each category and placed on the correct board row. Without it, clues fill rows in the order they appear.
+- Categories, clues, and answers can be in any order — the engine auto-organizes by category and value.
+- Clues with the same value in the same category will be placed at that value's row (first seen wins).
+- Minimum 3 clue rows per category; extra clues beyond the configured row count are ignored.
 
 ## Running
 
@@ -151,6 +163,8 @@ src/
 public/
   broadcast.html — Audience display
   dashboard.html  — Host dashboard
+  editor.html     — Game content editor
+  stats.html      — Post-game statistics page
   helper-scoring.html — Secondary scoring page
   helper-board.html   — Secondary board page
   css/
