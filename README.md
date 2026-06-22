@@ -60,15 +60,15 @@ Built for live hosted trivia events. A zero-UI broadcast display drives the audi
 Requires **Node.js 18+**.
 
 ```bash
-git clone <repo-url>
-cd trivia-broadcast
+gh repo clone L-Logix/Trivia-Board
+cd Trivia-Board
 npm install
 ```
 
 ## Setup
 
 ```bash
-node src/cli/setup.js
+trivia setup
 ```
 
 The setup wizard walks you through:
@@ -96,7 +96,7 @@ Row 1 must be the header row: `Category, Clue, Answer`.
 ## Running
 
 ```bash
-node src/cli/start.js
+trivia start
 ```
 
 Opens on port **3333**. Open `http://localhost:3333` in your browser, or use the LAN address printed in the terminal for other devices.
