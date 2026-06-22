@@ -122,33 +122,35 @@
   "bonusCluePositions": {
     "round1": [
       [
-        2,
-        0
+        4,
+        3
       ]
     ],
     "round2": [
       [
-        5,
-        2
+        3,
+        3
       ],
       [
-        1,
-        1
+        0,
+        2
       ]
     ]
   },
   "assets": {
-    "logo": false,
-    "categoryCover": false,
-    "hostIntro": false,
-    "timesUp": false,
-    "bonusClue": false,
-    "championshipThink": false,
+    "logo": "jpg",
+    "categoryCover": "jpg",
+    "hostIntro": true,
+    "timesUp": true,
+    "bonusClue": true,
+    "championshipThink": true,
     "applause": false,
-    "boardFill": false,
-    "correct": false,
-    "incorrect": false,
-    "outro": false
+    "boardFill": true,
+    "correct": true,
+    "incorrect": true,
+    "outro": true,
+    "introVideo": true,
+    "promoImage": "png"
   },
   "jeopardyStyle": true,
   "labels": {

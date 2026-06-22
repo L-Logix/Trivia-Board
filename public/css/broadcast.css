@@ -109,6 +109,17 @@ html,body {
 /* ===== BOARD PHASE ===== */
 #phase-board { background:#060ce9; }
 
+#promo-bg {
+  position:absolute; inset:0; z-index:0;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+  opacity:0.15;
+  pointer-events:none;
+  transition:opacity .6s ease;
+}
+#promo-bg.hidden { opacity:0; }
+
 #board-wrap {
   width:100%; height:90%;
   display:flex; flex-direction:column;

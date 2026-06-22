@@ -274,14 +274,14 @@ async function main() {
         type: 'number',
         name: 'columns',
         message: 'Enter number of columns (Categories):',
-        default: dfl.columns || 6,
+        default: dfl.columns !== undefined ? dfl.columns : 6,
         validate: v => v > 0 && v <= 12
       },
       {
         type: 'number',
         name: 'rows',
         message: 'Enter number of rows (Questions per category):',
-        default: dfl.rows || 5,
+        default: dfl.rows !== undefined ? dfl.rows : 5,
         validate: v => v > 0 && v <= 10
       },
       {
@@ -302,14 +302,14 @@ async function main() {
         type: 'number',
         name: 'bonusCluesRound1',
         message: 'How many Bonus Clues in Round 1?:',
-        default: dfl.bonusCluesRound1 || 1,
+        default: dfl.bonusCluesRound1 !== undefined ? dfl.bonusCluesRound1 : 1,
         validate: v => v >= 0 && v <= 4
       },
       {
         type: 'number',
         name: 'bonusCluesRound2',
         message: 'How many Bonus Clues in Round 2?:',
-        default: dfl.bonusCluesRound2 || 2,
+        default: dfl.bonusCluesRound2 !== undefined ? dfl.bonusCluesRound2 : 2,
         when: a => a.doubleRound,
         validate: v => v >= 0 && v <= 4
       },
@@ -317,7 +317,7 @@ async function main() {
         type: 'number',
         name: 'timerSeconds',
         message: 'Enter Time\'s Up buzzer limit (in seconds):',
-        default: dfl.timerSeconds || 5,
+        default: dfl.timerSeconds !== undefined ? dfl.timerSeconds : 5,
         validate: v => v >= 1 && v <= 60
       }
     ]);
@@ -639,18 +639,19 @@ async function main() {
     }
   }
 
-  const { bonusClueVideoPath } = await inquirer.prompt([
+  const { promoImagePath } = await inquirer.prompt([
     {
       type: 'input',
-      name: 'bonusClueVideoPath',
-      message: 'Upload Bonus Clue video? (path to MP4, or leave blank for default animation):'
+      name: 'promoImagePath',
+      message: 'Upload promo image? (path to PNG - shown as backdrop on broadcast):'
     }
   ]);
-  if (bonusClueVideoPath && bonusClueVideoPath.trim()) {
-    const dest = path.join(ROOT, 'public', 'video', 'bonus-clue.mp4');
-    if (copyAssetFile(bonusClueVideoPath.trim(), dest)) {
-      config.assets.bonusClueVideo = true;
-      console.log(chalk.green('  \u2713 Bonus Clue video copied'));
+  if (promoImagePath && promoImagePath.trim()) {
+    const ext = path.extname(promoImagePath.trim()).toLowerCase().replace('.', '') || 'png';
+    const dest = path.join(ROOT, 'public', 'img', 'promo.' + ext);
+    if (copyAssetFile(promoImagePath.trim(), dest)) {
+      config.assets.promoImage = ext;
+      console.log(chalk.green('  \u2713 Promo image copied'));
     }
   }
 

@@ -51,11 +51,9 @@ function initAudio() {
     if (el) { el.src = map[k]; el.load(); }
     audio[k] = el;
   });
-  // Init videos
-  ['bonus-clue', 'intro'].forEach(function(k) {
-    var el = document.getElementById('v-'+k);
-    if (el) videoEls[k] = el;
-  });
+  // Init intro video
+  var vEl = document.getElementById('v-intro');
+  if (vEl) videoEls['intro'] = vEl;
 }
 function play(k) {
   var el = audio[k];
@@ -101,6 +99,20 @@ function logoAsset() {
 }
 function logoExt() { return logoAsset() || 'svg'; }
 function hasLogo() { return !!logoAsset(); }
+function promoAsset() {
+  return st && st.config && st.config.assets && st.config.assets.promoImage && typeof st.config.assets.promoImage === 'string' ? st.config.assets.promoImage : null;
+}
+function setPromo() {
+  var bg = document.getElementById('promo-bg');
+  if (!bg) return;
+  var p = promoAsset();
+  if (p) {
+    bg.style.backgroundImage = 'url(img/promo.' + p + ')';
+    bg.classList.remove('hidden');
+  } else {
+    bg.classList.add('hidden');
+  }
+}
 function setLogo(el) {
   if (el) el.src = 'img/logo.' + logoExt();
 }
@@ -263,25 +275,10 @@ function playLogo() {
     var videoDone = false;
     v.addEventListener('ended', function() {
       videoDone = true;
-      v.classList.add('hidden');
-      document.getElementById('logo-content-group').classList.remove('hidden');
-      play('intro');
-      var dur = 5000;
-      var el = audio['intro'];
-      if (el && el.duration && el.duration > 1) dur = Math.min(el.duration * 1000 + 500, 12000);
-      setTimeout(done, dur);
+      done();
     }, { once: true });
-    // Safety timeout in case video has no duration or hangs
     setTimeout(function() {
-      if (!videoDone) {
-        v.pause(); v.classList.add('hidden');
-        document.getElementById('logo-content-group').classList.remove('hidden');
-        play('intro');
-        var dur = 5000;
-        var el = audio['intro'];
-        if (el && el.duration && el.duration > 1) dur = Math.min(el.duration * 1000 + 500, 12000);
-        setTimeout(done, dur);
-      }
+      if (!videoDone) { v.pause(); done(); }
     }, 16000);
     return;
   }
@@ -351,9 +348,10 @@ document.getElementById('init-overlay').addEventListener('click', function() {
     if (st && st.phase !== 'idle') {
       var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
       show('board');
+      setPromo();
       renderBoard(st.board, st.players, cats);
       updateScores(st.players);
-    } else show('board');
+    } else { show('board'); setPromo(); }
   }, 800);
 });
 
@@ -368,7 +366,7 @@ socket.on('sync-state', function(state) {
       case 'logo': case 'intro': playLogo(); break;
       case 'idle': case 'board':
         var cats = state.currentRound === 2 && state.config.categoriesR2 ? state.config.categoriesR2 : state.config.categories;
-        show('board'); renderBoard(state.board, state.players, cats);
+        show('board'); setPromo(); renderBoard(state.board, state.players, cats);
         updateScores(state.players); break;
       case 'clue':
         if (state.currentClue) { var c = state.board[state.currentClue.col][state.currentClue.row]; showClue(c); } break;
@@ -382,6 +380,7 @@ socket.on('intro-started', function() { playLogo(); });
 
 socket.on('board-shown', function(d) {
   show('board');
+  setPromo();
   categoriesCoverVisible = true;
   priceCoverVisible = true;
   renderBoard(d.board, d.players, d.categories);
@@ -389,23 +388,19 @@ socket.on('board-shown', function(d) {
 });
 
 socket.on('categories-revealed', function() {
+  setPromo();
   revealCategoryCovers();
 });
 
 socket.on('board-populated', function() {
+  var bg = document.getElementById('promo-bg');
+  if (bg) bg.classList.add('hidden');
   revealPriceCover();
 });
 
 socket.on('clue-opened', function(d) { showClueFromData(d); });
 
 socket.on('bonus-clue-activated', function() {
-  var v = videoEls['bonus-clue'];
-  var hasVideoAsset = st && st.config && st.config.assets && st.config.assets.bonusClueVideo;
-  var ddWrap = document.getElementById('dd-wrap');
-  var ddBg = document.getElementById('dd-bg');
-  if (v) v.classList.add('hidden');
-  if (ddWrap) ddWrap.classList.remove('hidden');
-  if (ddBg) ddBg.classList.remove('hidden');
   var bcLabel = label('bonusClue') || 'BONUS CLUE';
   var parts = bcLabel.split(' ');
   var ddTitle1 = document.querySelector('#dd-wrap .dd-title');
@@ -413,33 +408,7 @@ socket.on('bonus-clue-activated', function() {
   if (ddTitle1) ddTitle1.textContent = parts[0] || 'BONUS';
   if (ddTitle2) ddTitle2.textContent = parts.slice(1).join(' ') || 'CLUE!';
   show('dd');
-
-  if (hasVideoAsset && v) {
-    if (ddWrap) ddWrap.classList.add('hidden');
-    if (ddBg) ddBg.classList.add('hidden');
-    v.classList.remove('hidden');
-    v.src = 'video/bonus-clue.mp4';
-    v.load();
-    v.play().catch(function(){});
-    var videoDone = false;
-    v.addEventListener('ended', function() {
-      videoDone = true;
-      v.classList.add('hidden');
-      if (ddWrap) ddWrap.classList.remove('hidden');
-      if (ddBg) ddBg.classList.remove('hidden');
-      playBonusClue();
-    }, { once: true });
-    setTimeout(function() {
-      if (!videoDone) {
-        v.pause(); v.classList.add('hidden');
-        if (ddWrap) ddWrap.classList.remove('hidden');
-        if (ddBg) ddBg.classList.remove('hidden');
-        playBonusClue();
-      }
-    }, 16000);
-  } else {
-    playBonusClue();
-  }
+  playBonusClue();
 });
 
 socket.on('bonus-clue-shown', function(d) {
@@ -473,6 +442,7 @@ socket.on('answer-revealed', function(d) {
 
 socket.on('board-return', function(d) {
   show('board');
+  setPromo();
   if (st) {
     st.revealedCells = d.revealedCells;
     st.phase = d.phase;
@@ -494,7 +464,7 @@ socket.on('score-updated', function(d) {
 
 socket.on('round2-started', function(d) {
   if (st) { st.board = d.board; st.players = d.players; st.currentRound = 2; st.phase = 'board'; st.currentClue = null; }
-  show('board'); renderBoard(d.board, d.players, d.categories); updateScores(d.players);
+  show('board'); setPromo(); renderBoard(d.board, d.players, d.categories); updateScores(d.players);
 });
 
 socket.on('championship-started', function(d) { showChampionship(d); });
@@ -527,6 +497,7 @@ socket.on('clue-rehidden', function(d) {
   if (st.board[d.col] && st.board[d.col][d.row]) st.board[d.col][d.row].revealed = false;
   var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
   show('board');
+  setPromo();
   renderBoard(st.board, st.players, cats);
 });
 
@@ -543,6 +514,7 @@ socket.on('game-reset', function(state) {
   st = state;
   var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
   show('board');
+  setPromo();
   renderBoard(state.board, state.players, cats);
   updateScores(state.players);
 });
@@ -591,6 +563,7 @@ socket.on('category-revealed-broadcast', function(d) {
 
 socket.on('hide-category-reveal', function() {
   show('board');
+  setPromo();
 });
 
 function showChampionship(d) {
