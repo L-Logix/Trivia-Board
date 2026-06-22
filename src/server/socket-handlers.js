@@ -35,7 +35,11 @@ function setup(ioInstance, config) {
     socket.on('reveal-category', (data) => {
       var idx = data.index;
       allCategoriesRevealed[idx] = true;
-      io.emit('category-revealed-broadcast', { index: idx, allRevealed: Object.keys(allCategoriesRevealed).length >= gameState.config.columns });
+      io.emit('category-reveal-cover', { index: idx, allRevealed: Object.keys(allCategoriesRevealed).length >= gameState.config.columns });
+    });
+
+    socket.on('reveal-category-name', (data) => {
+      io.emit('category-reveal-name', { index: data.index });
     });
 
     socket.on('populate-board', () => {

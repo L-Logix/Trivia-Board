@@ -536,34 +536,51 @@ socket.on('outro', function() {
   play('outro');
 });
 
-socket.on('category-revealed-broadcast', function(d) {
-  // Also reveal the cover so it's gone when board is shown
+socket.on('category-reveal-cover', function(d) {
+  // Reveal this category's cover on the board grid (so when we return, it's gone)
   var covers = document.querySelectorAll('#board-cat-covers .cat-cover.visible');
   if (covers[d.index]) {
     covers[d.index].classList.remove('visible');
     covers[d.index].classList.add('revealed');
     covers[d.index].style.animation = 'catCoverReveal .5s cubic-bezier(.68,-0.55,.27,1.55) forwards';
   }
-  // Show fullscreen category name
-  var phase = document.getElementById('phase-cat-reveal');
-  var nameEl = document.getElementById('cat-reveal-name');
-  var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
-  if (nameEl && cats[d.index]) {
-    nameEl.textContent = cats[d.index];
-    // Re-trigger animation
-    var content = document.getElementById('cat-reveal-content');
-    if (content) {
-      content.style.animation = 'none';
-      void content.offsetWidth;
-      content.style.animation = '';
-    }
+  // Show full-screen blue cover screen
+  var coverScreen = document.getElementById('cat-cover-screen');
+  var nameScreen = document.getElementById('cat-name-screen');
+  if (coverScreen) {
+    coverScreen.className = 'cat-phase-active';
+    coverScreen.classList.remove('hidden');
   }
+  if (nameScreen) nameScreen.classList.add('hidden');
+  show('cat-reveal');
+});
+
+socket.on('category-reveal-name', function(d) {
+  // Animate cover away, show category name
+  var coverScreen = document.getElementById('cat-cover-screen');
+  var nameScreen = document.getElementById('cat-name-screen');
+  var nameText = document.getElementById('cat-name-text');
+  var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
+  if (coverScreen) {
+    coverScreen.className = 'cat-phase-hidden';
+    setTimeout(function() { coverScreen.classList.add('hidden'); }, 500);
+  }
+  if (nameText && cats[d.index]) {
+    nameText.textContent = cats[d.index];
+    var nc = document.getElementById('cat-name-content');
+    if (nc) { nc.style.animation = 'none'; void nc.offsetWidth; nc.style.animation = ''; }
+  }
+  if (nameScreen) nameScreen.classList.remove('hidden');
   show('cat-reveal');
 });
 
 socket.on('hide-category-reveal', function() {
   show('board');
   setPromo();
+  var coverScreen = document.getElementById('cat-cover-screen');
+  var nameScreen = document.getElementById('cat-name-screen');
+  if (coverScreen) { coverScreen.className = 'cat-phase-active'; coverScreen.classList.remove('hidden'); }
+  if (nameScreen) nameScreen.classList.add('hidden');
 });
 
 function showChampionship(d) {

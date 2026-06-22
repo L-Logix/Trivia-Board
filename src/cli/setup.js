@@ -545,7 +545,11 @@ async function main() {
       ? assignBonusClues(config.columns, config.rows, config.bonusCluesRound2)
       : []
   };
-  config.assets = { logo: false, categoryCover: false, hostIntro: false, timesUp: false, bonusClue: false, championshipThink: false, applause: false, boardFill: false, correct: false, incorrect: false, outro: false };
+  if (!isExisting) {
+    config.assets = { logo: false, categoryCover: false, hostIntro: false, timesUp: false, bonusClue: false, championshipThink: false, applause: false, boardFill: false, correct: false, incorrect: false, outro: false };
+  } else if (!config.assets) {
+    config.assets = {};
+  }
 
   // Naming prompt
   if (!isExisting || !config.labels) {
