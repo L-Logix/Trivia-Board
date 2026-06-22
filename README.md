@@ -1,108 +1,148 @@
-# TechnoThatch Trivia Broadcast Engine
+<div align="center">
 
-A highly professional, dual-screen, offline-first trivia game engine built for live hosting. Features a zero-UI broadcast display for the audience and a stress-free control dashboard for the host.
+# Trivia Broadcast Engine
 
-Developed by **TechnoThatch Software Solutions**.
+**v1.0.0** — A professional dual-screen trivia game engine for live hosting
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)]()
+[![PRs](https://img.shields.io/badge/PRs-welcome-blue)]()
+
+---
+
+**Zero Jeopardy! branding** — fully customizable terminology, logo, audio, and visuals.
+
+</div>
+
+## Overview
+
+Built for live hosted trivia events. A zero-UI broadcast display drives the audience screen (projector/TV), while a feature-rich dashboard gives the host full control over every aspect of the game.
+
+| View | URL | Purpose |
+|------|-----|---------|
+| **Broadcast** | `/broadcast` | Audience-facing display (full-screen, no UI) |
+| **Dashboard** | `/dashboard` | Host controls (grid, scoring, reveals) |
+| **Scoring Helper** | `/helper-scoring` | Secondary scoring controls |
+| **Board Helper** | `/helper-board` | Secondary board controls |
 
 ## Features
-* **Dual-Screen Architecture:** TV screen shows pure graphics; Laptop shows answers and controls.
-* **Global CLI Wizard:** Configure everything from grid size to timer limits straight from the terminal.
-* **Automated Buzzer:** Built-in countdown timer automatically triggers the "Time's Up" sound.
-* **Google Sheets Sync:** Load all your trivia dynamically without editing code.
-* **Custom Assets:** Upload your own logo and audio files during setup.
 
-## 1. Installation
+- **Dual-screen architecture** — separate broadcast view and host dashboard
+- **3-round format** — Round 1, Round 2 (double values), Championship (Final)
+- **Bonus Clues** — configurable per-round with full wager flow
+- **Per-category reveal** — full-screen cover → flip animation for each category
+- **Custom branding** — logo, promo image, intro video, all labels configurable
+- **Custom audio** — intro, timer, bonus clue, think music, applause, correct/incorrect
+- **Auto timer** — configurable per-clue countdown with TIME'S UP overlay
+- **Responsive board** — scales to any screen size / aspect ratio
+- **Network accessible** — other devices can reach dashboard/helpers on the LAN
+- **Revealed cell editing** — double-click values, right-click toggle bonus clue
+- **Show/hide answers** — host controls answer visibility per clue
 
-Requires [Node.js](https://nodejs.org/) installed on your machine.
+## Installation
 
-Clone this repository, navigate to the folder in your terminal, and install it globally:
-
-```bash
-git clone [https://github.com/yourusername/technothatch-trivia.git](https://github.com/yourusername/technothatch-trivia.git)
-cd technothatch-trivia
-npm install -g .
-```
-
-Note: The `-g` flag binds the application to your system, allowing you to use the custom terminal commands below.
-
-## 2. Configuration & Setup
-
-Run the setup wizard:
+Requires **Node.js 18+**.
 
 ```bash
-trivia setup
+git clone <repo-url>
+cd trivia-broadcast
+npm install
 ```
 
-Choose "Typical Trivia" for instant classic rules (6x5 grid, $200-$1000, Daily Doubles, 5s timer) or "Custom" to adjust everything.
+## Setup
 
-### Setting Up Your Google Sheet
+```bash
+node src/cli/setup.js
+```
 
-The wizard accepts a **simple format** where each row is one complete question:
+The setup wizard walks you through:
+1. Grid dimensions (columns × rows)
+2. Point values for each row
+3. Number of bonus clues per round
+4. Timer duration
+5. Round 1 data (CSV file or Google Sheets URL)
+6. Round 2 data (optional)
+7. Championship data (optional)
+8. Player names
+9. Custom terminology (Bonus Clue / Championship labels)
+10. Custom assets (logo, promo image, intro video, audio files)
+
+### CSV Format
+
+Each row is one question with three columns:
 
 | Category | Clue | Answer |
 |----------|------|--------|
 | History | This president was born in 1732 | Who is George Washington? |
-| History | This document begins "We the People" | What is the Constitution? |
-| Science | H2O is the chemical formula for this | What is water? |
-| Pop Culture | This 90s band sang "Smells Like Teen Spirit" | What is Nirvana? |
 
-**Rules:**
-- **Row 1 must be:** `Category`, `Clue`, `Answer` (header row)
-- Each row below = one question with its category, clue text, and answer text
-- Add as many questions per category as you want (the wizard fills the grid in order)
-- The wizard generates a `trivia-template.csv` file locally to use as a reference
+Row 1 must be the header row: `Category, Clue, Answer`.
 
-**Alternative grid format** (classic Jeopardy-style):
-- Row 1: Category names across columns
-- Row 2: Clues for the first row of values
-- Row 3: Answers for the first row of values
-- Repeat clue/answer pairs for each value level
-
-### Publishing Your Sheet
-
-1. In Google Sheets: **File > Share > Publish to Web**
-2. Choose: **Entire Document > Comma-separated values (.csv)**
-3. Click **Publish**
-4. Copy the URL and paste it into the wizard
-   - Regular sheet URLs work too (auto-converted to CSV export)
-
-### Round 2 (Double Round)
-
-If you have Double Round enabled, the wizard will ask for a **separate URL** for Round 2 data. You can use a different sheet/tab in the same document. Press Enter to reuse the same sheet for both rounds.
-
-### Custom Assets
-
-During setup, you can optionally upload:
-- **Logo:** A custom PNG or SVG to display on the broadcast screen.
-- **Host Intro:** An MP3 recording for the opening sequence.
-- **Time's Up:** A buzzer/chime MP3 for when time expires.
-- **Daily Double:** A sound effect MP3 for Daily Double reveals.
-- **Think Music:** A 30-second MP3 for the Final Showdown.
-- **Applause:** An applause MP3 for the winner.
-
-## 3. Adding Your Custom Announcer Audio
-
-To make the game look and sound like a real broadcast, you must provide your own announcer voiceover for the opening title screen.
-
-1. Navigate to the `/public/audio/` folder.
-2. Delete the placeholder `host-intro.mp3` file.
-3. Record an MP3 of someone saying: "This is Trivia Board! And now, the host of Trivia Board... [Your Name]!"
-4. Save your new file in the folder and name it exactly `host-intro.mp3`.
-
-## 4. Going Live (Broadcast Mode)
-
-When you are ready to host your game, run:
+## Running
 
 ```bash
-trivia start
+node src/cli/start.js
 ```
 
-1. Open your web browser to `http://localhost:3333`.
-2. Connect your laptop to your TV via HDMI.
-3. **Extend Your Displays** (Do not mirror).
-4. Open the **Broadcast View** (`http://localhost:3333/broadcast`) and drag it to the TV.
-5. Click the broadcast screen once to initialize audio.
-6. Open the **Host Dashboard** (`http://localhost:3333/dashboard`) on your laptop.
-7. Press **Spacebar** on your dashboard to start the intro sequence!
+Opens on port **3333**. Open `http://localhost:3333` in your browser, or use the LAN address printed in the terminal for other devices.
 
+### Quick Start
 
+1. Open **Broadcast** (`/broadcast`) on your TV/projector — click to initialize audio
+2. Open **Dashboard** (`/dashboard`) on your host laptop
+3. Press **SPACEBAR** or click **START** on the dashboard to begin
+
+### Game Flow
+
+1. **Intro** — video or logo animation plays → automatically advances to board
+2. **Board phase** — categories are covered; click each category cell to reveal (individual cover → name animation) or use REVEAL CATEGORIES for bulk reveal
+3. **Populate Board** — price cover drops, cells flip in with board-fill sound
+4. **Select clues** — click any cell to open it
+5. **Bonus Clues** — when found, broadcast shows animation + sound; host selects player + wager, then reveals the clue and starts the timer
+6. **Answer** — host reveals answer, marks correct/incorrect (bonus wager auto-applied)
+7. **Round 2** — same flow with doubled values
+8. **Championship** — final question with wager and think music
+
+## Asset Files
+
+Place custom files in `public/`:
+
+| File | Location | Purpose |
+|------|----------|---------|
+| `audio/host-intro.mp3` | Intro theme | Plays during logo animation |
+| `audio/times-up.mp3` | Time's up | When timer expires |
+| `audio/daily-double.mp3` | Bonus clue | When bonus clue is activated |
+| `audio/final-think.mp3` | Think music | During championship thinking phase |
+| `audio/applause.mp3` | Applause | End of game |
+| `audio/board-fill.mp3` | Board fill | When cells populate |
+| `audio/correct.mp3` | Correct | Correct answer |
+| `audio/incorrect.mp3` | Incorrect | Incorrect answer |
+| `audio/outro.mp3` | Outro | End credits |
+| `video/intro.mp4` | Intro video | Full-screen intro (optional) |
+| `img/logo.*` | Logo | Custom logo (PNG/SVG) |
+| `img/promo.*` | Promo | Background image (optional) |
+
+## Architecture
+
+```
+src/
+  cli/
+    setup.js    — Interactive configuration wizard
+    start.js    — Server launcher
+  server/
+    index.js    — Express + Socket.IO setup
+    socket-handlers.js — All game event handlers
+    game-state.js      — Game state management
+public/
+  broadcast.html — Audience display
+  dashboard.html  — Host dashboard
+  helper-scoring.html — Secondary scoring page
+  helper-board.html   — Secondary board page
+  css/
+    broadcast.css
+    dashboard.css
+  js/
+    broadcast.js
+    dashboard.js
+    socket-client.js
+```

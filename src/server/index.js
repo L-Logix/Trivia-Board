@@ -15,7 +15,13 @@ function start(port, config, callback) {
   const io = new Server(server, { cors: { origin: '*' } });
 
   app.use(cors());
-  app.use(express.static(PUBLIC_DIR));
+  app.use(express.static(PUBLIC_DIR, {
+    setHeaders: function(res, filePath) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }));
 
   app.get('/broadcast', (req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, 'broadcast.html'));

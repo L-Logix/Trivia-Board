@@ -238,12 +238,14 @@ function showClueFromData(d) {
   document.getElementById('clue-val').textContent = d.isBonusClue ? label('bonusClue') || 'BONUS CLUE' : '$' + (d.value || 0);
   document.getElementById('clue-text').textContent = d.clue || '';
   document.getElementById('clue-ans').classList.add('hidden');
-  var pct = d.timerSeconds > 0 ? (d.timerRemaining / d.timerSeconds) * 100 : 100;
-  document.getElementById('clue-timer-fill').style.width = pct + '%';
-  document.getElementById('clue-timer-fill').classList.remove('warning');
-  show('clue');
+  if (!d.isBonusClue) {
+    var pct = d.timerSeconds > 0 ? (d.timerRemaining / d.timerSeconds) * 100 : 100;
+    document.getElementById('clue-timer-fill').style.width = pct + '%';
+    document.getElementById('clue-timer-fill').classList.remove('warning');
+  }
+  if (d.isBonusClue) { /* bonus-clue-activated will show the dd phase */ }
+  else show('clue');
   updateScores(st ? st.players : []);
-  if (d.isBonusClue) playBonusClue();
 }
 
 /* ===== LOGO INTRO ===== */
@@ -477,7 +479,6 @@ socket.on('championship-started', function(d) { showChampionship(d); });
 socket.on('think-music-start', function() {
   play('think');
   if (st) st.championshipPhase = 'thinking';
-  document.getElementById('championship-text').textContent = '';
 });
 
 socket.on('championship-revealed', function(d) {
@@ -527,6 +528,25 @@ socket.on('game-reset', function(state) {
 socket.on('answer-correct', function() { showAnswerOverlay(true); });
 socket.on('answer-incorrect', function() { showAnswerOverlay(false); });
 
+socket.on('show-winner', function(d) {
+  show('winner');
+  var nameEl = document.getElementById('winner-name');
+  var scoreEl = document.getElementById('winner-score');
+  var players = d.players || [];
+  // Find winner (highest score)
+  var winner = players.reduce(function(best, p) { return (best === null || p.score > best.score) ? p : best; }, null);
+  if (nameEl) nameEl.textContent = winner ? winner.name : 'Unknown';
+  if (scoreEl) scoreEl.textContent = winner ? fmt(winner.score) : '';
+  // Re-trigger animations
+  var content = document.getElementById('winner-content');
+  [].slice.call(content.querySelectorAll('*')).forEach(function(el) {
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  });
+  play('outro');
+});
+
 socket.on('outro', function() {
   show('outro');
   var lg = document.getElementById('outro-logo');
@@ -549,43 +569,40 @@ socket.on('category-reveal-cover', function(d) {
     covers[d.index].classList.add('revealed');
     covers[d.index].style.animation = 'catCoverReveal .5s cubic-bezier(.68,-0.55,.27,1.55) forwards';
   }
-  // Show full-screen blue cover screen
-  var coverScreen = document.getElementById('cat-cover-screen');
-  var nameScreen = document.getElementById('cat-name-screen');
-  if (coverScreen) {
-    coverScreen.className = 'cat-phase-active';
-    coverScreen.classList.remove('hidden');
+  // Show full-screen blue cover (entire screen is the cover)
+  var coverLayer = document.getElementById('cat-cover-layer');
+  var nameLayer = document.getElementById('cat-name-layer');
+  if (coverLayer) {
+    coverLayer.classList.remove('cover-flip');
+    coverLayer.classList.remove('hidden');
   }
-  if (nameScreen) nameScreen.classList.add('hidden');
+  if (nameLayer) nameLayer.classList.add('hidden');
   show('cat-reveal');
 });
 
 socket.on('category-reveal-name', function(d) {
-  // Animate cover away, show category name
-  var coverScreen = document.getElementById('cat-cover-screen');
-  var nameScreen = document.getElementById('cat-name-screen');
+  // Flip cover away to show category name
+  var coverLayer = document.getElementById('cat-cover-layer');
+  var nameLayer = document.getElementById('cat-name-layer');
   var nameText = document.getElementById('cat-name-text');
   var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
-  if (coverScreen) {
-    coverScreen.className = 'cat-phase-hidden';
-    setTimeout(function() { coverScreen.classList.add('hidden'); }, 500);
-  }
+  if (coverLayer) coverLayer.classList.add('cover-flip');
   if (nameText && cats[d.index]) {
     nameText.textContent = cats[d.index];
     var nc = document.getElementById('cat-name-content');
     if (nc) { nc.style.animation = 'none'; void nc.offsetWidth; nc.style.animation = ''; }
   }
-  if (nameScreen) nameScreen.classList.remove('hidden');
+  if (nameLayer) nameLayer.classList.remove('hidden');
   show('cat-reveal');
 });
 
 socket.on('hide-category-reveal', function() {
   show('board');
   setPromo();
-  var coverScreen = document.getElementById('cat-cover-screen');
-  var nameScreen = document.getElementById('cat-name-screen');
-  if (coverScreen) { coverScreen.className = 'cat-phase-active'; coverScreen.classList.remove('hidden'); }
-  if (nameScreen) nameScreen.classList.add('hidden');
+  var coverLayer = document.getElementById('cat-cover-layer');
+  var nameLayer = document.getElementById('cat-name-layer');
+  if (coverLayer) { coverLayer.classList.remove('cover-flip'); coverLayer.classList.add('hidden'); }
+  if (nameLayer) nameLayer.classList.add('hidden');
 });
 
 function showChampionship(d) {

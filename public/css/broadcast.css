@@ -140,7 +140,7 @@ html,body {
   font-size:clamp(9px, 1.4vmin, 1.6vw); font-weight:500;
   text-transform:uppercase; letter-spacing:2px;
   display:flex; align-items:center; justify-content:center;
-  text-align:center; padding:4px 2px;
+  text-align:center; padding:4px 3px;
   border:2px solid rgba(255,255,255,.1);
   text-shadow:1px 2px 4px rgba(0,0,0,.5);
   line-height:1.1; word-break:break-word;
@@ -177,6 +177,7 @@ html,body {
 #board-grid-wrap {
   flex:1; position:relative;
   perspective:1000px;
+  overflow:hidden;
 }
 #board-price-cover {
   position:absolute; inset:0; z-index:5;
@@ -201,6 +202,7 @@ html,body {
 #board-grid {
   display:grid; gap:2px;
   position:absolute; inset:0;
+  grid-auto-rows:1fr;
 }
 
 .board-cell {
@@ -208,13 +210,12 @@ html,body {
   border:2px solid rgba(255,255,255,.06);
   display:flex; align-items:center; justify-content:center;
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(14px, 3.5vmin, 3.5vw); font-weight:700;
+  font-size:clamp(12px, 3vmin, 3vw); font-weight:700;
   color:#ffcc00; text-shadow:2px 2px 4px rgba(0,0,0,.5), 0 0 20px rgba(255,204,0,.06);
   position:relative; overflow:hidden;
   backface-visibility:hidden;
   transform-style:preserve-3d;
   opacity:0;
-  aspect-ratio:1;
 }
 .board-cell.flip-in {
   animation:cellFlip .5s ease both;
@@ -410,36 +411,39 @@ html,body {
 
 /* ===== CATEGORY REVEAL (full screen, two-phase) ===== */
 #phase-cat-reveal {
-  background:#060ce9;
+  perspective:1200px;
+  overflow:hidden;
 }
 #phase-cat-reveal:not(.hidden) {
   display:block;
 }
-#cat-cover-screen {
+
+/* Cover layer — fills entire screen, flips away to reveal name */
+#cat-cover-layer {
   position:absolute; inset:0;
   display:flex; align-items:center; justify-content:center;
   background:#060ce9;
-  transition:opacity .4s ease, transform .5s cubic-bezier(.68,-0.55,.27,1.55);
   z-index:2;
+  transform-origin:center top;
+  transition:transform .7s cubic-bezier(.68,-0.55,.27,1.55);
 }
-#cat-cover-screen.cat-phase-active {
-  opacity:1; transform:scale(1);
+#cat-cover-layer.cover-flip {
+  transform:rotateX(95deg);
 }
-#cat-cover-screen.cat-phase-hidden {
-  opacity:0; transform:scale(1.1) rotateX(-90deg);
+#cat-cover-frame {
+  width:70vmin; height:70vmin;
+  border:6px solid #ffcc00;
+  background:radial-gradient(circle,rgba(255,204,0,.06) 0%,transparent 60%);
+  box-shadow:0 0 100px rgba(255,204,0,.12), inset 0 0 100px rgba(255,204,0,.04);
+  animation:coverGlow 2s ease-in-out infinite;
 }
-#cat-cover-graphic {
-  width:60vmin; height:60vmin;
-  border:4px solid #ffcc00;
-  background:radial-gradient(circle,rgba(255,204,0,.08) 0%,transparent 70%);
-  box-shadow:0 0 80px rgba(255,204,0,.15);
-  animation:coverPulse 1.5s ease-in-out infinite;
+@keyframes coverGlow {
+  0%,100%{box-shadow:0 0 100px rgba(255,204,0,.12), inset 0 0 100px rgba(255,204,0,.04)}
+  50%{box-shadow:0 0 160px rgba(255,204,0,.2), inset 0 0 120px rgba(255,204,0,.06)}
 }
-@keyframes coverPulse {
-  0%,100%{opacity:.6;transform:scale(1)}
-  50%{opacity:1;transform:scale(1.05)}
-}
-#cat-name-screen {
+
+/* Name layer — behind the cover, always visible once revealed */
+#cat-name-layer {
   position:absolute; inset:0;
   display:flex; align-items:center; justify-content:center;
   background:#060ce9;
@@ -451,19 +455,19 @@ html,body {
 }
 #cat-name-label {
   font-family:'Inter',sans-serif;
-  font-size:clamp(12px, 1.5vmin, 1.4vw);
-  letter-spacing:8px;
-  color:rgba(255,255,255,.3);
+  font-size:clamp(14px, 1.6vmin, 1.5vw);
+  letter-spacing:10px;
+  color:rgba(255,255,255,.25);
   text-transform:uppercase;
-  margin-bottom:20px;
+  margin-bottom:24px;
 }
 #cat-name-text {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(28px, 8vmin, 8vw);
+  font-size:clamp(32px, 10vmin, 10vw);
   font-weight:700;
   color:#fff;
-  letter-spacing:4px;
-  text-shadow:0 0 60px rgba(255,255,255,.08);
+  letter-spacing:6px;
+  text-shadow:0 0 60px rgba(255,255,255,.1);
   text-transform:uppercase;
   line-height:1.2;
 }
@@ -556,6 +560,60 @@ html,body {
 .championship-row { display:inline-block; margin:0 20px; padding:12px 24px; background:rgba(255,255,255,.06); }
 .championship-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
 .championship-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
+
+/* ===== WINNER ===== */
+#phase-winner {
+  background:#060ce9; overflow:hidden;
+}
+#winner-content {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  text-align:center; width:90%;
+}
+#winner-label {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(14px, 1.5vmin, 1.4vw);
+  letter-spacing:10px;
+  color:rgba(255,255,255,.25);
+  text-transform:uppercase;
+  opacity:0;
+  animation:fadeUp .8s ease .5s forwards;
+}
+#winner-name {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:clamp(36px, 10vmin, 10vw);
+  font-weight:700;
+  color:#ffcc00;
+  letter-spacing:6px;
+  text-shadow:0 0 80px rgba(255,204,0,.2);
+  text-transform:uppercase;
+  line-height:1.2;
+  margin:20px 0;
+  opacity:0;
+  animation:winnerZoom .8s cubic-bezier(.175,.885,.32,1.275) 1s forwards;
+}
+@keyframes winnerZoom {
+  0%{opacity:0;transform:scale(0.3)}
+  60%{transform:scale(1.08)}
+  100%{opacity:1;transform:scale(1)}
+}
+#winner-score {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:clamp(24px, 5vmin, 5vw);
+  font-weight:700;
+  color:#fff;
+  opacity:0;
+  animation:fadeUp .8s ease 2s forwards;
+}
+#winner-byline {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(12px, 1.4vmin, 1.3vw);
+  letter-spacing:8px;
+  color:rgba(255,255,255,.15);
+  text-transform:uppercase;
+  margin-top:40px;
+  opacity:0;
+  animation:fadeUp .8s ease 2.5s forwards;
+}
 
 /* ===== OUTRO ===== */
 #phase-outro {

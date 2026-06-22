@@ -158,6 +158,7 @@ document.getElementById('btn-bonus-show').addEventListener('click',function(){
 });
 document.getElementById('btn-think').addEventListener('click',function(){socket.emit('start-think-music')});
 document.getElementById('btn-reveal-championship').addEventListener('click',openChampionship);
+document.getElementById('btn-show-winner').addEventListener('click',function(){socket.emit('show-winner')});
 document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
 document.getElementById('btn-reset').addEventListener('click',function(){document.getElementById('modal-reset').classList.remove('hidden')});
 document.getElementById('mreset-yes').addEventListener('click',function(){document.getElementById('modal-reset').classList.add('hidden');socket.emit('reset-game')});
@@ -174,6 +175,7 @@ document.getElementById('mchampionship-go').addEventListener('click',function(){
 document.getElementById('mchampionship-no').addEventListener('click',function(){document.getElementById('modal-championship').classList.add('hidden')});
 document.getElementById('btn-correct').addEventListener('click',function(){socket.emit('answer-correct')});
 document.getElementById('btn-incorrect').addEventListener('click',function(){socket.emit('answer-incorrect')});
+document.getElementById('btn-board-correct').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
 document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
 document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
 document.getElementById('btn-cat-reveal-name').addEventListener('click',function(){
@@ -222,7 +224,25 @@ socket.on('sync-state',function(state){
   setPhase(state.phase);setRound(state.currentRound);
   switch(state.phase){
     case'clue':side('card-clue');side('card-correct');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];var suffix=state.currentRound===2?(label('round2Suffix')||' (2X)'):'';info.textContent=cell.category+' - $'+cell.value + suffix}break;
-    case'bonus-clue':side('card-bonus');break;
+    case'bonus-clue':
+      side('card-bonus');
+      var sel = document.getElementById('bc-player');
+      var lbl = document.getElementById('bc-card-lbl');
+      if (lbl) lbl.textContent = label('bonusClue') || 'BONUS CLUE';
+      if (sel && st && st.players) {
+        sel.innerHTML = '';
+        st.players.forEach(function(p, i) {
+          var opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = p.name + ' ($' + p.score + ')';
+          sel.appendChild(opt);
+        });
+      }
+      var wagerInp = document.getElementById('bc-wager');
+      if (wagerInp && st && st.currentClue && st.board && st.board[st.currentClue.col] && st.board[st.currentClue.col][st.currentClue.row]) {
+        wagerInp.value = st.board[st.currentClue.col][st.currentClue.row].value;
+      }
+      break;
     case'championship':side('card-championship');break;
     case'board':side('card-populate');addCategoryRevealButtons();break;
     default:side(null);break;
@@ -259,6 +279,13 @@ socket.on('clue-opened',function(d){
     if (wagerInp) wagerInp.value = d.value || 0;
     side('card-bonus');
   } else { side('card-clue'); side('card-correct'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); }
+});
+socket.on('bonus-clue-shown', function(d) {
+  if (st) { st.phase = 'clue'; }
+  setPhase('clue');
+  side('card-clue');
+  side('card-correct');
+  document.getElementById('clue-info').textContent = (d.category || '') + ' - ' + (label('bonusClue') || 'BONUS CLUE');
 });
 socket.on('bonus-clue-activated',function(){
   setPhase('bonus-clue');
