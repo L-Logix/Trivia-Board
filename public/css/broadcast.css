@@ -138,7 +138,7 @@ html,body {
   background:#1a2a8a;
   color:#fff;
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(9px, 1.4vmin, 1.6vw); font-weight:500;
+  font-size:clamp(14px, 2.8vmin, 3.2vw); font-weight:500;
   text-transform:uppercase; letter-spacing:2px;
   display:flex; align-items:center; justify-content:center;
   text-align:center; padding:4px 3px;
@@ -211,7 +211,7 @@ html,body {
   border:2px solid rgba(255,255,255,.06);
   display:flex; align-items:center; justify-content:center;
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(12px, 3vmin, 3vw); font-weight:700;
+  font-size:clamp(20px, 6vmin, 6vw); font-weight:700;
   color:#ffcc00; text-shadow:2px 2px 4px rgba(0,0,0,.5), 0 0 20px rgba(255,204,0,.06);
   position:relative; overflow:hidden;
   backface-visibility:hidden;

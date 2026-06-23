@@ -23,6 +23,7 @@ function playTone(freq, dur, type, vol) {
   } catch(e) {}
 }
 function playBonusClue() {
+  if (audio['dd']) audio['dd'].volume = 0.5;
   play('dd');
   [523.25, 587.33, 659.25, 698.46, 783.99, 880].forEach(function(f, i) {
     setTimeout(function() { playTone(f, 0.25, 'sine', 0.2); }, i * 80);
@@ -58,7 +59,6 @@ function initAudio() {
   if (vEl) videoEls['intro'] = vEl;
 }
 
-var bgDuckCount = 0;
 var bgOrigVolume = 0.15;
 var bgDuckTimer = null;
 var bgUnduckTimer = null;
@@ -164,7 +164,7 @@ function playBgMusic() {
   var el = audio['bgmusic'];
   if (!el || !st || !st.config || !st.config.assets || !st.config.assets.backgroundMusic) return;
   if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
-  bgDuckCount = 0;
+  if (bgUnduckTimer) { clearTimeout(bgUnduckTimer); bgUnduckTimer = null; }
   el.volume = bgOrigVolume;
   el.loop = true;
   el.currentTime = 0;
@@ -172,7 +172,7 @@ function playBgMusic() {
 }
 function stopBgMusic() {
   if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
-  bgDuckCount = 0;
+  if (bgUnduckTimer) { clearTimeout(bgUnduckTimer); bgUnduckTimer = null; }
   var el = audio['bgmusic'];
   if (el) { el.pause(); el.currentTime = 0; }
 }

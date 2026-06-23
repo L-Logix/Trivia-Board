@@ -159,7 +159,6 @@
     "introVideo": true,
     "introAudio": true,
     "bonusClueImage": "png",
-    "backgroundMusic": true,
     "promoImage": "jpg"
   },
   "jeopardyStyle": true,
