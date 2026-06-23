@@ -73,11 +73,6 @@ function setup(ioInstance, config) {
 
       if (cell.isBonusClue) {
         io.emit('bonus-clue-activated', { col, row });
-      } else {
-        gameState.startTimer(
-          () => { gameState.recordTimesUp(); io.emit('times-up'); },
-          (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
-        );
       }
     });
 
@@ -122,6 +117,13 @@ function setup(ioInstance, config) {
       if (cell) {
         io.emit('answer-revealed', { answer: cell.answer });
       }
+    });
+
+    socket.on('done-reading', () => {
+      gameState.startTimer(
+        () => { gameState.recordTimesUp(); io.emit('times-up'); },
+        (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
+      );
     });
 
     socket.on('hide-answer', () => {
@@ -262,27 +264,55 @@ function setup(ioInstance, config) {
       io.emit('think-music-start', { championshipPhase: 'thinking' });
     });
 
-    socket.on('reveal-championship-answer', (data) => {
+    socket.on('championship-reveal-data', (data) => {
       gameState.revealChampionship();
-      const updatedPlayers = gameState.players.map((p, i) => {
+      // Build reveal sequence sorted by pre-reveal score ascending
+      const playersWithData = gameState.players.map((p, i) => ({
+        index: i,
+        name: p.name,
+        score: p.score,
+        answer: data.answers && data.answers[i] !== undefined ? data.answers[i] : '',
+        wager: data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0,
+        correct: data.correct && data.correct[i] !== undefined ? data.correct[i] : false
+      }));
+      playersWithData.sort((a, b) => a.score - b.score);
+      const steps = [];
+      playersWithData.forEach(p => {
+        steps.push({ type: 'answer', playerIndex: p.index, name: p.name, answer: p.answer });
+        steps.push({ type: 'result', playerIndex: p.index, name: p.name, correct: p.correct, wager: p.wager });
+      });
+      // Apply score changes
+      gameState.players.forEach((p, i) => {
         const wager = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
         const correct = data.correct && data.correct[i] !== undefined ? data.correct[i] : false;
-        if (correct) {
-          p.score += wager;
-        } else {
-          p.score -= wager;
-        }
-        return { ...p, wager };
+        if (correct) p.score += wager;
+        else p.score -= wager;
       });
-      const q = gameState.getCurrentChampionshipQuestion();
-      const hasMore = gameState.hasMoreChampionshipQuestions();
-      io.emit('championship-revealed', {
-        players: updatedPlayers,
-        championshipPhase: 'revealed',
-        answer: q.answer,
-        hasMore: hasMore,
-        questionIndex: gameState.currentChampionshipIndex
-      });
+      gameState.revealSequence = { steps, currentStep: 0, updatedPlayers: gameState.players.map(p => ({ ...p })) };
+      gameState.championshipPhase = 'revealing';
+      io.emit('championship-reveal-begin', { totalSteps: steps.length, currentStep: 0, ...steps[0] });
+    });
+
+    socket.on('next-reveal-step', () => {
+      const seq = gameState.revealSequence;
+      if (!seq) return;
+      seq.currentStep++;
+      if (seq.currentStep >= seq.steps.length) {
+        gameState.championshipPhase = 'revealed';
+        gameState.revealSequence = null;
+        const q = gameState.getCurrentChampionshipQuestion();
+        const hasMore = gameState.hasMoreChampionshipQuestions();
+        io.emit('championship-revealed', {
+          players: seq.updatedPlayers,
+          championshipPhase: 'revealed',
+          answer: q.answer,
+          hasMore: hasMore,
+          questionIndex: gameState.currentChampionshipIndex
+        });
+      } else {
+        const step = seq.steps[seq.currentStep];
+        io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...step });
+      }
     });
 
     socket.on('next-championship-question', () => {
@@ -300,6 +330,10 @@ function setup(ioInstance, config) {
 
     socket.on('play-audio', (data) => {
       io.emit('play-audio', { audio: data.audio });
+    });
+
+    socket.on('fade-intro-audio', () => {
+      io.emit('fade-intro-audio');
     });
 
     socket.on('show-winner', () => {

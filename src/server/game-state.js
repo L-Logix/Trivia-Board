@@ -13,6 +13,7 @@ class GameState {
     this.championshipAnswers = {};
     this.championshipPhase = null;
     this.currentChampionshipIndex = 0;
+    this.revealSequence = null;
     this.bonusCluePlayerIndex = null;
     this.bonusClueWager = 0;
     this.stats = this._initStats();
@@ -277,6 +278,7 @@ class GameState {
     this.championshipAnswers = {};
     this.championshipPhase = null;
     this.currentChampionshipIndex = 0;
+    this.revealSequence = null;
     this.bonusCluePlayerIndex = null;
     this.bonusClueWager = 0;
     this.stats = this._initStats();

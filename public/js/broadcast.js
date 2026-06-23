@@ -41,6 +41,7 @@ function initAudio() {
     timesup:'audio/times-up.mp3',
     dd:'audio/daily-double.mp3',
     think:'audio/final-think.mp3',
+    bgmusic:'audio/background.mp3',
     applause:'audio/applause.mp3',
     boardfill:'audio/board-fill.mp3',
     correct:'audio/correct.mp3',
@@ -56,12 +57,123 @@ function initAudio() {
   var vEl = document.getElementById('v-intro');
   if (vEl) videoEls['intro'] = vEl;
 }
+
+var bgDuckCount = 0;
+var bgOrigVolume = 0.15;
+var bgDuckTimer = null;
+var bgUnduckTimer = null;
+
+function duckBgMusic() {
+  var el = audio['bgmusic'];
+  if (!el || el.paused) return;
+  if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
+  bgOrigVolume = el.volume;
+  var start = el.volume;
+  var steps = 8;
+  var interval = 200 / steps;
+  var dec = start / steps;
+  var count = 0;
+  bgDuckTimer = setInterval(function() {
+    count++;
+    el.volume = Math.max(0, start - dec * count);
+    if (count >= steps) {
+      el.volume = 0;
+      clearInterval(bgDuckTimer);
+      bgDuckTimer = null;
+    }
+  }, interval);
+}
+function unduckBgMusic() {
+  if (bgUnduckTimer) { clearTimeout(bgUnduckTimer); bgUnduckTimer = null; }
+  var el = audio['bgmusic'];
+  if (!el) return;
+  if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
+  if (el.paused) {
+    el.volume = 0;
+    el.loop = true;
+    el.currentTime = 0;
+    el.play().catch(function(){});
+  }
+  var target = bgOrigVolume;
+  var steps = 10;
+  var interval = 500 / steps;
+  var inc = target / steps;
+  var startVol = el.volume;
+  var count = 0;
+  bgDuckTimer = setInterval(function() {
+    count++;
+    el.volume = Math.min(target, startVol + inc * count);
+    if (count >= steps) {
+      el.volume = target;
+      clearInterval(bgDuckTimer);
+      bgDuckTimer = null;
+    }
+  }, interval);
+}
+
 function play(k) {
   var el = audio[k];
-  if (el) { el.currentTime = 0; el.play().catch(function(){}); }
+  if (el) {
+    if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
+      duckBgMusic();
+      if (bgUnduckTimer) clearTimeout(bgUnduckTimer);
+      var dur = (el.duration && isFinite(el.duration) ? el.duration * 1000 : 2000) + 500;
+      bgUnduckTimer = setTimeout(function() {
+        bgUnduckTimer = null;
+        unduckBgMusic();
+      }, dur);
+    }
+    el.currentTime = 0;
+    el.play().catch(function(){});
+  }
 }
 function stop(k) {
   var el = audio[k];
+  if (el) {
+    el.pause();
+    el.currentTime = 0;
+  }
+}
+function fadeOutAudio(k, duration, cb) {
+  duration = duration || 5000;
+  var el = audio[k];
+  if (!el || el.paused) { if (cb) cb(); return; }
+  var vol = el.volume;
+  var steps = 20;
+  var interval = duration / steps;
+  var dec = vol / steps;
+  var count = 0;
+  var timer = setInterval(function() {
+    count++;
+    el.volume = Math.max(0, vol - dec * count);
+    if (count >= steps) {
+      el.pause();
+      el.currentTime = 0;
+      el.volume = vol;
+      clearInterval(timer);
+      if (cb) cb();
+    }
+  }, interval);
+}
+function stopIntroAudio(andTransition) {
+  var el = audio['introaudio'];
+  if (!el || el.paused) { if (andTransition) socket.emit('intro-complete'); return; }
+  fadeOutAudio('introaudio', 5000, function() { if (andTransition) socket.emit('intro-complete'); });
+}
+function playBgMusic() {
+  var el = audio['bgmusic'];
+  if (!el || !st || !st.config || !st.config.assets || !st.config.assets.backgroundMusic) return;
+  if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
+  bgDuckCount = 0;
+  el.volume = bgOrigVolume;
+  el.loop = true;
+  el.currentTime = 0;
+  el.play().catch(function(){});
+}
+function stopBgMusic() {
+  if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
+  bgDuckCount = 0;
+  var el = audio['bgmusic'];
   if (el) { el.pause(); el.currentTime = 0; }
 }
 
@@ -274,6 +386,7 @@ function showClue(cell) {
 }
 
 function showClueFromData(d) {
+  stopIntroAudio();
   document.getElementById('clue-cat').textContent = d.category || '';
   document.getElementById('clue-val').textContent = d.isBonusClue ? label('bonusClue') || 'BONUS CLUE' : '$' + (d.value || 0);
   document.getElementById('clue-text').textContent = d.clue || '';
@@ -319,14 +432,17 @@ function playLogo() {
     if (hasIntroAudio) {
       play('introaudio');
       audio['introaudio'].loop = false;
+      audio['introaudio'].addEventListener('ended', function() { stopIntroAudio(true); }, { once: true });
     }
     var videoDone = false;
     v.addEventListener('ended', function() {
       videoDone = true;
-      done();
+      v.pause();
+      if (!hasIntroAudio) done();
     }, { once: true });
     setTimeout(function() {
-      if (!videoDone) { v.pause(); done(); }
+      if (!videoDone) { v.pause(); }
+      if (!hasIntroAudio) done();
     }, 16000);
     return;
   }
@@ -334,10 +450,16 @@ function playLogo() {
   if (hasIntroAudio) {
     play('introaudio');
     audio['introaudio'].loop = false;
+    audio['introaudio'].addEventListener('ended', function() { stopIntroAudio(true); }, { once: true });
+    setTimeout(done, 30000);
+  } else {
+    setTimeout(done, 3000);
   }
-
-  setTimeout(done, 3000);
 }
+
+socket.on('fade-intro-audio', function() {
+  stopIntroAudio(true);
+});
 
 /* ===== TIMER ===== */
 function setTimer(rem, total) {
@@ -382,9 +504,11 @@ function showAnswerOverlay(correct, noAutoReturn) {
 document.getElementById('init-overlay').addEventListener('click', function() {
   initSfx();
   if (hasLogo()) setLogo(document.getElementById('init-logo'));
-  var u = new Audio('audio/times-up.mp3');
-  u.volume = 0;
-  u.play().then(function() { u.pause(); }).catch(function() {});
+  // Warm up all audio elements to eliminate first-play latency
+  Object.keys(audio).forEach(function(k) {
+    var el = audio[k];
+    if (el) { el.volume = 0; el.play().then(function() { el.pause(); el.volume = 1; }).catch(function() {}); }
+  });
   this.style.opacity = '0';
   var self = this;
   setTimeout(function() {
@@ -410,7 +534,6 @@ socket.on('sync-state', function(state) {
     switch (state.phase) {
       case 'logo': case 'intro': playLogo(); break;
       case 'idle': case 'board':
-        stop('introaudio');
         var cats = state.currentRound === 2 && state.config.categoriesR2 ? state.config.categoriesR2 : state.config.categories;
         boardInitialized = false;
         show('board'); setPromo(); renderBoard(state.board, state.players, cats);
@@ -428,12 +551,12 @@ socket.on('intro-started', function() { playLogo(); });
 socket.on('board-shown', function(d) {
   show('board');
   setPromo();
-  stop('introaudio');
   categoriesCoverVisible = true;
   priceCoverVisible = true;
   boardInitialized = false;
   renderBoard(d.board, d.players, d.categories);
   updateScores(d.players);
+  playBgMusic();
 });
 
 socket.on('categories-revealed', function() {
@@ -485,6 +608,7 @@ socket.on('bonus-clue-activated', function() {
 });
 
 socket.on('bonus-clue-shown', function(d) {
+  stopIntroAudio();
   show('clue');
   document.getElementById('clue-cat').textContent = d.category || '';
   document.getElementById('clue-val').textContent = label('bonusClue') || 'BONUS CLUE';
@@ -552,12 +676,14 @@ socket.on('round2-started', function(d) {
 socket.on('championship-started', function(d) { showChampionship(d); });
 
 socket.on('think-music-start', function() {
+  stopBgMusic();
   play('think');
   if (st) st.championshipPhase = 'thinking';
 });
 
 socket.on('championship-revealed', function(d) {
   show('championship');
+  document.getElementById('championship-reveal-player').classList.add('hidden');
   playChampionshipReveal();
   document.getElementById('championship-cat-wager').classList.add('hidden');
   document.getElementById('championship-cat').classList.remove('hidden');
@@ -573,6 +699,7 @@ socket.on('championship-revealed', function(d) {
   }
   if (document.getElementById('championship-scores')) renderScores(d.players, document.getElementById('championship-scores'));
   setTimeout(function() { play('applause'); }, 800);
+  playBgMusic();
 });
 
 socket.on('play-audio', function(d) {
@@ -598,6 +725,8 @@ socket.on('cell-value-set', function(d) {
 });
 
 socket.on('game-reset', function(state) {
+  stopIntroAudio();
+  stopBgMusic();
   st = state;
   var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
   boardInitialized = false;
@@ -605,12 +734,14 @@ socket.on('game-reset', function(state) {
   setPromo();
   renderBoard(state.board, state.players, cats);
   updateScores(state.players);
+  playBgMusic();
 });
 
 socket.on('answer-correct', function() { showAnswerOverlay(true, true); });
 socket.on('answer-incorrect', function() { showAnswerOverlay(false, false); });
 
 socket.on('show-winner', function(d) {
+  stopBgMusic();
   show('winner');
   var nameEl = document.getElementById('winner-name');
   var scoreEl = document.getElementById('winner-score');
@@ -634,6 +765,7 @@ socket.on('show-stats', function() {
 });
 
 socket.on('outro', function() {
+  stopBgMusic();
   show('outro');
   var lg = document.getElementById('outro-logo');
   var byline = document.getElementById('outro-byline');
@@ -648,23 +780,26 @@ socket.on('outro', function() {
 });
 
 socket.on('category-reveal-cover', function(d) {
-  // Reveal this category's cover on the board grid by position
-  var cc = document.getElementById('board-cat-covers');
-  if (cc) {
-    var cover = cc.children[d.index];
-    if (cover) {
-      cover.classList.remove('visible');
-      cover.classList.add('revealed');
-    }
-  }
-  // Show full-screen cover overlay on top of the board
+  // Show full-screen cover overlay on top of the board with category cover image
   var coverLayer = document.getElementById('cat-cover-layer');
   var nameLayer = document.getElementById('cat-name-layer');
+  // Hide name, then hide cover to reset it without transition, then show with new bg
+  if (nameLayer) nameLayer.classList.add('hidden');
   if (coverLayer) {
+    coverLayer.classList.add('hidden');
     coverLayer.classList.remove('cover-flip');
+    var catCoverAsset = st && st.config && st.config.assets && st.config.assets.categoryCover;
+    if (catCoverAsset && typeof catCoverAsset === 'string') {
+      coverLayer.style.backgroundImage = 'url(img/cat-cover.' + catCoverAsset + ')';
+      coverLayer.classList.add('cat-cover-image');
+    } else {
+      coverLayer.style.backgroundImage = '';
+      coverLayer.classList.remove('cat-cover-image');
+    }
+    // Force reflow then show
+    void coverLayer.offsetWidth;
     coverLayer.classList.remove('hidden');
   }
-  if (nameLayer) nameLayer.classList.add('hidden');
 });
 
 socket.on('category-reveal-name', function(d) {
@@ -702,19 +837,29 @@ socket.on('hide-category-reveal', function() {
 function showChampionship(d) {
   show('championship');
   document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
-  document.getElementById('championship-cat').textContent = d.championshipCategory || d.category || '';
-  document.getElementById('championship-text').textContent = d.championshipClue || d.clue || '';
-  document.getElementById('championship-ans').classList.add('hidden');
   document.getElementById('championship-results').innerHTML = '';
-  // Always show clue directly (no separate wagering screen)
-  document.getElementById('championship-cat-wager').classList.add('hidden');
-  document.getElementById('championship-cat').classList.remove('hidden');
-  document.getElementById('championship-text').classList.remove('hidden');
-  document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
+  document.getElementById('championship-ans').classList.add('hidden');
+  document.getElementById('championship-reveal-player').classList.add('hidden');
+  var phase = st ? st.championshipPhase : 'wagering';
+  if (phase === 'revealed') {
+    document.getElementById('championship-cat-wager').classList.add('hidden');
+    document.getElementById('championship-text').classList.add('hidden');
+    document.getElementById('championship-cat').classList.remove('hidden');
+    if (d.answer) { document.getElementById('championship-ans').textContent = d.answer; document.getElementById('championship-ans').classList.remove('hidden'); }
+  } else if (phase === 'showing' || phase === 'thinking') {
+    document.getElementById('championship-cat-wager').classList.add('hidden');
+    document.getElementById('championship-cat').classList.remove('hidden');
+    document.getElementById('championship-cat').textContent = d.championshipCategory || d.category || '';
+    document.getElementById('championship-text').classList.remove('hidden');
+    document.getElementById('championship-text').textContent = d.championshipClue || d.clue || '';
+  } else {
+    document.querySelector('#championship-cat-wager .champ-wager-subject').textContent = d.championshipCategory || d.category || '';
+    document.getElementById('championship-cat-wager').classList.remove('hidden');
+    document.getElementById('championship-cat').classList.add('hidden');
+    document.getElementById('championship-text').classList.add('hidden');
+  }
   if (st) updateScores(st.players);
 }
-
-socket.on('championship-started', function(d) { showChampionship(d); });
 
 socket.on('championship-clue-shown', function(d) {
   document.getElementById('championship-cat-wager').classList.add('hidden');
@@ -725,4 +870,43 @@ socket.on('championship-clue-shown', function(d) {
   document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
   document.getElementById('championship-ans').classList.add('hidden');
   if (st) st.championshipPhase = 'showing';
+});
+
+socket.on('championship-reveal-begin', function(d) {
+  show('championship');
+  document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
+  document.getElementById('championship-cat-wager').classList.add('hidden');
+  document.getElementById('championship-cat').classList.add('hidden');
+  document.getElementById('championship-text').classList.add('hidden');
+  document.getElementById('championship-ans').classList.add('hidden');
+  document.getElementById('championship-results').innerHTML = '';
+  document.getElementById('championship-reveal-player').classList.remove('hidden');
+  document.getElementById('cr-result').classList.add('hidden');
+  document.getElementById('cr-player-name').textContent = d.name || '';
+  document.getElementById('cr-player-answer').textContent = d.answer || '';
+});
+
+socket.on('championship-reveal-step', function(d) {
+  if (d.type === 'answer') {
+    document.getElementById('cr-result').classList.add('hidden');
+    document.getElementById('cr-player-name').textContent = d.name || '';
+    document.getElementById('cr-player-answer').textContent = d.answer || '';
+  } else if (d.type === 'result') {
+    var resultEl = document.getElementById('cr-result-text');
+    var changeEl = document.getElementById('cr-score-change');
+    if (d.correct) {
+      resultEl.textContent = 'CORRECT!';
+      resultEl.className = 'correct';
+      changeEl.textContent = '+' + fmt(d.wager);
+      changeEl.className = 'positive';
+      play('correct');
+    } else {
+      resultEl.textContent = 'INCORRECT';
+      resultEl.className = 'incorrect';
+      changeEl.textContent = '-' + fmt(d.wager);
+      changeEl.className = 'negative';
+      play('incorrect');
+    }
+    document.getElementById('cr-result').classList.remove('hidden');
+  }
 });

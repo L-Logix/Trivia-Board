@@ -876,7 +876,8 @@ async function main() {
     { key: 'boardFill', name: 'board-fill.mp3', label: 'Board Fill (board-fill.mp3)' },
     { key: 'correct', name: 'correct.mp3', label: 'Correct Answer (correct.mp3)' },
     { key: 'incorrect', name: 'incorrect.mp3', label: 'Incorrect Answer (incorrect.mp3)' },
-    { key: 'outro', name: 'outro.mp3', label: 'Outro (outro.mp3)' }
+    { key: 'outro', name: 'outro.mp3', label: 'Outro (outro.mp3)' },
+    { key: 'backgroundMusic', name: 'background.mp3', label: 'Background Music (background.mp3)' }
   ];
 
   for (const af of audioFiles) {

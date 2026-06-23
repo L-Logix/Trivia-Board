@@ -419,6 +419,11 @@ html,body {
   transition:transform .7s cubic-bezier(.68,-0.55,.27,1.55), opacity .3s ease;
 }
 #cat-cover-layer.hidden { display:none; }
+#cat-cover-layer.cat-cover-image {
+  background-size:cover;
+  background-position:center;
+}
+#cat-cover-layer.cat-cover-image::after { display:none; }
 #cat-cover-layer::after {
   content:'?';
   position:absolute;
@@ -595,6 +600,39 @@ html,body {
 .championship-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
 .championship-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
 .championship-r-wager { font-family:'Inter',sans-serif; font-size:.75vw; color:#4a90d9; margin-top:4px; letter-spacing:1px; }
+
+/* Championship Reveal Player */
+#championship-reveal-player {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; width:100%;
+}
+#cr-player-name {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:clamp(18px, 2.5vw, 3vw); font-weight:700;
+  color:#ffcc00; letter-spacing:4px; text-transform:uppercase;
+  margin-bottom:10px; animation:fadeUp .5s ease;
+}
+#cr-player-answer {
+  font-family:'Libre Baskerville','Georgia',serif;
+  font-size:clamp(22px, 3.2vw, 3.8vw); font-weight:700;
+  color:#fff; text-align:center; max-width:80%;
+  line-height:1.4; animation:fadeUp .5s ease .1s both;
+}
+#cr-result { margin-top:20px; animation:fadeUp .5s ease .2s both; }
+#cr-result-text {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:clamp(28px, 4vw, 4.5vw); font-weight:700;
+  letter-spacing:8px; text-transform:uppercase;
+}
+#cr-result-text.correct { color:#4caf50; }
+#cr-result-text.incorrect { color:#f44336; }
+#cr-score-change {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:clamp(24px, 3.5vw, 4vw); font-weight:700;
+  margin-top:8px; letter-spacing:2px;
+}
+#cr-score-change.positive { color:#4caf50; }
+#cr-score-change.negative { color:#f44336; }
 
 /* Championship Wager Screen */
 #championship-cat-wager {

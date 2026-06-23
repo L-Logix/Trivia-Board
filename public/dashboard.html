@@ -60,9 +60,11 @@
           <div class="card-lbl">CHAMPIONSHIP</div>
           <div class="card-info" id="champ-question-info"></div>
           <div id="champ-wager-area" class="hidden">
-            <div class="card-lbl-sub">WAGERS (enter each contestant's wager)</div>
+            <div class="card-lbl-sub">Have players write their wagers on paper</div>
             <div id="champ-wager-inputs"></div>
             <button class="b b-gold b-full" id="btn-champ-show-clue">SHOW CLUE</button>
+            <button class="b b-gold b-full hidden" id="btn-confirm-answer">START REVEAL</button>
+            <button class="b b-blue b-full hidden" id="btn-next-reveal-step">NEXT</button>
           </div>
           <div id="champ-clue-area" class="hidden">
             <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
@@ -84,6 +86,7 @@
         </div>
         <div class="card hidden" id="card-correct">
           <div class="card-lbl">ANSWER FEEDBACK</div>
+          <button class="b b-gold b-full" id="btn-done-reading">DONE READING</button>
           <div class="half-row">
             <button class="b b-green b-half" id="btn-correct">CORRECT</button>
             <button class="b b-red b-half" id="btn-incorrect">INCORRECT</button>
@@ -99,6 +102,7 @@
             <b style="color:rgba(255,255,255,.4)">Double-click</b> value to edit points<br>
             <b style="color:rgba(255,255,255,.4)">Enter</b> custom amount & press Enter
           </div>
+          <button class="b b-ghost b-full" id="btn-end-intro-audio" style="margin-top:8px">END INTRO MUSIC</button>
         </div>
       </aside>
     </div>
