@@ -399,6 +399,20 @@ class GameState {
     this.stats.game.timesUp++;
   }
 
+  recordManualCorrect(playerIndex) {
+    if (playerIndex >= 0 && playerIndex < this.stats.players.length) {
+      this.stats.game.correctTotal++;
+      this.stats.players[playerIndex].correctCount++;
+    }
+  }
+
+  recordManualIncorrect(playerIndex) {
+    if (playerIndex >= 0 && playerIndex < this.stats.players.length) {
+      this.stats.game.incorrectTotal++;
+      this.stats.players[playerIndex].incorrectCount++;
+    }
+  }
+
   recordBuzzTime(ms) {
     this.stats.game.totalBuzzTimeMs += ms;
   }

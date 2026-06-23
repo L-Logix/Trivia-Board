@@ -60,7 +60,7 @@
           <div class="card-lbl">CHAMPIONSHIP</div>
           <div class="card-info" id="champ-question-info"></div>
           <div id="champ-wager-area" class="hidden">
-            <div class="card-lbl-sub">WAGERS</div>
+            <div class="card-lbl-sub">WAGERS (enter each contestant's wager)</div>
             <div id="champ-wager-inputs"></div>
             <button class="b b-gold b-full" id="btn-champ-show-clue">SHOW CLUE</button>
           </div>
@@ -84,8 +84,11 @@
         </div>
         <div class="card hidden" id="card-correct">
           <div class="card-lbl">ANSWER FEEDBACK</div>
-          <button class="b b-green b-full" id="btn-correct">CORRECT</button>
-          <button class="b b-red b-full" id="btn-incorrect">INCORRECT</button>
+          <div class="half-row">
+            <button class="b b-green b-half" id="btn-correct">CORRECT</button>
+            <button class="b b-red b-half" id="btn-incorrect">INCORRECT</button>
+          </div>
+          <button class="b b-gold b-full hidden" id="btn-show-answer">SHOW ANSWER</button>
           <button class="b b-blue b-full" id="btn-board-correct">RETURN TO BOARD</button>
         </div>
         <div class="card" id="card-help">

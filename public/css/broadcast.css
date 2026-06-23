@@ -417,7 +417,6 @@ html,body {
 #phase-cat-reveal:not(.hidden) {
   display:block;
 }
-
 /* Cover layer — fills entire screen, flips up to reveal name */
 #cat-cover-layer {
   position:absolute; inset:0;
@@ -561,6 +560,7 @@ html,body {
 .championship-row { display:inline-block; margin:0 20px; padding:12px 24px; background:rgba(255,255,255,.06); }
 .championship-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
 .championship-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
+.championship-r-wager { font-family:'Inter',sans-serif; font-size:.75vw; color:#4a90d9; margin-top:4px; letter-spacing:1px; }
 
 /* Championship Wager Screen */
 #championship-cat-wager {

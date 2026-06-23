@@ -820,6 +820,21 @@ async function main() {
     }
   }
 
+  const { introAudioPath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'introAudioPath',
+      message: 'Upload intro audio? (path to MP3 played alongside video, or leave blank):'
+    }
+  ]);
+  if (introAudioPath && introAudioPath.trim()) {
+    const dest = path.join(ROOT, 'public', 'audio', 'intro-audio.mp3');
+    if (copyAssetFile(introAudioPath.trim(), dest)) {
+      config.assets.introAudio = true;
+      console.log(chalk.green('  \u2713 Intro audio copied'));
+    }
+  }
+
   const { promoImagePath } = await inquirer.prompt([
     {
       type: 'input',

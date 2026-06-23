@@ -1,31 +1,31 @@
-Category,Clue,Answer
-History,This president was born in 1732,Who is George Washington?
-History,H2O is the chemical formula for this,What is water?
-History,This planet is known as the Red Planet,What is Mars?
-History,This author wrote Romeo and Juliet,Who is Shakespeare?
-History,This element has the symbol Au,What is gold?
-Science,This president was born in 1732,Who is George Washington?
-Science,H2O is the chemical formula for this,What is water?
-Science,This planet is known as the Red Planet,What is Mars?
-Science,This author wrote Romeo and Juliet,Who is Shakespeare?
-Science,This element has the symbol Au,What is gold?
-Pop Culture,This president was born in 1732,Who is George Washington?
-Pop Culture,H2O is the chemical formula for this,What is water?
-Pop Culture,This planet is known as the Red Planet,What is Mars?
-Pop Culture,This author wrote Romeo and Juliet,Who is Shakespeare?
-Pop Culture,This element has the symbol Au,What is gold?
-Geography,This president was born in 1732,Who is George Washington?
-Geography,H2O is the chemical formula for this,What is water?
-Geography,This planet is known as the Red Planet,What is Mars?
-Geography,This author wrote Romeo and Juliet,Who is Shakespeare?
-Geography,This element has the symbol Au,What is gold?
-Sports,This president was born in 1732,Who is George Washington?
-Sports,H2O is the chemical formula for this,What is water?
-Sports,This planet is known as the Red Planet,What is Mars?
-Sports,This author wrote Romeo and Juliet,Who is Shakespeare?
-Sports,This element has the symbol Au,What is gold?
-Movies,This president was born in 1732,Who is George Washington?
-Movies,H2O is the chemical formula for this,What is water?
-Movies,This planet is known as the Red Planet,What is Mars?
-Movies,This author wrote Romeo and Juliet,Who is Shakespeare?
-Movies,This element has the symbol Au,What is gold?
+Category,Clue,Answer,Value
+History,This president was born in 1732,Who is George Washington?,100
+History,H2O is the chemical formula for this,What is water?,200
+History,This planet is known as the Red Planet,What is Mars?,300
+History,This author wrote Romeo and Juliet,Who is Shakespeare?,400
+History,This element has the symbol Au,What is gold?,500
+Science,This president was born in 1732,Who is George Washington?,100
+Science,H2O is the chemical formula for this,What is water?,200
+Science,This planet is known as the Red Planet,What is Mars?,300
+Science,This author wrote Romeo and Juliet,Who is Shakespeare?,400
+Science,This element has the symbol Au,What is gold?,500
+Pop Culture,This president was born in 1732,Who is George Washington?,100
+Pop Culture,H2O is the chemical formula for this,What is water?,200
+Pop Culture,This planet is known as the Red Planet,What is Mars?,300
+Pop Culture,This author wrote Romeo and Juliet,Who is Shakespeare?,400
+Pop Culture,This element has the symbol Au,What is gold?,500
+Geography,This president was born in 1732,Who is George Washington?,100
+Geography,H2O is the chemical formula for this,What is water?,200
+Geography,This planet is known as the Red Planet,What is Mars?,300
+Geography,This author wrote Romeo and Juliet,Who is Shakespeare?,400
+Geography,This element has the symbol Au,What is gold?,500
+Sports,This president was born in 1732,Who is George Washington?,100
+Sports,H2O is the chemical formula for this,What is water?,200
+Sports,This planet is known as the Red Planet,What is Mars?,300
+Sports,This author wrote Romeo and Juliet,Who is Shakespeare?,400
+Sports,This element has the symbol Au,What is gold?,500
+Movies,This president was born in 1732,Who is George Washington?,100
+Movies,H2O is the chemical formula for this,What is water?,200
+Movies,This planet is known as the Red Planet,What is Mars?,300
+Movies,This author wrote Romeo and Juliet,Who is Shakespeare?,400
+Movies,This element has the symbol Au,What is gold?,500

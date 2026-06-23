@@ -181,9 +181,16 @@ document.getElementById('btn-applause').addEventListener('click',function(){sock
 document.getElementById('btn-reset').addEventListener('click',function(){document.getElementById('modal-reset').classList.remove('hidden')});
 document.getElementById('mreset-yes').addEventListener('click',function(){document.getElementById('modal-reset').classList.add('hidden');socket.emit('reset-game')});
 document.getElementById('mreset-no').addEventListener('click',function(){document.getElementById('modal-reset').classList.add('hidden')});
-document.getElementById('btn-correct').addEventListener('click',function(){socket.emit('answer-correct')});
+document.getElementById('btn-correct').addEventListener('click',function(){
+  socket.emit('answer-correct');
+  document.getElementById('btn-show-answer').classList.remove('hidden');
+});
 document.getElementById('btn-incorrect').addEventListener('click',function(){socket.emit('answer-incorrect')});
-document.getElementById('btn-board-correct').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
+document.getElementById('btn-board-correct').addEventListener('click',function(){
+  if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row});
+  document.getElementById('btn-show-answer').classList.add('hidden');
+});
+document.getElementById('btn-show-answer').addEventListener('click',function(){socket.emit('reveal-answer')});
 document.getElementById('btn-reveal-categories').addEventListener('click',function(){
   // Start full-screen category reveal flow from first category
   socket.emit('reveal-category', { index: 0 });
@@ -320,7 +327,7 @@ socket.on('bonus-clue-activated',function(){
   side('card-bonus');
 });
 socket.on('timer-tick',function(d){setTimer(d.remaining)});
-socket.on('times-up',function(){setTimer(0)});
+socket.on('times-up',function(){setTimer(0);document.getElementById('btn-show-answer').classList.remove('hidden')});
 socket.on('buzz-result',function(d){document.querySelectorAll('.p-panel').forEach(function(p){p.classList.remove('buzz')});if(d.success){var el=document.querySelector('.p-panel[data-index="'+d.playerIndex+'"]');if(el)el.classList.add('buzz')}});
 socket.on('score-updated',function(d){if(st){st.players=d.players;renderPlayers(d.players)}});
 socket.on('board-return',function(d){
@@ -330,7 +337,8 @@ socket.on('board-return',function(d){
     var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
     renderGrid(st.board,cats)
   }
-  setPhase('board');side('card-populate')
+  document.getElementById('btn-show-answer').classList.add('hidden');
+  setPhase('board');side('board')
 });
 socket.on('round2-started',function(d){if(st){st.board=d.board;st.players=d.players;st.currentRound=2;st.phase='board';st.currentClue=null}renderGrid(d.board,d.categories||(st&&st.config&&st.config.categoriesR2?st.config.categoriesR2:[]));renderPlayers(d.players);setRound(2);setPhase('board');categoriesRevealed=false;boardPopulated=false;side('card-populate');addCategoryRevealButtons()});
 socket.on('championship-started',function(d){
@@ -339,9 +347,9 @@ socket.on('championship-started',function(d){
   side('card-championship');
   var clbl=document.querySelector('#card-championship .card-lbl');
   if(clbl)clbl.textContent=label('championshipSection')||'CHAMPIONSHIP';
-  // Show wager area, hide clue and reveal areas
+  // Show wager area AND clue area together (host enters wagers while clue is shown)
   document.getElementById('champ-wager-area').classList.remove('hidden');
-  document.getElementById('champ-clue-area').classList.add('hidden');
+  document.getElementById('champ-clue-area').classList.remove('hidden');
   document.getElementById('champ-reveal-area').classList.add('hidden');
   var info = document.getElementById('champ-question-info');
   if (info) info.textContent = 'Question ' + ((d.questionIndex || 0) + 1) + ' of ' + (d.totalQuestions || 1) + ' - ' + (d.category || '');
@@ -351,13 +359,13 @@ socket.on('championship-started',function(d){
     var wh = '';
     st.players.forEach(function(p, i) {
       wh += '<div class="p-row"><span class="p-name">' + esc(p.name) + '</span>' +
-        '<div class="p-val"><span class="p-label">Wager: $</span><input type="number" class="champ-wager-input" data-i="' + i + '" value="' + (st.config.doubleValues ? st.config.doubleValues[0] : 1000) + '" min="0" step="100"></div></div>';
+        '<div class="p-val"><span class="p-label">Wager: $</span><input type="password" class="champ-wager-input" data-i="' + i + '" value="' + (st.config.doubleValues ? st.config.doubleValues[0] : 1000) + '" min="0" step="100"></div></div>';
     });
     wi.innerHTML = wh;
   }
 });
 socket.on('championship-clue-shown',function(){
-  document.getElementById('champ-wager-area').classList.add('hidden');
+  // Keep wager area visible so host can enter wagers during the clue
   document.getElementById('champ-clue-area').classList.remove('hidden');
   document.getElementById('champ-reveal-area').classList.add('hidden');
 });

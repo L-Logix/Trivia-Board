@@ -208,6 +208,11 @@ function setup(ioInstance, config) {
       const { playerIndex, delta } = data;
       const newScore = gameState.adjustScore(playerIndex, delta);
       if (newScore !== null) {
+        if (delta > 0) {
+          gameState.recordManualCorrect(playerIndex);
+        } else if (delta < 0) {
+          gameState.recordManualIncorrect(playerIndex);
+        }
         io.emit('score-updated', {
           players: gameState.players.map(p => ({ ...p })),
           playerIndex,
@@ -236,6 +241,7 @@ function setup(ioInstance, config) {
         phase: 'championship',
         championshipPhase: 'wagering',
         category: q.category,
+        clue: q.clue,
         totalQuestions: (gameState.config.championshipQuestions || []).length,
         questionIndex: gameState.currentChampionshipIndex
       });
@@ -266,7 +272,7 @@ function setup(ioInstance, config) {
         } else {
           p.score -= wager;
         }
-        return { ...p };
+        return { ...p, wager };
       });
       const q = gameState.getCurrentChampionshipQuestion();
       const hasMore = gameState.hasMoreChampionshipQuestions();
@@ -286,6 +292,7 @@ function setup(ioInstance, config) {
         phase: 'championship',
         championshipPhase: 'wagering',
         category: q.category,
+        clue: q.clue,
         totalQuestions: (gameState.config.championshipQuestions || []).length,
         questionIndex: gameState.currentChampionshipIndex
       });

@@ -37,6 +37,7 @@ function playChampionshipReveal() {
 function initAudio() {
   var map = {
     intro:'audio/host-intro.mp3',
+    introaudio:'audio/intro-audio.mp3',
     timesup:'audio/times-up.mp3',
     dd:'audio/daily-double.mp3',
     think:'audio/final-think.mp3',
@@ -217,8 +218,8 @@ function revealCategoryCovers() {
   });
 }
 
-function revealPriceCover() {
-  play('boardfill');
+function revealPriceCover(noSound) {
+  if (!noSound) play('boardfill');
   var coverEl = document.getElementById('board-price-cover');
   if (coverEl) coverEl.classList.add('revealed');
   var cells = document.querySelectorAll('.board-cell:not(.revealed)');
@@ -292,6 +293,7 @@ function playLogo() {
   show('logo');
   var v = videoEls['intro'];
   var hasVideoAsset = st && st.config && st.config.assets && st.config.assets.introVideo;
+  var hasIntroAudio = st && st.config && st.config.assets && st.config.assets.introAudio;
   document.getElementById('logo-content-group').classList.remove('hidden');
   if (v) v.classList.add('hidden');
   var lg = document.getElementById('logo-custom-img');
@@ -311,8 +313,13 @@ function playLogo() {
     document.getElementById('logo-content-group').classList.add('hidden');
     v.classList.remove('hidden');
     v.src = 'video/intro.mp4';
+    v.muted = true;
     v.load();
     v.play().catch(function(){});
+    if (hasIntroAudio) {
+      play('introaudio');
+      audio['introaudio'].loop = false;
+    }
     var videoDone = false;
     v.addEventListener('ended', function() {
       videoDone = true;
@@ -324,17 +331,12 @@ function playLogo() {
     return;
   }
 
-  var flash = document.getElementById('logo-flash');
-  flash.classList.remove('go');
-  play('intro');
-  var dur = 5000;
-  var el = audio['intro'];
-  if (el && el.duration && el.duration > 1) dur = Math.min(el.duration * 1000 + 500, 12000);
-  setTimeout(function() {
-    flash.classList.add('go');
-    setTimeout(function() { flash.classList.remove('go'); }, 300);
-  }, dur - 2000);
-  setTimeout(done, dur);
+  if (hasIntroAudio) {
+    play('introaudio');
+    audio['introaudio'].loop = false;
+  }
+
+  setTimeout(done, 3000);
 }
 
 /* ===== TIMER ===== */
@@ -349,7 +351,7 @@ function setTimer(rem, total) {
 }
 
 /* ===== ANSWER OVERLAY ===== */
-function showAnswerOverlay(correct) {
+function showAnswerOverlay(correct, noAutoReturn) {
   var overlay = document.getElementById('answer-overlay');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -364,6 +366,7 @@ function showAnswerOverlay(correct) {
   overlay.classList.add(correct ? 'correct' : 'incorrect');
   textEl.classList.add(correct ? 'show-correct' : 'show-incorrect');
   play(correct ? 'correct' : 'incorrect');
+  if (noAutoReturn) return;
   if (ansOverlayTimer) clearTimeout(ansOverlayTimer);
   ansOverlayTimer = setTimeout(function() {
     ansOverlayTimer = null;
@@ -407,6 +410,7 @@ socket.on('sync-state', function(state) {
     switch (state.phase) {
       case 'logo': case 'intro': playLogo(); break;
       case 'idle': case 'board':
+        stop('introaudio');
         var cats = state.currentRound === 2 && state.config.categoriesR2 ? state.config.categoriesR2 : state.config.categories;
         boardInitialized = false;
         show('board'); setPromo(); renderBoard(state.board, state.players, cats);
@@ -424,6 +428,7 @@ socket.on('intro-started', function() { playLogo(); });
 socket.on('board-shown', function(d) {
   show('board');
   setPromo();
+  stop('introaudio');
   categoriesCoverVisible = true;
   priceCoverVisible = true;
   boardInitialized = false;
@@ -501,6 +506,7 @@ socket.on('board-return', function(d) {
     if (st.board[d.col] && st.board[d.col][d.row]) st.board[d.col][d.row].revealed = true;
     var cats = st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories;
     renderBoard(st.board, st.players, cats);
+    revealPriceCover(true);
   }
 });
 
@@ -535,7 +541,10 @@ socket.on('championship-revealed', function(d) {
   if (d.players) {
     var lbl = d.hasMore ? 'Scores After Question ' + ((d.questionIndex || 0) + 1) : 'Final Scores';
     var html = '<div style="margin:15px 0;font-size:1.3vw;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase">' + lbl + '</div>';
-    d.players.forEach(function(p) { html += '<span class="championship-row"><div class="championship-r-name">' + esc(p.name) + '</div><div class="championship-r-score">' + fmt(p.score) + '</div></span>'; });
+    d.players.forEach(function(p) {
+      var wagerLine = p.wager !== undefined ? '<div class="championship-r-wager">Wager: ' + fmt(p.wager) + '</div>' : '';
+      html += '<span class="championship-row"><div class="championship-r-name">' + esc(p.name) + '</div><div class="championship-r-score">' + fmt(p.score) + '</div>' + wagerLine + '</span>';
+    });
     document.getElementById('championship-results').innerHTML = html;
   }
   if (document.getElementById('championship-scores')) renderScores(d.players, document.getElementById('championship-scores'));
@@ -574,8 +583,8 @@ socket.on('game-reset', function(state) {
   updateScores(state.players);
 });
 
-socket.on('answer-correct', function() { showAnswerOverlay(true); });
-socket.on('answer-incorrect', function() { showAnswerOverlay(false); });
+socket.on('answer-correct', function() { showAnswerOverlay(true, true); });
+socket.on('answer-incorrect', function() { showAnswerOverlay(false, false); });
 
 socket.on('show-winner', function(d) {
   show('winner');
@@ -673,28 +682,15 @@ socket.on('hide-category-reveal', function() {
 function showChampionship(d) {
   show('championship');
   document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
-  document.getElementById('championship-cat').textContent = d.championshipCategory || '';
-  document.getElementById('championship-text').textContent = d.championshipClue || '';
+  document.getElementById('championship-cat').textContent = d.championshipCategory || d.category || '';
+  document.getElementById('championship-text').textContent = d.championshipClue || d.clue || '';
   document.getElementById('championship-ans').classList.add('hidden');
   document.getElementById('championship-results').innerHTML = '';
-  var wagerEl = document.getElementById('championship-cat-wager');
-  var catEl = document.getElementById('championship-cat');
-  var textEl = document.getElementById('championship-text');
-  if (d.championshipPhase === 'wagering') {
-    if (wagerEl) {
-      wagerEl.classList.remove('hidden');
-      var subj = wagerEl.querySelector('.champ-wager-subject');
-      if (subj) subj.textContent = d.category || d.championshipCategory || '';
-    }
-    if (catEl) catEl.classList.add('hidden');
-    if (textEl) textEl.classList.add('hidden');
-    document.getElementById('championship-ans').classList.add('hidden');
-    document.getElementById('championship-hdr').textContent = label('championshipSection') || 'CHAMPIONSHIP';
-  } else {
-    if (wagerEl) wagerEl.classList.add('hidden');
-    if (catEl) catEl.classList.remove('hidden');
-    document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
-  }
+  // Always show clue directly (no separate wagering screen)
+  document.getElementById('championship-cat-wager').classList.add('hidden');
+  document.getElementById('championship-cat').classList.remove('hidden');
+  document.getElementById('championship-text').classList.remove('hidden');
+  document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
   if (st) updateScores(st.players);
 }
 
