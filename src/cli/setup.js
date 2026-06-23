@@ -274,12 +274,12 @@ async function main() {
       console.log(chalk.cyan('Run ') + chalk.bold('trivia start') + chalk.cyan(' to launch the broadcast server.\n'));
       process.exit(0);
     }
-    const { updateContent } = await inquirer.prompt([
-      { type: 'confirm', name: 'updateContent', message: 'Update content (Round 2, Championship, Players)?', default: false }
-    ]);
-    const { updateAssets } = await inquirer.prompt([
-      { type: 'confirm', name: 'updateAssets', message: 'Update assets (images, audio)?', default: false }
-    ]);
+    var updateContent = (await inquirer.prompt([
+      { type: 'confirm', name: 'val', message: 'Update content (Round 2, Championship, Players)?', default: false }
+    ])).val;
+    var updateAssets = (await inquirer.prompt([
+      { type: 'confirm', name: 'val', message: 'Update assets (images, audio)?', default: false }
+    ])).val;
     console.log(chalk.cyan('  \u2192 Proceeding through prompts with existing values as defaults.\n'));
   }
 
