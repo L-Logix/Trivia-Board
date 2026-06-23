@@ -452,10 +452,34 @@ socket.on('clue-opened', function(d) { showClueFromData(d); });
 socket.on('bonus-clue-activated', function() {
   var bcLabel = label('bonusClue') || 'BONUS CLUE';
   var parts = bcLabel.split(' ');
-  var ddTitle1 = document.querySelector('#dd-wrap .dd-title');
-  var ddTitle2 = document.querySelector('#dd-wrap .dd-title.sub');
-  if (ddTitle1) ddTitle1.textContent = parts[0] || 'BONUS';
-  if (ddTitle2) ddTitle2.textContent = parts.slice(1).join(' ') || 'CLUE!';
+  // Check for bonus clue flip image
+  var bcImg = st && st.config && st.config.assets && st.config.assets.bonusClueImage;
+  var flipCard = document.getElementById('dd-flip-card');
+  var ddWrap = document.getElementById('dd-wrap');
+  if (bcImg && flipCard) {
+    var front = document.getElementById('dd-flip-front');
+    if (front) front.style.backgroundImage = 'url(img/bonus-clue.' + bcImg + ')';
+    var t1 = document.querySelector('#dd-flip-back .dd-title');
+    var t2 = document.querySelector('#dd-flip-back .dd-title.sub');
+    if (t1) t1.textContent = parts[0] || 'BONUS';
+    if (t2) t2.textContent = parts.slice(1).join(' ') || 'CLUE!';
+    flipCard.classList.remove('flipped');
+    flipCard.classList.remove('hidden');
+    if (ddWrap) ddWrap.classList.add('hidden');
+    // Auto-flip after 1.5s
+    if (window._bcFlipTimer) clearTimeout(window._bcFlipTimer);
+    window._bcFlipTimer = setTimeout(function() {
+      var fc = document.getElementById('dd-flip-card');
+      if (fc && !fc.classList.contains('hidden')) fc.classList.add('flipped');
+    }, 1500);
+  } else {
+    if (flipCard) flipCard.classList.add('hidden');
+    if (ddWrap) ddWrap.classList.remove('hidden');
+    var t1 = document.querySelector('#dd-wrap .dd-title');
+    var t2 = document.querySelector('#dd-wrap .dd-title.sub');
+    if (t1) t1.textContent = parts[0] || 'BONUS';
+    if (t2) t2.textContent = parts.slice(1).join(' ') || 'CLUE!';
+  }
   show('dd');
   playBonusClue();
 });
@@ -624,7 +648,7 @@ socket.on('outro', function() {
 });
 
 socket.on('category-reveal-cover', function(d) {
-  // Reveal this category's cover on the board grid by position (not filtered index)
+  // Reveal this category's cover on the board grid by position
   var cc = document.getElementById('board-cat-covers');
   if (cc) {
     var cover = cc.children[d.index];
@@ -633,7 +657,7 @@ socket.on('category-reveal-cover', function(d) {
       cover.classList.add('revealed');
     }
   }
-  // Show full-screen blue cover (entire screen is the cover)
+  // Show full-screen cover overlay on top of the board
   var coverLayer = document.getElementById('cat-cover-layer');
   var nameLayer = document.getElementById('cat-name-layer');
   if (coverLayer) {
@@ -641,7 +665,6 @@ socket.on('category-reveal-cover', function(d) {
     coverLayer.classList.remove('hidden');
   }
   if (nameLayer) nameLayer.classList.add('hidden');
-  show('cat-reveal');
 });
 
 socket.on('category-reveal-name', function(d) {
@@ -657,7 +680,6 @@ socket.on('category-reveal-name', function(d) {
     if (nc) { nc.style.animation = 'none'; void nc.offsetWidth; nc.style.animation = ''; }
   }
   if (nameLayer) nameLayer.classList.remove('hidden');
-  show('cat-reveal');
 });
 
 socket.on('reveal-all-category-covers', function() {
@@ -671,8 +693,6 @@ socket.on('reveal-all-category-covers', function() {
 });
 
 socket.on('hide-category-reveal', function() {
-  show('board');
-  setPromo();
   var coverLayer = document.getElementById('cat-cover-layer');
   var nameLayer = document.getElementById('cat-name-layer');
   if (coverLayer) { coverLayer.classList.remove('cover-flip'); coverLayer.classList.add('hidden'); }

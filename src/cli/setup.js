@@ -835,6 +835,22 @@ async function main() {
     }
   }
 
+  const { bonusClueImagePath } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'bonusClueImagePath',
+      message: 'Upload bonus clue image? (path to PNG - flips to reveal bonus clue, or leave blank):'
+    }
+  ]);
+  if (bonusClueImagePath && bonusClueImagePath.trim()) {
+    const ext = path.extname(bonusClueImagePath.trim()).toLowerCase().replace('.', '') || 'png';
+    const dest = path.join(ROOT, 'public', 'img', 'bonus-clue.' + ext);
+    if (copyAssetFile(bonusClueImagePath.trim(), dest)) {
+      config.assets.bonusClueImage = ext;
+      console.log(chalk.green('  \u2713 Bonus clue image copied'));
+    }
+  }
+
   const { promoImagePath } = await inquirer.prompt([
     {
       type: 'input',

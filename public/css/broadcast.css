@@ -10,6 +10,7 @@ html,body {
   font-family:'Libre Baskerville','Georgia',serif;
   cursor:none;
   user-select:none;
+  perspective:1200px;
 }
 
 .hidden { display:none!important; }
@@ -409,22 +410,15 @@ html,body {
   100%{opacity:1;transform:scale(1)}
 }
 
-/* ===== CATEGORY REVEAL (full screen, two-phase) ===== */
-#phase-cat-reveal {
-  perspective:1200px;
-  overflow:hidden;
-}
-#phase-cat-reveal:not(.hidden) {
-  display:block;
-}
+/* ===== CATEGORY REVEAL (full screen overlay, two-phase) ===== */
 /* Cover layer — fills entire screen, flips up to reveal name */
 #cat-cover-layer {
-  position:absolute; inset:0;
+  position:fixed; inset:0; z-index:100;
   background: radial-gradient(ellipse at 50% 45%, #0a10a0 0%, #060ce9 60%);
-  z-index:2;
   transform-origin:center top;
   transition:transform .7s cubic-bezier(.68,-0.55,.27,1.55), opacity .3s ease;
 }
+#cat-cover-layer.hidden { display:none; }
 #cat-cover-layer::after {
   content:'?';
   position:absolute;
@@ -444,11 +438,11 @@ html,body {
 
 /* Name layer — behind the cover, always visible once revealed */
 #cat-name-layer {
-  position:absolute; inset:0;
+  position:fixed; inset:0; z-index:99;
   display:flex; align-items:center; justify-content:center;
   background:#060ce9;
-  z-index:1;
 }
+#cat-name-layer.hidden { display:none; }
 #cat-name-content {
   text-align:center;
   animation:catRevealZoom .7s cubic-bezier(.175,.885,.32,1.275);
@@ -499,6 +493,46 @@ html,body {
 }
 .dd-star.left { left:5%; } .dd-star.right { right:5%; }
 @keyframes ddPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.15;transform:scale(1.25)} }
+
+/* Bonus clue flip card */
+#dd-flip-card {
+  position:absolute; top:50%; left:50%; z-index:10;
+  width:70vmin; height:70vmin; max-width:500px; max-height:500px;
+  transform:translate(-50%,-50%);
+  perspective:1200px;
+}
+#dd-flip-card.hidden { display:none; }
+#dd-flip-inner {
+  width:100%; height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .8s cubic-bezier(.68,-0.55,.27,1.55);
+}
+#dd-flip-card.flipped #dd-flip-inner {
+  transform:rotateY(180deg);
+}
+#dd-flip-front, #dd-flip-back {
+  position:absolute; inset:0;
+  backface-visibility:hidden;
+  border-radius:16px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+#dd-flip-front {
+  background:#060ce9;
+  background-size:cover;
+  background-position:center;
+  border:3px solid #ffcc00;
+  box-shadow:0 0 40px rgba(255,204,0,.2);
+}
+#dd-flip-back {
+  background:#060ce9;
+  border:3px solid #ffcc00;
+  box-shadow:0 0 40px rgba(255,204,0,.2);
+  transform:rotateY(180deg);
+}
+#dd-flip-back .dd-title { animation:none; font-size:5vw; }
+#dd-flip-back .dd-title.sub { font-size:4vw; }
 
 .dd-title {
   font-family:'Oswald','Impact',sans-serif;
