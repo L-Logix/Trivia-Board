@@ -118,10 +118,6 @@ function setup(ioInstance, config) {
       gameState.recordBonusClueAttempt(playerIndex);
       const cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
       if (cell) {
-        gameState.startTimer(
-          () => { gameState.recordTimesUp(); io.emit('times-up'); },
-          (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
-        );
         io.emit('bonus-clue-shown', {
           clue: cell.clue,
           value: cell.value,
@@ -166,7 +162,6 @@ function setup(ioInstance, config) {
     });
 
     socket.on('answer-correct', (data) => {
-      gameState.stopTimer();
       var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
       if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
         pi = gameState.bonusCluePlayerIndex;
@@ -178,7 +173,16 @@ function setup(ioInstance, config) {
           playerIndex: pi,
           delta: 0
         });
+      } else if (pi !== undefined && pi !== null && gameState.currentClue) {
+        var cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
+        if (cell) gameState.adjustScore(pi, cell.value);
+        io.emit('score-updated', {
+          players: gameState.players.map(p => ({ ...p })),
+          playerIndex: pi,
+          delta: cell ? cell.value : 0
+        });
       }
+      gameState.stopTimer();
       if (gameState.currentClue) {
         gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, true, pi !== null ? pi : -1, false);
       }
@@ -197,11 +201,43 @@ function setup(ioInstance, config) {
           playerIndex: pi,
           delta: 0
         });
+        gameState.stopTimer();
+        if (gameState.currentClue) {
+          gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi, false);
+        }
+        io.emit('answer-incorrect');
+      } else if (pi !== undefined && pi !== null && gameState.currentClue) {
+        var cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
+        if (cell) gameState.adjustScore(pi, -cell.value);
+        gameState.pauseTimer();
+        io.emit('score-updated', {
+          players: gameState.players.map(p => ({ ...p })),
+          playerIndex: pi,
+          delta: cell ? -cell.value : 0
+        });
+        io.emit('timer-paused', { remaining: gameState.timer.remaining });
       }
-      if (gameState.currentClue) {
-        gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi !== null ? pi : -1, false);
-      }
-      io.emit('answer-incorrect');
+    });
+
+    socket.on('timer-unpause', () => {
+      if (!gameState.currentClue) return;
+      gameState.resumeTimer(
+        () => { gameState.recordTimesUp(); io.emit('times-up'); },
+        (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
+      );
+      io.emit('timer-resumed', { remaining: gameState.timer.remaining });
+    });
+
+    socket.on('pause-timer', () => {
+      gameState.pauseTimer();
+    });
+
+    socket.on('resume-timer', () => {
+      if (!gameState.currentClue) return;
+      gameState.resumeTimer(
+        () => { gameState.recordTimesUp(); io.emit('times-up'); },
+        (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
+      );
     });
 
     socket.on('return-to-board', (data) => {
@@ -312,21 +348,17 @@ function setup(ioInstance, config) {
       });
       playersWithData.sort((a, b) => a.score - b.score);
       const steps = [];
+      const pendingChanges = {};
       playersWithData.forEach(p => {
         steps.push({ type: 'name', playerIndex: p.index, name: p.name });
         steps.push({ type: 'answer', playerIndex: p.index, name: p.name, answer: p.answer });
         steps.push({ type: 'result', playerIndex: p.index, name: p.name, correct: p.correct, wager: p.wager });
+        pendingChanges[p.index] = { correct: p.correct, wager: p.wager };
       });
-      // Apply score changes
-      gameState.players.forEach((p, i) => {
-        const wager = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
-        const correct = playersWithData.find(x => x.index === i).correct;
-        if (correct) p.score += wager;
-        else p.score -= wager;
-        gameState.recordChampionshipResult(i, correct);
-      });
-      gameState.revealSequence = { steps, currentStep: 0, updatedPlayers: gameState.players.map(p => ({ ...p })) };
+      gameState.revealSequence = { steps, currentStep: 0, updatedPlayers: gameState.players.map(p => ({ ...p })), pendingChanges };
       gameState.championshipPhase = 'revealing';
+      io.emit('championship-reveal-begin', { totalSteps: steps.length, currentStep: 0, ...steps[0] });
+    });
       io.emit('championship-reveal-begin', { totalSteps: steps.length, currentStep: 0, ...steps[0] });
     });
 
@@ -340,7 +372,7 @@ function setup(ioInstance, config) {
         const q = gameState.getCurrentChampionshipQuestion();
         const hasMore = gameState.hasMoreChampionshipQuestions();
         io.emit('championship-revealed', {
-          players: seq.updatedPlayers,
+          players: gameState.players.map(p => ({ ...p })),
           championshipPhase: 'revealed',
           answer: q.answer,
           hasMore: hasMore,
@@ -348,6 +380,19 @@ function setup(ioInstance, config) {
         });
       } else {
         const step = seq.steps[seq.currentStep];
+        // Apply score change on result step
+        if (step.type === 'result' && seq.pendingChanges && seq.pendingChanges[step.playerIndex]) {
+          const ch = seq.pendingChanges[step.playerIndex];
+          const delta = ch.correct ? ch.wager : -ch.wager;
+          gameState.adjustScore(step.playerIndex, delta);
+          gameState.recordChampionshipResult(step.playerIndex, ch.correct);
+          seq.updatedPlayers = gameState.players.map(p => ({ ...p }));
+          io.emit('score-updated', {
+            players: seq.updatedPlayers,
+            playerIndex: step.playerIndex,
+            delta: delta
+          });
+        }
         io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...step });
       }
     });

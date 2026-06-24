@@ -15,25 +15,22 @@ function updateMirror(d) {
   if (!mirror) return;
   if (!d) { mirror.classList.add('hidden'); return; }
   mirror.classList.remove('hidden');
-  var cat = document.getElementById('mirror-cat');
-  var val = document.getElementById('mirror-val');
-  var clue = document.getElementById('mirror-clue');
   var round = document.getElementById('mirror-round');
-  if (cat) cat.textContent = d.category || '';
-  if (val) val.textContent = d.isBonusClue ? (label('bonusClue') || 'BONUS CLUE') : ('$' + (d.value || 0));
-  if (clue) clue.textContent = d.clue || '';
-  if (round) round.textContent = 'ROUND ' + (st ? st.currentRound || 1 : 1);
-  // Always show answer (host needs to know it)
+  var info = document.getElementById('mirror-info');
+  var clue = document.getElementById('mirror-clue');
   var ans = document.getElementById('mirror-ans');
+  if (round) round.textContent = 'ROUND ' + (st ? st.currentRound || 1 : 1);
+  if (info) info.textContent = (d.category || '') + (d.value ? ' - $' + d.value : '') + (d.isBonusClue ? ' - ' + (label('bonusClue') || 'BONUS CLUE') : '');
+  if (clue) clue.textContent = d.clue || '';
   if (ans) { ans.textContent = d.answer || ''; ans.classList.remove('hidden'); }
-  // Players
-  var ps = document.getElementById('mirror-players');
-  if (ps && st && st.players) {
+  // Scores
+  var scores = document.getElementById('mirror-scores');
+  if (scores && st && st.players) {
     var html = '';
     st.players.forEach(function(p) {
-      html += '<span class="mp-item"><span class="mp-name">' + esc(p.name) + '</span><span class="mp-score">' + fmt(p.score) + '</span></span>';
+      html += '<span class="ms-item"><span class="ms-name">' + esc(p.name) + '</span><span class="ms-score">' + fmt(p.score) + '</span></span>';
     });
-    ps.innerHTML = html;
+    scores.innerHTML = html;
   }
 }
 
@@ -41,7 +38,6 @@ function mirrorAnswer(answer) {
   var el = document.getElementById('mirror-ans');
   if (!el) return;
   if (answer) { el.textContent = answer; el.classList.remove('hidden'); }
-  // Never hide — host always sees the answer
 }
 
 function label(key) {
@@ -72,27 +68,42 @@ function renderGrid(board,cats){
     d.dataset.col=c;d.dataset.row=r;
     if (!cell.revealed) {
       d.addEventListener('click',mkClick(c,r));
-      d.addEventListener('contextmenu',function(e){e.preventDefault();socket.emit('toggle-bonus-clue',{col:c,row:r})});
-      d.title = 'Left-click to select, right-click to toggle Bonus Clue';
+      d.addEventListener('contextmenu',function(e){e.preventDefault();var col=parseInt(this.dataset.col);var row=parseInt(this.dataset.row);socket.emit('toggle-bonus-clue',{col:col,row:row})});
+      d.title='Left-click to select | Right-click to toggle Bonus Clue';
     } else {
-      d.addEventListener('click',function(){socket.emit('rehide-clue',{col:c,row:r})});
-      d.title = 'Click to re-hide';
-      d.addEventListener('contextmenu',function(e){e.preventDefault();socket.emit('rehide-clue',{col:c,row:r})});
+      d.addEventListener('click',function(){var col=parseInt(this.dataset.col);var row=parseInt(this.dataset.row);socket.emit('rehide-clue',{col:col,row:row})});
+      d.addEventListener('contextmenu',function(e){e.preventDefault();var col=parseInt(this.dataset.col);var row=parseInt(this.dataset.row);socket.emit('rehide-clue',{col:col,row:row})});
+      d.title='Click or right-click to re-hide';
     }
     d.innerHTML='<div class="d-cell-val" data-col="'+c+'" data-row="'+r+'">'+(cell.revealed?'':'$'+cell.value)+'</div><div class="d-cell-ans">'+esc(cell.answer)+'</div>';
     g.appendChild(d);
   }
+  // Inline value editing on double-click
   document.querySelectorAll('.d-cell-val').forEach(function(el) {
     el.addEventListener('dblclick', function(e) {
       e.stopPropagation();
-      var col = parseInt(this.dataset.col);
-      var row = parseInt(this.dataset.row);
-      var oldVal = st && st.board[col] && st.board[col][row] ? st.board[col][row].value : 200;
-      var newVal = prompt('Enter new point value for this cell:', oldVal);
-      if (newVal !== null) {
-        var n = parseInt(newVal);
-        if (!isNaN(n) && n > 0) socket.emit('set-cell-value', { col: col, row: row, value: n });
+      var col=parseInt(this.dataset.col);
+      var row=parseInt(this.dataset.row);
+      var oldVal=st&&st.board[col]&&st.board[col][row]?st.board[col][row].value:200;
+      var container=this;
+      container.textContent='';
+      var inp=document.createElement('input');
+      inp.type='text';inp.value=oldVal;
+      inp.className='d-cell-edit';
+      container.appendChild(inp);
+      inp.focus();inp.select();
+      inp.addEventListener('keydown',function(ev){
+        if(ev.key==='Enter'){ev.preventDefault();saveAndRestore();}
+        if(ev.key==='Escape'){ev.preventDefault();restore();}
+      });
+      inp.addEventListener('blur',saveAndRestore);
+      function saveAndRestore(){
+        var raw=inp.value.replace(/[^0-9]/g,'');
+        var n=parseInt(raw);
+        if(!isNaN(n)&&n>0)socket.emit('set-cell-value',{col:col,row:row,value:n});
+        restore();
       }
+      function restore(){container.textContent='$'+(st&&st.board[col]&&st.board[col][row]?st.board[col][row].value:oldVal);}
     });
   });
 }
@@ -151,8 +162,6 @@ var catRevealState = 'cover'; // 'cover' or 'name'
 function side(id){['card-clue','card-bonus','card-championship','card-correct','card-populate','card-cat-reveal'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
 function setTimer(v){
   document.getElementById('timer-num').textContent=v.toFixed(1);
-  var mt = document.getElementById('mirror-timer');
-  if (mt) mt.textContent = v > 0 ? v.toFixed(1) : '';
 }
 
 function openChampionship(){
@@ -177,13 +186,74 @@ function addCategoryRevealButtons() {
   });
 }
 
+function showToast(msg, duration) {
+  var t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  if (t._toastTimer) clearTimeout(t._toastTimer);
+  t._toastTimer = setTimeout(function() { t.classList.add('hidden'); }, duration || 4000);
+}
+
+function showPlayerPicker(mode) {
+  if (!st || !st.players) return;
+  var modal = document.getElementById('modal-player-pick');
+  var header = document.getElementById('player-pick-header');
+  var grid = document.getElementById('player-pick-grid');
+  header.textContent = mode === 'correct' ? 'Who got it RIGHT? 👍' : 'Who got it WRONG? 👎';
+  grid.innerHTML = '';
+  socket.emit('pause-timer');
+  st.players.forEach(function(p, i) {
+    var btn = document.createElement('button');
+    btn.className = 'modal-player-btn ' + (mode === 'correct' ? 'pick-correct' : 'pick-incorrect');
+    btn.innerHTML = '<span class="mpb-name">' + esc(p.name) + '</span> <span class="mpb-score">' + fmt(p.score) + '</span>';
+    btn.addEventListener('click', function() {
+      closePicker(true);
+      if (mode === 'correct') {
+        socket.emit('answer-correct', { playerIndex: i });
+        document.getElementById('btn-show-answer').classList.remove('hidden');
+        document.getElementById('btn-done-reading').classList.add('hidden');
+        document.getElementById('btn-unpause').classList.add('hidden');
+      } else {
+        socket.emit('answer-incorrect', { playerIndex: i });
+      }
+    });
+    grid.appendChild(btn);
+  });
+  var cancel = document.createElement('button');
+  cancel.className = 'modal-player-cancel';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', function() { closePicker(false); });
+  grid.appendChild(cancel);
+  modal.classList.remove('hidden');
+  modal.addEventListener('click', function(e) { if (e.target === modal) closePicker(false); });
+  function closePicker(selected) {
+    modal.classList.add('hidden');
+    if (!selected) socket.emit('resume-timer');
+  }
+}
+
+function escKeyClose(e) {
+  if (e.key === 'Escape') {
+    var m = document.getElementById('modal-player-pick');
+    if (!m.classList.contains('hidden')) { m.classList.add('hidden'); socket.emit('resume-timer'); }
+  }
+}
+document.addEventListener('keydown', escKeyClose);
+
 /* ===== BUTTONS ===== */
 document.getElementById('btn-intro').addEventListener('click',function(){socket.emit('start-intro')});
 document.getElementById('btn-r2').addEventListener('click',function(){socket.emit('advance-round2')});
 document.getElementById('btn-championship').addEventListener('click',function(){socket.emit('advance-championship')});
 document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
 document.getElementById('btn-hide-answer').addEventListener('click',function(){socket.emit('hide-answer')});
-document.getElementById('btn-board').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
+document.getElementById('btn-board').addEventListener('click',function(){
+  if (st && st.currentClue) {
+    var sa = document.getElementById('btn-show-answer');
+    if (sa && sa.classList.contains('hidden')) { showToast("Show the answer first! Tap SHOW ANSWER 👀", 3000); return; }
+    socket.emit('return-to-board', {col: st.currentClue.col, row: st.currentClue.row});
+  }
+});
 document.getElementById('btn-bonus-show').addEventListener('click',function(){
   var playerSel = document.getElementById('bc-player');
   var wagerInp = document.getElementById('bc-wager');
@@ -213,7 +283,7 @@ document.getElementById('btn-reveal-championship').addEventListener('click',func
     sorted.forEach(function(p) {
       wh += '<div class="p-row"><span class="p-name">' + esc(p.name) + '</span>' +
         '<div class="p-val"><span class="p-label">Answer:</span><input type="text" class="champ-answer-input" data-i="' + p.index + '" placeholder="What they wrote"></div>' +
-        '<div class="p-val"><span class="p-label">Wager: $</span><input type="number" class="champ-wager-input" data-i="' + p.index + '" value="0" min="0" step="100"></div></div>';
+        '<div class="p-val p-val-wager"><span class="p-label">Wager: $</span><input type="number" class="champ-wager-input" data-i="' + p.index + '" value="0" min="0" step="100"></div></div>';
     });
     wi.innerHTML = wh;
   }
@@ -249,18 +319,37 @@ document.getElementById('btn-reset').addEventListener('click',function(){documen
 document.getElementById('mreset-yes').addEventListener('click',function(){document.getElementById('modal-reset').classList.add('hidden');socket.emit('reset-game')});
 document.getElementById('mreset-no').addEventListener('click',function(){document.getElementById('modal-reset').classList.add('hidden')});
 document.getElementById('btn-correct').addEventListener('click',function(){
-  socket.emit('answer-correct');
-  document.getElementById('btn-show-answer').classList.remove('hidden');
-  document.getElementById('btn-done-reading').classList.add('hidden');
+  showPlayerPicker('correct');
+});
+document.getElementById('btn-incorrect').addEventListener('click',function(){
+  showPlayerPicker('incorrect');
 });
 document.getElementById('btn-board-correct').addEventListener('click',function(){
-  if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row});
+  if(st&&st.currentClue){
+    var sa = document.getElementById('btn-show-answer');
+    if (sa && sa.classList.contains('hidden')) { showToast("Show the answer first! Tap SHOW ANSWER 👀", 3000); return; }
+    socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row});
+  }
   document.getElementById('btn-show-answer').classList.add('hidden');
 });
 document.getElementById('btn-show-answer').addEventListener('click',function(){socket.emit('reveal-answer')});
 document.getElementById('btn-done-reading').addEventListener('click',function(){
   socket.emit('done-reading');
   this.classList.add('hidden');
+});
+document.getElementById('btn-unpause').addEventListener('click',function(){
+  socket.emit('timer-unpause');
+  this.classList.add('hidden');
+});
+document.getElementById('walkthrough-start').addEventListener('click',function(){
+  document.getElementById('modal-walkthrough').classList.add('hidden');
+  localStorage.setItem('dash-walkthrough-seen','1');
+  walkthroughSeen = true;
+});
+document.getElementById('walkthrough-skip').addEventListener('click',function(){
+  document.getElementById('modal-walkthrough').classList.add('hidden');
+  localStorage.setItem('dash-walkthrough-seen','1');
+  walkthroughSeen = true;
 });
 document.getElementById('btn-reveal-categories').addEventListener('click',function(){
   // Start full-screen category reveal flow from first category
@@ -298,7 +387,11 @@ document.getElementById('btn-cat-done').addEventListener('click',function(){
 });
 
 /* ===== SOCKET ===== */
+var walkthroughSeen = localStorage.getItem('dash-walkthrough-seen');
 socket.on('sync-state',function(state){
+  if (state.phase === 'idle' && !walkthroughSeen) {
+    document.getElementById('modal-walkthrough').classList.remove('hidden');
+  }
   var titleEl = document.getElementById('dash-title');
   var logoAsset = state.config && state.config.assets && state.config.assets.logo;
   if (logoAsset && typeof logoAsset === 'string' && titleEl) {
@@ -312,7 +405,7 @@ socket.on('sync-state',function(state){
   renderPlayers(state.players);
   setPhase(state.phase);setRound(state.currentRound);
   switch(state.phase){
-    case'clue':side('card-clue');side('card-correct');document.getElementById('btn-done-reading').classList.add('hidden');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];var suffix=state.currentRound===2?(label('round2Suffix')||' (2X)'):'';info.textContent=cell.category+' - $'+cell.value + suffix}break;
+    case'clue':side('card-clue');side('card-correct');document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-unpause').classList.add('hidden');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];var suffix=state.currentRound===2?(label('round2Suffix')||' (2X)'):'';info.textContent=cell.category+' - $'+cell.value + suffix}break;
     case'bonus-clue':
       side('card-bonus');
       var sel = document.getElementById('bc-player');
@@ -370,7 +463,7 @@ socket.on('clue-opened',function(d){
     side('card-bonus');
   } else {   side('card-clue');
   side('card-correct');
-  document.getElementById('btn-done-reading').classList.add('hidden'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); document.getElementById('btn-done-reading').classList.remove('hidden'); }
+  document.getElementById('btn-done-reading').classList.add('hidden'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); document.getElementById('btn-done-reading').classList.remove('hidden'); document.getElementById('btn-unpause').classList.add('hidden'); }
   updateMirror(d); mirrorAnswer(d.answer);
 });
 socket.on('bonus-clue-shown', function(d) {
@@ -380,6 +473,8 @@ socket.on('bonus-clue-shown', function(d) {
   side('card-clue');
   side('card-correct');
   document.getElementById('clue-info').textContent = (d.category || '') + ' - ' + (label('bonusClue') || 'BONUS CLUE');
+  document.getElementById('btn-done-reading').classList.remove('hidden');
+  document.getElementById('btn-unpause').classList.add('hidden');
   updateMirror(d); mirrorAnswer(null);
 });
 socket.on('bonus-clue-activated',function(){
@@ -403,18 +498,33 @@ socket.on('bonus-clue-activated',function(){
   side('card-bonus');
 });
 socket.on('timer-tick',function(d){setTimer(d.remaining)});
-socket.on('times-up',function(){setTimer(0);document.getElementById('btn-show-answer').classList.remove('hidden');document.getElementById('btn-done-reading').classList.add('hidden')});
+socket.on('times-up',function(){setTimer(0);document.getElementById('btn-show-answer').classList.remove('hidden');document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-unpause').classList.add('hidden')});
+socket.on('timer-paused', function(d) {
+  setTimer(d.remaining);
+  document.getElementById('btn-unpause').classList.remove('hidden');
+  document.getElementById('btn-show-answer').classList.remove('hidden');
+});
+socket.on('timer-resumed', function(d) {
+  setTimer(d.remaining);
+  document.getElementById('btn-unpause').classList.add('hidden');
+});
+socket.on('outro', function() {
+  setTimer(0);
+  document.getElementById('btn-show-answer').classList.add('hidden');
+  document.getElementById('btn-done-reading').classList.add('hidden');
+  document.getElementById('btn-unpause').classList.add('hidden');
+});
 socket.on('buzz-result',function(d){document.querySelectorAll('.p-panel').forEach(function(p){p.classList.remove('buzz')});if(d.success){var el=document.querySelector('.p-panel[data-index="'+d.playerIndex+'"]');if(el)el.classList.add('buzz')}});
 socket.on('score-updated',function(d){
   if(st){st.players=d.players;renderPlayers(d.players)}
   // Update mirror scores
-  var ps = document.getElementById('mirror-players');
-  if (ps && st && st.players) {
+  var scores = document.getElementById('mirror-scores');
+  if (scores && st && st.players) {
     var html = '';
     st.players.forEach(function(p) {
-      html += '<span class="mp-item"><span class="mp-name">' + esc(p.name) + '</span><span class="mp-score">' + fmt(p.score) + '</span></span>';
+      html += '<span class="ms-item"><span class="ms-name">' + esc(p.name) + '</span><span class="ms-score">' + fmt(p.score) + '</span></span>';
     });
-    ps.innerHTML = html;
+    scores.innerHTML = html;
   }
 });
 socket.on('answer-revealed', function(d) {
@@ -432,6 +542,7 @@ socket.on('board-return',function(d){
   }
   document.getElementById('btn-show-answer').classList.add('hidden');
   document.getElementById('btn-done-reading').classList.add('hidden');
+  document.getElementById('btn-unpause').classList.add('hidden');
   setPhase('board');side('board');
   updateMirror(null);
 });

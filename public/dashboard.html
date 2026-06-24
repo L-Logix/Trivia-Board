@@ -31,18 +31,15 @@
           <div id="dash-vals"></div>
         </div>
         <div id="dash-mirror" class="hidden">
-          <div id="mirror-top">
-            <span id="mirror-round"></span>
-            <span id="mirror-info">
-              <span id="mirror-cat"></span>
-              <span id="mirror-sep">|</span>
-              <span id="mirror-val"></span>
-            </span>
-            <span id="mirror-timer">0.0</span>
+          <div id="mirror-inner">
+            <div id="mirror-stage">
+              <div id="mirror-round"></div>
+              <div id="mirror-info"></div>
+              <div id="mirror-clue"></div>
+              <div id="mirror-ans" class="hidden"></div>
+            </div>
+            <div id="mirror-scores"></div>
           </div>
-          <div id="mirror-clue"></div>
-          <div id="mirror-ans" class="hidden">ANSWER</div>
-          <div id="mirror-players"></div>
         </div>
       </div>
       <aside id="dash-side">
@@ -105,16 +102,28 @@
           <div class="card-lbl">ANSWER FEEDBACK</div>
           <button class="b b-gold b-full" id="btn-done-reading">DONE READING</button>
           <button class="b b-green b-full" id="btn-correct">CORRECT</button>
+          <button class="b b-red b-full" id="btn-incorrect">INCORRECT</button>
           <button class="b b-gold b-full hidden" id="btn-show-answer">SHOW ANSWER</button>
           <button class="b b-blue b-full" id="btn-board-correct">RETURN TO BOARD</button>
+          <button class="b b-orange b-full hidden" id="btn-unpause">NEXT PLAYER</button>
         </div>
         <div class="card" id="card-help">
-          <div class="card-lbl">SHORTCUTS</div>
-          <div style="font-size:.55rem;color:rgba(255,255,255,.25);line-height:1.6">
-            <b style="color:rgba(255,255,255,.4)">Right-click</b> unrevealed cell to toggle Bonus Clue<br>
-            <b style="color:rgba(255,255,255,.4)">Right-click</b> revealed cell to re-hide<br>
-            <b style="color:rgba(255,255,255,.4)">Double-click</b> value to edit points<br>
-            <b style="color:rgba(255,255,255,.4)">Enter</b> custom amount & press Enter
+          <div class="card-lbl">HOW TO HOST</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.3);line-height:1.7">
+            🟡 <b>Pick a clue</b> → tap a cell on the board<br>
+            📖 <b>Read it aloud</b> → tap <b>DONE READING</b><br>
+            🎯 <b>Someone buzzes?</b> → tap <b>CORRECT</b> or <b>INCORRECT</b>, then tap their name<br>
+            ✅ <b>Right →</b> they get the points!<br>
+            ❌ <b>Wrong →</b> they lose points, tap <b>NEXT PLAYER</b> to let others try<br>
+            👀 <b>No one knows?</b> → tap <b>SHOW ANSWER</b><br>
+            🏁 <b>All done →</b> tap <b>RETURN TO BOARD</b>
+          </div>
+          <hr style="border:none;border-top:1px solid #2a2a4a;margin:8px 0">
+          <div style="font-size:.5rem;color:rgba(255,255,255,.15);line-height:1.6">
+            🖱️ <b>Right-click</b> unrevealed cell → Bonus Clue<br>
+            🖱️ <b>Right-click</b> revealed cell → re-hide<br>
+            🖱️ <b>Double-click</b> value → edit points<br>
+            ⌨️ Type amount + <b>Enter</b> → custom score
           </div>
           <button class="b b-ghost b-full" id="btn-end-intro-audio" style="margin-top:8px">END INTRO MUSIC</button>
         </div>
@@ -124,6 +133,8 @@
     <div id="dash-players"></div>
   </div>
 
+  <div id="toast" class="toast hidden"></div>
+
   <div id="modal-reset" class="modal hidden">
     <div class="modal-bx">
       <h2>Reset Game?</h2>
@@ -132,6 +143,28 @@
         <button class="b b-red" id="mreset-yes">YES</button>
         <button class="b b-ghost" id="mreset-no">CANCEL</button>
       </div>
+    </div>
+  </div>
+
+  <div id="modal-player-pick" class="modal hidden">
+    <div class="modal-bx modal-bx-player">
+      <div class="modal-player-header" id="player-pick-header">Who got it RIGHT?</div>
+      <div class="modal-player-grid" id="player-pick-grid"></div>
+    </div>
+  </div>
+
+  <div id="modal-walkthrough" class="modal hidden">
+    <div class="modal-bx modal-bx-walkthrough">
+      <div class="walkthrough-title">🎤 Welcome, Host!</div>
+      <div class="walkthrough-steps">
+        <div class="walkthrough-step"><span class="ws-num">1</span> <span class="ws-text">Tap a <b>clue cell</b> on the board to pick it</span></div>
+        <div class="walkthrough-step"><span class="ws-num">2</span> <span class="ws-text">Read the clue out loud, then tap <b>DONE READING</b></span></div>
+        <div class="walkthrough-step"><span class="ws-num">3</span> <span class="ws-text">When a player answers, tap <b>CORRECT</b> or <b>INCORRECT</b> then tap their <b>name</b></span></div>
+        <div class="walkthrough-step"><span class="ws-num">4</span> <span class="ws-text">If wrong, ask "Anyone else?" — tap <b>NEXT PLAYER</b> to let them try</span></div>
+        <div class="walkthrough-step"><span class="ws-num">5</span> <span class="ws-text">No one knows? Tap <b>SHOW ANSWER</b>, then <b>RETURN TO BOARD</b></span></div>
+      </div>
+      <button class="b b-gold b-full" id="walkthrough-start" style="margin-top:12px">GOT IT! LET'S GO 🎮</button>
+      <button class="b b-ghost b-full" id="walkthrough-skip" style="margin-top:6px">Skip</button>
     </div>
   </div>
 

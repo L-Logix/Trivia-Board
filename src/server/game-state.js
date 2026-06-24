@@ -149,6 +149,29 @@ class GameState {
     }
   }
 
+  pauseTimer() {
+    // Stop the interval but preserve remaining time for resume
+    if (this.timer.interval) {
+      clearInterval(this.timer.interval);
+      this.timer.interval = null;
+    }
+  }
+
+  resumeTimer(onTimesUp, onTick) {
+    if (this.timer.remaining <= 0) return;
+    this.timer.running = true;
+    this.timer.interval = setInterval(() => {
+      this.timer.remaining -= 0.1;
+      if (this.timer.remaining <= 0) {
+        this.timer.remaining = 0;
+        this.stopTimer();
+        if (onTimesUp) onTimesUp();
+      } else {
+        if (onTick) onTick(this.timer.remaining);
+      }
+    }, 100);
+  }
+
   adjustScore(playerIndex, delta) {
     if (playerIndex < 0 || playerIndex >= this.players.length) return null;
     this.players[playerIndex].score += delta;

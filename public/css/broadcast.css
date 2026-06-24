@@ -294,11 +294,11 @@ html,body {
 
 #clue-text {
   font-family:'Libre Baskerville','Georgia',serif;
-  font-size:3.2vw; font-weight:400; line-height:1.4;
-  text-align:center; max-width:80%;
+  font-size:clamp(18px, 2.8vw, 3.5vw); font-weight:400; line-height:1.5;
+  text-align:center; max-width:92%;
   color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.5);
   animation:clueZoom .7s cubic-bezier(.175,.885,.32,1.275);
-  white-space:pre-wrap;
+  white-space:pre-wrap; word-wrap:break-word; overflow-wrap:break-word;
 }
 @keyframes clueZoom {
   0%{opacity:0;transform:scale(0.5)}
@@ -516,42 +516,35 @@ html,body {
 }
 #cr-player-name {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(18px, 2.5vw, 3vw); font-weight:700;
-  color:#ffcc00; letter-spacing:4px; text-transform:uppercase;
-  margin-bottom:10px; animation:fadeUp .5s ease;
+  font-size:clamp(28px, 4vw, 5vw); font-weight:700;
+  color:#ffcc00; letter-spacing:6px; text-transform:uppercase;
+  margin-bottom:16px; animation:fadeUp .5s ease;
 }
 #cr-player-answer {
-  font-family:'Libre Baskerville','Georgia',serif;
-  font-size:clamp(22px, 3.2vw, 3.8vw); font-weight:700;
-  color:#fff; text-align:center; max-width:80%;
-  line-height:1.4;
+  font-size:clamp(56px, 10vw, 12vw); font-weight:700;
+  color:#fff; text-align:center; max-width:90%;
+  line-height:1.2;
   animation:fadeUp .6s ease .1s both;
 }
 #cr-player-answer.hidden { display:none; }
 #cr-wager {
-  font-family:'Inter',sans-serif;
-  font-size:clamp(16px, 2vw, 2.4vw);
-  color:rgba(255,255,255,.5); letter-spacing:2px;
-  margin-top:8px;
+  display:flex; flex-direction:column; align-items:center;
+  gap:10px; margin-top:24px;
   animation:fadeUp .6s ease .3s both;
 }
 #cr-wager.hidden { display:none; }
-#cr-result { margin-top:20px; animation:fadeUp .6s ease .5s both; }
-#cr-result.hidden { display:none; }
-#cr-result-text {
-  font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(28px, 4vw, 4.5vw); font-weight:700;
-  letter-spacing:8px; text-transform:uppercase;
+#cr-wager .cr-wager-val {
+  font-weight:700;
+  font-size:clamp(36px, 5vw, 6vw);
+  color:#ffcc00;
 }
-#cr-result-text.correct { color:#4caf50; }
-#cr-result-text.incorrect { color:#f44336; }
-#cr-score-change {
+#cr-wager .cr-wager-correction {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(24px, 3.5vw, 4vw); font-weight:700;
-  margin-top:8px; letter-spacing:2px;
+  font-size:clamp(28px, 4vw, 5vw);
+  font-weight:700; letter-spacing:8px;
 }
-#cr-score-change.positive { color:#4caf50; }
-#cr-score-change.negative { color:#f44336; }
+#cr-wager .cr-wager-correction.correct { color:#4caf50; }
+#cr-wager .cr-wager-correction.incorrect { color:#f44336; }
 
 /* Championship Wager Screen */
 #championship-cat-wager {
@@ -577,6 +570,13 @@ html,body {
   color:rgba(255,255,255,.35);
   letter-spacing:4px; text-transform:uppercase;
   animation:fadeUp .8s ease .6s both;
+}
+#championship-cat-wager .champ-wager-warning {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(14px, 1.6vw, 2vw);
+  color:rgba(255,255,255,.2);
+  letter-spacing:2px; margin-top:60px; text-align:center;
+  animation:fadeUp .8s ease .9s both;
 }
 
 /* ===== WINNER ===== */

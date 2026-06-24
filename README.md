@@ -23,6 +23,7 @@
 [![Code size](https://img.shields.io/github/languages/code-size/L-Logix/Trivia-Board)]()
 [![Top language](https://img.shields.io/github/languages/top/L-Logix/Trivia-Board)]()
 [![GitHub repo size](https://img.shields.io/github/repo-size/L-Logix/Trivia-Board)]()
+[![Lines of Code](https://img.shields.io/badge/LOC-8381-blue)]()
 
 ---
 
@@ -175,3 +176,8 @@ public/
     dashboard.js
     socket-client.js
 ```
+
+## Development
+
+**Current session**: +445 lines (9 files modified)
+**Total project LOC**: 8,381

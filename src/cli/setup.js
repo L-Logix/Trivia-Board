@@ -908,6 +908,26 @@ async function main() {
   delete config.r2Clues;
   delete config.r2Answers;
 
+  // Host mode
+  const { childMode } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'childMode',
+      message: 'Is this for a child host (11 or under)? Enables kid-friendly mode:',
+      default: false
+    }
+  ]);
+  if (childMode) {
+    config.childHost = true;
+    config.timerSeconds = config.timerSeconds || 8;
+    if (!config.labels) config.labels = {};
+    config.labels.bonusClue = config.labels.bonusClue || 'DAILY DOUBLE';
+    config.labels.championshipHdr = config.labels.championshipHdr || 'FINAL JEOPARDY';
+    config.labels.championshipSection = config.labels.championshipSection || 'FINAL ROUND';
+  } else {
+    config.childHost = false;
+  }
+
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   console.log('');
   console.log(chalk.green('\u2713 Configuration saved to config.json'));

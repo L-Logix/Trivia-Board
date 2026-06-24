@@ -840,7 +840,8 @@ function showChampionship(d) {
   document.getElementById('championship-results').innerHTML = '';
   document.getElementById('championship-ans').classList.add('hidden');
   document.getElementById('championship-reveal-player').classList.add('hidden');
-  var phase = st ? st.championshipPhase : 'wagering';
+  if (st) st.championshipPhase = d.championshipPhase;
+  var phase = d.championshipPhase || (st ? st.championshipPhase : 'wagering');
   if (phase === 'revealed') {
     document.getElementById('championship-cat-wager').classList.add('hidden');
     document.getElementById('championship-text').classList.add('hidden');
@@ -886,7 +887,6 @@ socket.on('championship-reveal-begin', function(d) {
   document.getElementById('cr-player-name').textContent = d.name || '';
   document.getElementById('cr-player-answer').classList.add('hidden');
   document.getElementById('cr-wager').classList.add('hidden');
-  document.getElementById('cr-result').classList.add('hidden');
 });
 
 socket.on('championship-reveal-step', function(d) {
@@ -894,7 +894,6 @@ socket.on('championship-reveal-step', function(d) {
     document.getElementById('cr-player-name').textContent = d.name || '';
     document.getElementById('cr-player-answer').classList.add('hidden');
     document.getElementById('cr-wager').classList.add('hidden');
-    document.getElementById('cr-result').classList.add('hidden');
   } else if (d.type === 'answer') {
     document.getElementById('cr-player-name').textContent = d.name || '';
     var ansEl = document.getElementById('cr-player-answer');
@@ -902,7 +901,6 @@ socket.on('championship-reveal-step', function(d) {
     ansEl.style.fontFamily = handFonts[(d.playerIndex || 0) % handFonts.length];
     ansEl.classList.remove('hidden');
     document.getElementById('cr-wager').classList.add('hidden');
-    document.getElementById('cr-result').classList.add('hidden');
   } else if (d.type === 'result') {
     document.getElementById('cr-player-name').textContent = d.name || '';
     var ansEl = document.getElementById('cr-player-answer');
@@ -920,14 +918,5 @@ socket.on('championship-reveal-step', function(d) {
       corrEl.textContent = 'WRONG';
       corrEl.className = 'cr-wager-correction incorrect';
     }
-    var changeEl = document.getElementById('cr-score-change');
-    if (d.correct) {
-      changeEl.textContent = '+' + fmt(d.wager);
-      changeEl.className = 'positive';
-    } else {
-      changeEl.textContent = '-' + fmt(d.wager);
-      changeEl.className = 'negative';
-    }
-    document.getElementById('cr-result').classList.remove('hidden');
   }
 });
