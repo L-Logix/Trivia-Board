@@ -25,9 +25,25 @@
     </header>
 
     <div id="dash-body">
-      <div id="dash-grid">
-        <div id="dash-cats"></div>
-        <div id="dash-vals"></div>
+      <div id="dash-main">
+        <div id="dash-grid">
+          <div id="dash-cats"></div>
+          <div id="dash-vals"></div>
+        </div>
+        <div id="dash-mirror" class="hidden">
+          <div id="mirror-top">
+            <span id="mirror-round"></span>
+            <span id="mirror-info">
+              <span id="mirror-cat"></span>
+              <span id="mirror-sep">|</span>
+              <span id="mirror-val"></span>
+            </span>
+            <span id="mirror-timer">0.0</span>
+          </div>
+          <div id="mirror-clue"></div>
+          <div id="mirror-ans" class="hidden">ANSWER</div>
+          <div id="mirror-players"></div>
+        </div>
       </div>
       <aside id="dash-side">
         <div class="card" id="card-timer">
@@ -61,10 +77,11 @@
           <div class="card-info" id="champ-question-info"></div>
           <div id="champ-wager-area" class="hidden">
             <div class="card-lbl-sub">Have players write their wagers on paper</div>
+            <div id="champ-warning" class="champ-warning hidden"></div>
             <div id="champ-wager-inputs"></div>
             <button class="b b-gold b-full" id="btn-champ-show-clue">SHOW CLUE</button>
             <button class="b b-gold b-full hidden" id="btn-confirm-answer">START REVEAL</button>
-            <button class="b b-blue b-full hidden" id="btn-next-reveal-step">NEXT</button>
+            <button class="b b-blue b-full hidden" id="btn-next-reveal-step">REVEAL</button>
           </div>
           <div id="champ-clue-area" class="hidden">
             <button class="b b-blue b-full" id="btn-think">PLAY THINK MUSIC</button>
@@ -87,10 +104,7 @@
         <div class="card hidden" id="card-correct">
           <div class="card-lbl">ANSWER FEEDBACK</div>
           <button class="b b-gold b-full" id="btn-done-reading">DONE READING</button>
-          <div class="half-row">
-            <button class="b b-green b-half" id="btn-correct">CORRECT</button>
-            <button class="b b-red b-half" id="btn-incorrect">INCORRECT</button>
-          </div>
+          <button class="b b-green b-full" id="btn-correct">CORRECT</button>
           <button class="b b-gold b-full hidden" id="btn-show-answer">SHOW ANSWER</button>
           <button class="b b-blue b-full" id="btn-board-correct">RETURN TO BOARD</button>
         </div>

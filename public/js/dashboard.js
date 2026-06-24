@@ -10,6 +10,40 @@ function esc(s){var d=document.createElement('div');d.textContent=s;return d.inn
 function fmt(s){return (s>=0?'':'-')+'$'+Math.abs(s)}
 function qd(){return (st&&st.config.baseValues&&st.config.baseValues[0])||200}
 
+function updateMirror(d) {
+  var mirror = document.getElementById('dash-mirror');
+  if (!mirror) return;
+  if (!d) { mirror.classList.add('hidden'); return; }
+  mirror.classList.remove('hidden');
+  var cat = document.getElementById('mirror-cat');
+  var val = document.getElementById('mirror-val');
+  var clue = document.getElementById('mirror-clue');
+  var round = document.getElementById('mirror-round');
+  if (cat) cat.textContent = d.category || '';
+  if (val) val.textContent = d.isBonusClue ? (label('bonusClue') || 'BONUS CLUE') : ('$' + (d.value || 0));
+  if (clue) clue.textContent = d.clue || '';
+  if (round) round.textContent = 'ROUND ' + (st ? st.currentRound || 1 : 1);
+  // Always show answer (host needs to know it)
+  var ans = document.getElementById('mirror-ans');
+  if (ans) { ans.textContent = d.answer || ''; ans.classList.remove('hidden'); }
+  // Players
+  var ps = document.getElementById('mirror-players');
+  if (ps && st && st.players) {
+    var html = '';
+    st.players.forEach(function(p) {
+      html += '<span class="mp-item"><span class="mp-name">' + esc(p.name) + '</span><span class="mp-score">' + fmt(p.score) + '</span></span>';
+    });
+    ps.innerHTML = html;
+  }
+}
+
+function mirrorAnswer(answer) {
+  var el = document.getElementById('mirror-ans');
+  if (!el) return;
+  if (answer) { el.textContent = answer; el.classList.remove('hidden'); }
+  // Never hide — host always sees the answer
+}
+
 function label(key) {
   return (st && st.config && st.config.labels && st.config.labels[key]) || '';
 }
@@ -115,7 +149,11 @@ var totalCategories = 0;
 var catRevealState = 'cover'; // 'cover' or 'name'
 
 function side(id){['card-clue','card-bonus','card-championship','card-correct','card-populate','card-cat-reveal'].forEach(function(s){document.getElementById(s).classList.add('hidden')});if(id)document.getElementById(id).classList.remove('hidden')}
-function setTimer(v){document.getElementById('timer-num').textContent=v.toFixed(1)}
+function setTimer(v){
+  document.getElementById('timer-num').textContent=v.toFixed(1);
+  var mt = document.getElementById('mirror-timer');
+  if (mt) mt.textContent = v > 0 ? v.toFixed(1) : '';
+}
 
 function openChampionship(){
   var f=document.getElementById('championship-form');f.innerHTML='';
@@ -165,7 +203,7 @@ document.getElementById('btn-reveal-championship').addEventListener('click',func
   document.getElementById('btn-champ-show-clue').classList.add('hidden');
   document.getElementById('btn-confirm-answer').classList.remove('hidden');
   var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
-  if (qlbl) qlbl.textContent = 'Enter each player\'s answer, wager, and correct/incorrect';
+  if (qlbl) qlbl.textContent = 'Enter each player\'s answer and wager';
   var wi = document.getElementById('champ-wager-inputs');
   if (wi) {
     // Sort players by current score ascending (for reveal order)
@@ -175,31 +213,30 @@ document.getElementById('btn-reveal-championship').addEventListener('click',func
     sorted.forEach(function(p) {
       wh += '<div class="p-row"><span class="p-name">' + esc(p.name) + '</span>' +
         '<div class="p-val"><span class="p-label">Answer:</span><input type="text" class="champ-answer-input" data-i="' + p.index + '" placeholder="What they wrote"></div>' +
-        '<div class="p-val"><span class="p-label">Wager: $</span><input type="number" class="champ-wager-input" data-i="' + p.index + '" value="0" min="0" step="100"></div>' +
-        '<div class="p-val"><label class="p-label"><input type="checkbox" class="champ-correct-cb" data-i="' + p.index + '" checked> Correct</label></div></div>';
+        '<div class="p-val"><span class="p-label">Wager: $</span><input type="number" class="champ-wager-input" data-i="' + p.index + '" value="0" min="0" step="100"></div></div>';
     });
     wi.innerHTML = wh;
   }
+  document.getElementById('champ-warning').classList.remove('hidden');
   document.getElementById('champ-wager-area').classList.remove('hidden');
 });
 document.getElementById('btn-confirm-answer').addEventListener('click',function(){
-  var answers = {}, wagers = {}, correct = {};
+  var answers = {}, wagers = {};
   document.querySelectorAll('.champ-answer-input').forEach(function(inp){
     answers[inp.dataset.i] = inp.value || '';
   });
   document.querySelectorAll('.champ-wager-input').forEach(function(inp){
     wagers[inp.dataset.i] = parseInt(inp.value) || 0;
   });
-  document.querySelectorAll('.champ-correct-cb').forEach(function(cb){
-    correct[cb.dataset.i] = cb.checked;
-  });
-  socket.emit('championship-reveal-data', { answers: answers, wagers: wagers, correct: correct });
+  socket.emit('championship-reveal-data', { answers: answers, wagers: wagers });
   document.getElementById('champ-wager-area').classList.add('hidden');
   document.getElementById('btn-confirm-answer').classList.add('hidden');
-  // Show NEXT button during reveal
+  document.getElementById('champ-warning').classList.add('hidden');
   document.getElementById('btn-next-reveal-step').classList.remove('hidden');
+  document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+  document.getElementById('champ-wager-area').classList.remove('hidden');
   var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
-  if (qlbl) qlbl.textContent = 'Click NEXT to advance the reveal';
+  if (qlbl) qlbl.textContent = 'Click REVEAL to show their answer';
   document.getElementById('champ-wager-area').classList.remove('hidden');
 });
 document.getElementById('btn-next-reveal-step').addEventListener('click',function(){socket.emit('next-reveal-step')});
@@ -214,10 +251,6 @@ document.getElementById('mreset-no').addEventListener('click',function(){documen
 document.getElementById('btn-correct').addEventListener('click',function(){
   socket.emit('answer-correct');
   document.getElementById('btn-show-answer').classList.remove('hidden');
-  document.getElementById('btn-done-reading').classList.add('hidden');
-});
-document.getElementById('btn-incorrect').addEventListener('click',function(){
-  socket.emit('answer-incorrect');
   document.getElementById('btn-done-reading').classList.add('hidden');
 });
 document.getElementById('btn-board-correct').addEventListener('click',function(){
@@ -310,9 +343,10 @@ socket.on('intro-started',function(){setPhase('intro')});
 socket.on('board-shown',function(d){
   if(st){st.phase='board';st.board=d.board;st.players=d.players}
   var cats=d.categories||(st&&st.config&&st.config.categories||[]);
-  renderGrid(d.board,cats);renderPlayers(d.players);setPhase('board');
+  renderGrid(st.board,cats);renderPlayers(d.players);setPhase('board');
   categoriesRevealed = false; boardPopulated = false;
   side('card-populate');addCategoryRevealButtons();
+  updateMirror(null);
 });
 socket.on('clue-opened',function(d){
   if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase}
@@ -337,6 +371,7 @@ socket.on('clue-opened',function(d){
   } else {   side('card-clue');
   side('card-correct');
   document.getElementById('btn-done-reading').classList.add('hidden'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); document.getElementById('btn-done-reading').classList.remove('hidden'); }
+  updateMirror(d); mirrorAnswer(d.answer);
 });
 socket.on('bonus-clue-shown', function(d) {
   if (st) { st.phase = 'clue'; }
@@ -345,6 +380,7 @@ socket.on('bonus-clue-shown', function(d) {
   side('card-clue');
   side('card-correct');
   document.getElementById('clue-info').textContent = (d.category || '') + ' - ' + (label('bonusClue') || 'BONUS CLUE');
+  updateMirror(d); mirrorAnswer(null);
 });
 socket.on('bonus-clue-activated',function(){
   setPhase('bonus-clue');
@@ -369,7 +405,24 @@ socket.on('bonus-clue-activated',function(){
 socket.on('timer-tick',function(d){setTimer(d.remaining)});
 socket.on('times-up',function(){setTimer(0);document.getElementById('btn-show-answer').classList.remove('hidden');document.getElementById('btn-done-reading').classList.add('hidden')});
 socket.on('buzz-result',function(d){document.querySelectorAll('.p-panel').forEach(function(p){p.classList.remove('buzz')});if(d.success){var el=document.querySelector('.p-panel[data-index="'+d.playerIndex+'"]');if(el)el.classList.add('buzz')}});
-socket.on('score-updated',function(d){if(st){st.players=d.players;renderPlayers(d.players)}});
+socket.on('score-updated',function(d){
+  if(st){st.players=d.players;renderPlayers(d.players)}
+  // Update mirror scores
+  var ps = document.getElementById('mirror-players');
+  if (ps && st && st.players) {
+    var html = '';
+    st.players.forEach(function(p) {
+      html += '<span class="mp-item"><span class="mp-name">' + esc(p.name) + '</span><span class="mp-score">' + fmt(p.score) + '</span></span>';
+    });
+    ps.innerHTML = html;
+  }
+});
+socket.on('answer-revealed', function(d) {
+  mirrorAnswer(d.answer);
+});
+socket.on('answer-hidden', function() {
+  mirrorAnswer(null);
+});
 socket.on('board-return',function(d){
   if(st){
     st.revealedCells=d.revealedCells;st.phase=d.phase;st.currentClue=null;
@@ -379,9 +432,10 @@ socket.on('board-return',function(d){
   }
   document.getElementById('btn-show-answer').classList.add('hidden');
   document.getElementById('btn-done-reading').classList.add('hidden');
-  setPhase('board');side('board')
+  setPhase('board');side('board');
+  updateMirror(null);
 });
-socket.on('round2-started',function(d){if(st){st.board=d.board;st.players=d.players;st.currentRound=2;st.phase='board';st.currentClue=null}renderGrid(d.board,d.categories||(st&&st.config&&st.config.categoriesR2?st.config.categoriesR2:[]));renderPlayers(d.players);setRound(2);setPhase('board');categoriesRevealed=false;boardPopulated=false;side('card-populate');addCategoryRevealButtons()});
+socket.on('round2-started',function(d){if(st){st.board=d.board;st.players=d.players;st.currentRound=2;st.phase='board';st.currentClue=null}renderGrid(d.board,d.categories||(st&&st.config&&st.config.categoriesR2?st.config.categoriesR2:[]));renderPlayers(d.players);setRound(2);setPhase('board');categoriesRevealed=false;boardPopulated=false;side('card-populate');addCategoryRevealButtons();updateMirror(null)});
 socket.on('championship-started',function(d){
   if(st)st.phase='championship';
   setPhase('championship');
@@ -404,6 +458,31 @@ socket.on('championship-clue-shown',function(){
   document.getElementById('champ-wager-area').classList.add('hidden');
   document.getElementById('champ-clue-area').classList.remove('hidden');
   document.getElementById('champ-reveal-area').classList.add('hidden');
+});
+socket.on('championship-reveal-begin', function(d) {
+  document.getElementById('champ-wager-area').classList.add('hidden');
+  document.getElementById('champ-clue-area').classList.add('hidden');
+  document.getElementById('champ-reveal-area').classList.add('hidden');
+  document.getElementById('btn-next-reveal-step').classList.remove('hidden');
+  document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+  var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
+  if (qlbl) qlbl.textContent = 'Click REVEAL to show their answer';
+  document.getElementById('champ-wager-area').classList.remove('hidden');
+});
+socket.on('championship-reveal-step', function(d) {
+  if (d.type === 'name') {
+    document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+    var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
+    if (qlbl) qlbl.textContent = 'Click REVEAL to show their answer';
+  } else if (d.type === 'answer') {
+    document.getElementById('btn-next-reveal-step').textContent = 'NEXT';
+    var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
+    if (qlbl) qlbl.textContent = 'Click NEXT to show wager';
+  } else if (d.type === 'result') {
+    document.getElementById('btn-next-reveal-step').textContent = 'NEXT';
+    var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
+    if (qlbl) qlbl.textContent = 'Click NEXT for next player';
+  }
 });
 socket.on('championship-revealed',function(d){
   if(st&&d.players){st.players=d.players;updScores(d.players);renderPlayers(d.players)}

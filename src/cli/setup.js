@@ -71,10 +71,10 @@ function parseCsvData(csvText) {
 
 function buildSimpleBoard(parsed, columns, rows, values) {
   const header = parsed[0].map(h => h.trim().toLowerCase());
-  const isSimple = header.length >= 3 && header[0] === 'category' && header[1] === 'clue' && header[2] === 'answer';
+  const isSimple = header.length >= 3 && (header[0] === 'category' || header[0] === 'cat') && (header[1] === 'clue' || header[1] === 'question') && (header[2] === 'answer' || header[2] === 'ans');
   if (!isSimple) return null;
 
-  const hasValue = header.length >= 4 && header[3] === 'value';
+  const hasValue = header.length >= 4 && header[3].replace(/[^a-z]/g, '') === 'value';
   const groups = {};
   for (let i = 1; i < parsed.length; i++) {
     const row = parsed[i];
@@ -82,7 +82,7 @@ function buildSimpleBoard(parsed, columns, rows, values) {
     const cat = (row[0] || '').trim();
     const clue = (row[1] || '').trim();
     const ans = (row[2] || '').trim();
-    const val = hasValue && row[3] ? parseInt(row[3].trim()) : NaN;
+    const val = hasValue && row[3] ? parseInt(String(row[3]).trim().replace(/[$,\s]/g, '')) : NaN;
     if (!cat) continue;
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push({ clue, answer: ans, value: isNaN(val) ? null : val });

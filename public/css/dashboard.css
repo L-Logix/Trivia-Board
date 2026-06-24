@@ -96,6 +96,70 @@ kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px
 .f-row input[type=number]{width:80px;padding:4px;border:1px solid #3a3a5e;border-radius:3px;background:#0d0d1a;color:#ffcc00;font-size:.9rem;font-weight:700}
 .f-row input[type=checkbox]{width:18px;height:18px;accent-color:#ffcc00}
 
+/* MIRROR: broadcast preview on host screen */
+#dash-main {
+  flex:1; min-width:0;
+  display:flex; flex-direction:column;
+}
+#dash-mirror {
+  background:#060ce9; border:2px solid #ffcc00; border-radius:8px;
+  margin-top:8px; padding:16px; flex:1;
+  display:flex; flex-direction:column; gap:10px;
+  min-height:200px;
+  box-shadow:0 0 30px rgba(255,204,0,.08);
+}
+#dash-mirror.hidden { display:none!important; }
+#mirror-top {
+  display:flex; align-items:center; gap:12px;
+  font-family:'Oswald','Impact',sans-serif;
+}
+#mirror-round {
+  font-size:.6rem; color:rgba(255,255,255,.25);
+  letter-spacing:2px; text-transform:uppercase;
+  padding:2px 8px; border:1px solid rgba(255,255,255,.1); border-radius:4px;
+}
+#mirror-info {
+  display:flex; align-items:center; gap:8px;
+  font-size:.7rem; color:rgba(255,255,255,.35);
+  text-transform:uppercase; letter-spacing:1px;
+}
+#mirror-sep { color:rgba(255,255,255,.1); }
+#mirror-timer {
+  margin-left:auto;
+  font-size:.9rem; font-weight:700; color:#ffcc00;
+  font-variant-numeric:tabular-nums;
+}
+#mirror-clue {
+  font-family:'Libre Baskerville','Georgia',serif;
+  font-size:.95rem; font-weight:400; color:#fff;
+  line-height:1.5; text-align:center;
+  padding:8px 12px; background:rgba(0,0,0,.15); border-radius:6px;
+}
+#mirror-ans {
+  font-family:'Libre Baskerville','Georgia',serif;
+  font-size:.85rem; font-weight:700; color:#ffcc00;
+  text-align:center;
+  padding:10px; background:rgba(255,204,0,.08); border-radius:6px;
+  border:2px solid rgba(255,204,0,.2);
+}
+#mirror-players {
+  display:flex; gap:16px; margin-top:auto; justify-content:center;
+  padding:8px 0; border-top:2px solid rgba(255,204,0,.15);
+}
+#mirror-players .mp-item {
+  display:flex; align-items:center; gap:8px;
+  font-size:.7rem;
+}
+#mirror-players .mp-name {
+  font-family:'Inter',sans-serif;
+  color:rgba(255,255,255,.5); text-transform:uppercase;
+  letter-spacing:1px;
+}
+#mirror-players .mp-score {
+  font-family:'Oswald','Impact',sans-serif;
+  font-weight:700; color:#ffcc00;
+}
+
 .hidden{display:none!important}
 .card-lbl-sub{font-size:.5rem;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;margin-top:6px}
 .p-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.7rem}
@@ -104,3 +168,8 @@ kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px
 .p-label{font-size:.6rem;color:rgba(255,255,255,.45);white-space:nowrap}
 .champ-wager-input{width:70px;padding:3px 5px;background:#0d0d1a;border:1px solid #2a2a4a;border-radius:3px;color:#ffcc00;font-size:.7rem;font-weight:700;text-align:center}
 .champ-correct-cb{width:16px;height:16px;accent-color:#ffcc00;cursor:pointer}
+.champ-warning {
+  font-size:.55rem; color:#ffaa44; text-align:center;
+  padding:6px 10px; background:rgba(255,170,68,.1); border-radius:4px;
+  border:1px solid rgba(255,170,68,.2); margin-bottom:8px;
+}

@@ -37,7 +37,7 @@ html,body {
   position:absolute; bottom:50px;
   color:rgba(255,255,255,.3);
   font-family:'Inter',sans-serif;
-  font-size:13px; letter-spacing:3px;
+  font-size:18px; letter-spacing:3px;
   text-align:center; text-transform:uppercase;
   animation:pulseInit 2s ease infinite;
 }
@@ -85,7 +85,7 @@ html,body {
   100%{opacity:1;transform:translateY(0) scale(1)}
 }
 .logo-byline {
-  font-family:'Inter',sans-serif; font-size:1vw; letter-spacing:6px;
+  font-family:'Inter',sans-serif; font-size:1.6vw; letter-spacing:6px;
   color:rgba(255,255,255,.25); margin-top:50px;
   text-transform:uppercase;
   opacity:0; animation:fadeUp .8s ease 1.8s forwards;
@@ -138,7 +138,7 @@ html,body {
   background:#1a2a8a;
   color:#fff;
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(14px, 2.8vmin, 3.2vw); font-weight:500;
+  font-size:clamp(16px, 3.6vmin, 4.2vw); font-weight:600;
   text-transform:uppercase; letter-spacing:2px;
   display:flex; align-items:center; justify-content:center;
   text-align:center; padding:4px 3px;
@@ -237,47 +237,6 @@ html,body {
   border-color:rgba(255,255,255,.02);
 }
 
-/* ===== CORRECT / INCORRECT OVERLAY ===== */
-#answer-overlay {
-  position:fixed; top:0; left:0; right:0; height:30%; z-index:4000;
-  display:flex; align-items:center; justify-content:center;
-  pointer-events:none;
-}
-#answer-overlay.correct {
-  background:radial-gradient(circle,rgba(0,200,0,.12) 0%,transparent 60%);
-  animation:correctFlash .5s ease;
-}
-#answer-overlay.incorrect {
-  background:radial-gradient(circle,rgba(200,0,0,.12) 0%,transparent 60%);
-  animation:incorrectFlash .5s ease;
-}
-@keyframes correctFlash {
-  0%{background:radial-gradient(circle,rgba(0,200,0,.25) 0%,transparent 60%)}
-  100%{background:radial-gradient(circle,rgba(0,200,0,0) 0%,transparent 60%)}
-}
-@keyframes incorrectFlash {
-  0%{background:radial-gradient(circle,rgba(200,0,0,.25) 0%,transparent 60%)}
-  100%{background:radial-gradient(circle,rgba(200,0,0,0) 0%,transparent 60%)}
-}
-#answer-overlay-text {
-  font-family:'Oswald','Impact',sans-serif;
-  font-size:6vw; font-weight:700;
-  text-transform:uppercase; letter-spacing:8px;
-  opacity:0;
-}
-#answer-overlay-text.show-correct {
-  opacity:1; color:#00cc44;
-  animation:ansPop .4s cubic-bezier(.175,.885,.32,1.275);
-}
-#answer-overlay-text.show-incorrect {
-  opacity:1; color:#ff4444;
-  animation:ansPop .4s cubic-bezier(.175,.885,.32,1.275);
-}
-@keyframes ansPop {
-  0%{opacity:0;transform:scale(0) rotate(-10deg)}
-  50%{transform:scale(1.15) rotate(3deg)}
-  100%{opacity:1;transform:scale(1) rotate(0)}
-}
 
 /* ===== SCORE BAR ===== */
 #board-scores, #clue-scores, #championship-scores {
@@ -285,18 +244,21 @@ html,body {
   width:100%; height:8%;
   background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,#000 100%);
   display:flex; align-items:center; justify-content:center;
-  border-top:3px solid #ffcc00;
 }
-.scorerow { display:flex; align-items:center; justify-content:center; gap:6%; width:90%; }
-.score-item { text-align:center; min-width:12%; }
+.scorerow { display:flex; align-items:center; justify-content:center; gap:12%; width:95%; }
+.score-item { display:flex; align-items:center; gap:8px; min-width:8%; }
 .score-name {
   font-family:'Inter',sans-serif;
-  font-size:clamp(7px, .8vmin, .9vw); color:rgba(255,255,255,.45); margin-bottom:2px;
-  letter-spacing:1px; text-transform:uppercase;
+  font-size:clamp(18px, 3.2vmin, 3.6vw); color:rgba(255,255,255,.55);
+  letter-spacing:1px; text-transform:uppercase; white-space:nowrap;
+}
+.score-sep {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(20px, 3.4vmin, 3.8vw); color:rgba(255,255,255,.15);
 }
 .score-val {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(12px, 1.6vmin, 1.8vw); font-weight:700; color:#ffcc00;
+  font-size:clamp(32px, 5.6vmin, 6.2vw); font-weight:700; color:#ffcc00;
   font-variant-numeric:tabular-nums;
   transition:all .3s ease;
 }
@@ -321,18 +283,18 @@ html,body {
 
 #clue-cat {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:1.2vw; color:rgba(255,255,255,.45);
+  font-size:2.4vw; color:rgba(255,255,255,.45);
   text-transform:uppercase; letter-spacing:2px;
 }
 #clue-val {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:1.2vw; color:#ffcc00; letter-spacing:1px;
+  font-size:2.4vw; color:#ffcc00; letter-spacing:1px;
   font-weight:700;
 }
 
 #clue-text {
   font-family:'Libre Baskerville','Georgia',serif;
-  font-size:2.6vw; font-weight:400; line-height:1.4;
+  font-size:3.2vw; font-weight:400; line-height:1.4;
   text-align:center; max-width:80%;
   color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.5);
   animation:clueZoom .7s cubic-bezier(.175,.885,.32,1.275);
@@ -346,7 +308,7 @@ html,body {
 
 #clue-ans {
   font-family:'Libre Baskerville','Georgia',serif;
-  font-size:2.2vw; font-weight:700;
+  font-size:3vw; font-weight:700;
   color:#ffcc00; text-align:center;
   margin-top:35px; padding:16px 50px;
   border:3px solid #ffcc00;
@@ -361,11 +323,15 @@ html,body {
   100%{opacity:1;transform:translateY(0) scale(1)}
 }
 
-/* ===== TIMER BAR ===== */
+/* ===== TIMER BAR (board separator - always visible) ===== */
 #clue-timer-track {
-  position:absolute; bottom:11%; left:10%; width:80%; height:8px;
-  background:rgba(255,255,255,.12); overflow:hidden;
+  position:fixed; bottom:8%; left:0; width:100%; height:4px;
+  z-index:50;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .2s ease;
 }
+#clue-timer-track.active { opacity:1; }
 #clue-timer-fill {
   height:100%; width:100%;
   background:#ffcc00;
@@ -380,35 +346,6 @@ html,body {
   50%{opacity:.4}
 }
 
-/* ===== TIME'S UP OVERLAY ===== */
-#times-up-overlay {
-  position:fixed; inset:0; z-index:6000;
-  display:flex; align-items:center; justify-content:center;
-  pointer-events:none;
-  background:rgba(0,0,0,.7);
-  animation:timesUpFlash .5s ease;
-}
-#times-up-overlay.hidden { display:none; }
-#times-up-text {
-  font-family:'Oswald','Impact',sans-serif;
-  font-size:10vw; font-weight:700;
-  color:#ff2222; letter-spacing:14px;
-  text-transform:uppercase;
-  text-shadow:0 0 100px rgba(255,0,0,.5), 0 0 200px rgba(255,0,0,.2);
-  animation:timesUpPop .6s cubic-bezier(.175,.885,.32,1.275);
-  border:6px solid #ff2222;
-  padding:20px 60px;
-  background:rgba(255,0,0,.1);
-}
-@keyframes timesUpFlash {
-  0%{background:rgba(0,0,0,.4)}
-  100%{background:rgba(0,0,0,.7)}
-}
-@keyframes timesUpPop {
-  0%{opacity:0;transform:scale(3)}
-  50%{transform:scale(0.9)}
-  100%{opacity:1;transform:scale(1)}
-}
 
 /* ===== CATEGORY REVEAL (full screen overlay, two-phase) ===== */
 /* Cover layer — fills entire screen, flips up to reveal name */
@@ -488,56 +425,27 @@ html,body {
 }
 @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
 
-#dd-wrap {
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+/* Daily Double: full-screen image */
+#dd-image {
+  position:absolute; inset:0; z-index:10;
+  display:flex; align-items:center; justify-content:center;
+}
+#dd-image.hidden { display:none; }
+#dd-image-inner {
+  width:100%; height:100%;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+/* Daily Double: submit wager prompt */
+#dd-wager-screen {
+  position:absolute; top:50%; left:50%; z-index:10;
+  transform:translate(-50%,-50%);
   text-align:center; width:80%;
 }
-.dd-star {
-  position:absolute; top:-20px; font-size:70px; color:#ffcc00;
-  animation:ddPulse .45s ease-in-out 8;
-}
-.dd-star.left { left:5%; } .dd-star.right { right:5%; }
-@keyframes ddPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.15;transform:scale(1.25)} }
-
-/* Bonus clue flip card */
-#dd-flip-card {
-  position:absolute; top:50%; left:50%; z-index:10;
-  width:70vmin; height:70vmin; max-width:500px; max-height:500px;
-  transform:translate(-50%,-50%);
-  perspective:1200px;
-}
-#dd-flip-card.hidden { display:none; }
-#dd-flip-inner {
-  width:100%; height:100%;
-  position:relative;
-  transform-style:preserve-3d;
-  transition:transform .8s cubic-bezier(.68,-0.55,.27,1.55);
-}
-#dd-flip-card.flipped #dd-flip-inner {
-  transform:rotateY(180deg);
-}
-#dd-flip-front, #dd-flip-back {
-  position:absolute; inset:0;
-  backface-visibility:hidden;
-  border-radius:16px;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-}
-#dd-flip-front {
-  background:#060ce9;
-  background-size:cover;
-  background-position:center;
-  border:3px solid #ffcc00;
-  box-shadow:0 0 40px rgba(255,204,0,.2);
-}
-#dd-flip-back {
-  background:#060ce9;
-  border:3px solid #ffcc00;
-  box-shadow:0 0 40px rgba(255,204,0,.2);
-  transform:rotateY(180deg);
-}
-#dd-flip-back .dd-title { animation:none; font-size:5vw; }
-#dd-flip-back .dd-title.sub { font-size:4vw; }
+#dd-wager-screen.hidden { display:none; }
+#dd-wager-screen .dd-title { animation:ddZoom .8s cubic-bezier(.175,.885,.32,1.275); }
+#dd-wager-screen .dd-title.sub { animation:ddZoom .6s cubic-bezier(.175,.885,.32,1.275) .3s both; }
 
 .dd-title {
   font-family:'Oswald','Impact',sans-serif;
@@ -572,17 +480,17 @@ html,body {
 @keyframes championshipHdr { 0%{opacity:0;letter-spacing:20px} 100%{opacity:1;letter-spacing:8px} }
 #championship-cat {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:1.4vw; letter-spacing:4px;
+  font-size:2.4vw; letter-spacing:4px;
   color:rgba(255,255,255,.4); text-transform:uppercase; margin-bottom:35px;
 }
 #championship-text {
   font-family:'Libre Baskerville','Georgia',serif;
-  font-size:2.5vw; text-align:center; max-width:80%; line-height:1.4;
+  font-size:3.2vw; text-align:center; max-width:80%; line-height:1.4;
   white-space:pre-wrap;
 }
 #championship-ans {
   font-family:'Libre Baskerville','Georgia',serif;
-  font-size:2.2vw; font-weight:700; color:#ffcc00;
+  font-size:3vw; font-weight:700; color:#ffcc00;
   text-align:center; margin-top:35px; padding:16px 45px;
   border:3px solid #ffcc00;
   background:rgba(255,204,0,.05);
@@ -597,9 +505,9 @@ html,body {
 }
 #championship-results { margin-top:25px; text-align:center; animation:fadeUp .8s ease; }
 .championship-row { display:inline-block; margin:0 20px; padding:12px 24px; background:rgba(255,255,255,.06); }
-.championship-r-name { font-family:'Inter',sans-serif; font-size:.9vw; color:rgba(255,255,255,.45); }
-.championship-r-score { font-family:'Oswald','Impact',sans-serif; font-size:1.6vw; font-weight:700; color:#ffcc00; }
-.championship-r-wager { font-family:'Inter',sans-serif; font-size:.75vw; color:#4a90d9; margin-top:4px; letter-spacing:1px; }
+.championship-r-name { font-family:'Inter',sans-serif; font-size:1.4vw; color:rgba(255,255,255,.45); }
+.championship-r-score { font-family:'Oswald','Impact',sans-serif; font-size:2.4vw; font-weight:700; color:#ffcc00; }
+.championship-r-wager { font-family:'Inter',sans-serif; font-size:1.2vw; color:#4a90d9; margin-top:4px; letter-spacing:1px; }
 
 /* Championship Reveal Player */
 #championship-reveal-player {
@@ -616,9 +524,20 @@ html,body {
   font-family:'Libre Baskerville','Georgia',serif;
   font-size:clamp(22px, 3.2vw, 3.8vw); font-weight:700;
   color:#fff; text-align:center; max-width:80%;
-  line-height:1.4; animation:fadeUp .5s ease .1s both;
+  line-height:1.4;
+  animation:fadeUp .6s ease .1s both;
 }
-#cr-result { margin-top:20px; animation:fadeUp .5s ease .2s both; }
+#cr-player-answer.hidden { display:none; }
+#cr-wager {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(16px, 2vw, 2.4vw);
+  color:rgba(255,255,255,.5); letter-spacing:2px;
+  margin-top:8px;
+  animation:fadeUp .6s ease .3s both;
+}
+#cr-wager.hidden { display:none; }
+#cr-result { margin-top:20px; animation:fadeUp .6s ease .5s both; }
+#cr-result.hidden { display:none; }
 #cr-result-text {
   font-family:'Oswald','Impact',sans-serif;
   font-size:clamp(28px, 4vw, 4.5vw); font-weight:700;
@@ -654,7 +573,7 @@ html,body {
 }
 #championship-cat-wager .champ-wager-prompt {
   font-family:'Inter',sans-serif;
-  font-size:clamp(14px, 1.5vw, 1.8vw);
+  font-size:clamp(18px, 2.2vw, 2.5vw);
   color:rgba(255,255,255,.35);
   letter-spacing:4px; text-transform:uppercase;
   animation:fadeUp .8s ease .6s both;
@@ -670,7 +589,7 @@ html,body {
 }
 #winner-label {
   font-family:'Inter',sans-serif;
-  font-size:clamp(14px, 1.5vmin, 1.4vw);
+  font-size:clamp(18px, 2.2vmin, 2vw);
   letter-spacing:10px;
   color:rgba(255,255,255,.25);
   text-transform:uppercase;
@@ -697,7 +616,7 @@ html,body {
 }
 #winner-score {
   font-family:'Oswald','Impact',sans-serif;
-  font-size:clamp(24px, 5vmin, 5vw);
+  font-size:clamp(30px, 6vmin, 6vw);
   font-weight:700;
   color:#fff;
   opacity:0;
@@ -705,7 +624,7 @@ html,body {
 }
 #winner-byline {
   font-family:'Inter',sans-serif;
-  font-size:clamp(12px, 1.4vmin, 1.3vw);
+  font-size:clamp(16px, 2vmin, 1.8vw);
   letter-spacing:8px;
   color:rgba(255,255,255,.15);
   text-transform:uppercase;

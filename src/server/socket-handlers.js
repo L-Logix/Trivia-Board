@@ -4,6 +4,41 @@ let gameState = null;
 let io = null;
 let allCategoriesRevealed = {};
 
+// Fuzzy answer comparison: case-insensitive, punctuation-tolerant
+function normalizeAnswer(s) {
+  return (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+function isAnswerCloseEnough(playerAns, correctAns) {
+  var p = normalizeAnswer(playerAns);
+  var c = normalizeAnswer(correctAns);
+  if (!p || !c) return false;
+  if (p === c) return true;
+  // Remove common Jeopardy prefixes for matching
+  var prefixes = ['what is ', 'what are ', 'who is ', 'who are ', 'where is ', 'where are ', 'when is ', 'when are ', 'why is ', 'why are ', 'the '];
+  var pc = c;
+  prefixes.forEach(function(pre) { if (pc.indexOf(pre) === 0) pc = pc.slice(pre.length); });
+  var pp = p;
+  prefixes.forEach(function(pre) { if (pp.indexOf(pre) === 0) pp = pp.slice(pre.length); });
+  if (pc === pp) return true;
+  // Check if one contains the other
+  if (pc.indexOf(pp) >= 0 || pp.indexOf(pc) >= 0) return true;
+  // Levenshtein distance for small differences
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    var d = Array(m + 1); for (var i = 0; i <= m; i++) d[i] = Array(n + 1);
+    for (var i = 0; i <= m; i++) d[i][0] = i;
+    for (var j = 0; j <= n; j++) d[0][j] = j;
+    for (var j = 1; j <= n; j++) for (var i = 1; i <= m; i++)
+      d[i][j] = a[i-1] === b[j-1] ? d[i-1][j-1] : Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+1);
+    return d[m][n];
+  }
+  var maxLen = Math.max(pc.length, pp.length);
+  if (maxLen === 0) return false;
+  var dist = levenshtein(pc, pp);
+  // Allow up to 30% difference
+  return (dist / maxLen) <= 0.3;
+}
+
 function setup(ioInstance, config) {
   io = ioInstance;
   gameState = new GameState(config);
@@ -266,27 +301,29 @@ function setup(ioInstance, config) {
 
     socket.on('championship-reveal-data', (data) => {
       gameState.revealChampionship();
+      const q = gameState.getCurrentChampionshipQuestion();
+      const correctAnswer = q.answer || '';
       // Build reveal sequence sorted by pre-reveal score ascending
-      const playersWithData = gameState.players.map((p, i) => ({
-        index: i,
-        name: p.name,
-        score: p.score,
-        answer: data.answers && data.answers[i] !== undefined ? data.answers[i] : '',
-        wager: data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0,
-        correct: data.correct && data.correct[i] !== undefined ? data.correct[i] : false
-      }));
+      const playersWithData = gameState.players.map((p, i) => {
+        var ans = data.answers && data.answers[i] !== undefined ? data.answers[i] : '';
+        var wgr = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
+        var corr = isAnswerCloseEnough(ans, correctAnswer);
+        return { index: i, name: p.name, score: p.score, answer: ans, wager: wgr, correct: corr };
+      });
       playersWithData.sort((a, b) => a.score - b.score);
       const steps = [];
       playersWithData.forEach(p => {
+        steps.push({ type: 'name', playerIndex: p.index, name: p.name });
         steps.push({ type: 'answer', playerIndex: p.index, name: p.name, answer: p.answer });
         steps.push({ type: 'result', playerIndex: p.index, name: p.name, correct: p.correct, wager: p.wager });
       });
       // Apply score changes
       gameState.players.forEach((p, i) => {
         const wager = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
-        const correct = data.correct && data.correct[i] !== undefined ? data.correct[i] : false;
+        const correct = playersWithData.find(x => x.index === i).correct;
         if (correct) p.score += wager;
         else p.score -= wager;
+        gameState.recordChampionshipResult(i, correct);
       });
       gameState.revealSequence = { steps, currentStep: 0, updatedPlayers: gameState.players.map(p => ({ ...p })) };
       gameState.championshipPhase = 'revealing';

@@ -8,6 +8,14 @@ var videoEls = {};
 
 function initSfx() {
   try { sfxCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  // Pre-decode audio for zero-latency playback
+  ['boardfill', 'dd'].forEach(function(k) {
+    if (sfxCtx && audio[k] && audio[k].src) {
+      fetch(audio[k].src).then(function(r) { return r.arrayBuffer(); }).then(function(buf) {
+        sfxCtx.decodeAudioData(buf, function(b) { decodedBuffers[k] = b; }, function(){});
+      }).catch(function(){});
+    }
+  });
 }
 function playTone(freq, dur, type, vol) {
   if (!sfxCtx) return;
@@ -25,9 +33,6 @@ function playTone(freq, dur, type, vol) {
 function playBonusClue() {
   if (audio['dd']) audio['dd'].volume = 0.5;
   play('dd');
-  [523.25, 587.33, 659.25, 698.46, 783.99, 880].forEach(function(f, i) {
-    setTimeout(function() { playTone(f, 0.25, 'sine', 0.2); }, i * 80);
-  });
 }
 function playChampionshipReveal() {
   [392, 392, 523.25, 392, 523.25, 659.25].forEach(function(f, i) {
@@ -60,6 +65,7 @@ function initAudio() {
 }
 
 var bgOrigVolume = 0.15;
+var decodedBuffers = {};
 var bgDuckTimer = null;
 var bgUnduckTimer = null;
 
@@ -112,6 +118,23 @@ function unduckBgMusic() {
 }
 
 function play(k) {
+  // Use decoded AudioBuffer for zero-latency playback when available
+  if (decodedBuffers[k] && sfxCtx) {
+    var src = sfxCtx.createBufferSource();
+    src.buffer = decodedBuffers[k];
+    src.connect(sfxCtx.destination);
+    src.start();
+    if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
+      duckBgMusic();
+      if (bgUnduckTimer) clearTimeout(bgUnduckTimer);
+      var dur = (decodedBuffers[k].duration * 1000 || 2000) + 500;
+      bgUnduckTimer = setTimeout(function() {
+        bgUnduckTimer = null;
+        unduckBgMusic();
+      }, dur);
+    }
+    return;
+  }
   var el = audio[k];
   if (el) {
     if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
@@ -348,7 +371,7 @@ function renderScores(players, container) {
   if (!players) return;
   var html = '<div class="scorerow">';
   players.forEach(function(p) {
-    html += '<div class="score-item"><div class="score-name">' + esc(p.name) + '</div><div class="score-val">' + fmt(p.score) + '</div></div>';
+    html += '<div class="score-item"><span class="score-name">' + esc(p.name) + '</span><span class="score-sep">|</span><span class="score-val">' + fmt(p.score) + '</span></div>';
   });
   html += '</div>';
   container.innerHTML = html;
@@ -381,6 +404,8 @@ function showClue(cell) {
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
   document.getElementById('clue-timer-fill').classList.remove('warning');
+  var track = document.getElementById('clue-timer-track');
+  if (track) track.classList.add('active');
   show('clue');
   updateScores(st ? st.players : []);
 }
@@ -395,6 +420,8 @@ function showClueFromData(d) {
     var pct = d.timerSeconds > 0 ? (d.timerRemaining / d.timerSeconds) * 100 : 100;
     document.getElementById('clue-timer-fill').style.width = pct + '%';
     document.getElementById('clue-timer-fill').classList.remove('warning');
+    var track = document.getElementById('clue-timer-track');
+    if (track) track.classList.add('active');
   }
   if (d.isBonusClue) { /* bonus-clue-activated will show the dd phase */ }
   else show('clue');
@@ -463,6 +490,7 @@ socket.on('fade-intro-audio', function() {
 
 /* ===== TIMER ===== */
 function setTimer(rem, total) {
+  var track = document.getElementById('clue-timer-track');
   total = total || (st && st.config && st.config.timerSeconds) || 5;
   var pct = total > 0 ? Math.max(0, (rem / total) * 100) : 0;
   var f = document.getElementById('clue-timer-fill');
@@ -470,30 +498,16 @@ function setTimer(rem, total) {
     f.style.width = pct + '%';
     f.classList.toggle('warning', rem <= 2 && rem > 0);
   }
+  if (track) track.classList.toggle('active', rem > 0);
 }
 
-/* ===== ANSWER OVERLAY ===== */
+/* ===== ANSWER FEEDBACK ===== */
 function showAnswerOverlay(correct, noAutoReturn) {
-  var overlay = document.getElementById('answer-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'answer-overlay';
-    overlay.innerHTML = '<div id="answer-overlay-text"></div>';
-    document.body.appendChild(overlay);
-  }
-  var textEl = document.getElementById('answer-overlay-text');
-  overlay.className = '';
-  textEl.className = '';
-  textEl.textContent = correct ? 'CORRECT!' : 'INCORRECT';
-  overlay.classList.add(correct ? 'correct' : 'incorrect');
-  textEl.classList.add(correct ? 'show-correct' : 'show-incorrect');
-  play(correct ? 'correct' : 'incorrect');
+  if (correct) play('correct');
   if (noAutoReturn) return;
   if (ansOverlayTimer) clearTimeout(ansOverlayTimer);
   ansOverlayTimer = setTimeout(function() {
     ansOverlayTimer = null;
-    overlay.className = '';
-    textEl.className = '';
     if (st && st.currentClue) {
       socket.emit('return-to-board', { col: st.currentClue.col, row: st.currentClue.row });
     }
@@ -573,41 +587,30 @@ socket.on('board-populated', function() {
 socket.on('clue-opened', function(d) { showClueFromData(d); });
 
 socket.on('bonus-clue-activated', function() {
-  var bcLabel = label('bonusClue') || 'BONUS CLUE';
-  var parts = bcLabel.split(' ');
-  // Check for bonus clue flip image
   var bcImg = st && st.config && st.config.assets && st.config.assets.bonusClueImage;
-  var flipCard = document.getElementById('dd-flip-card');
-  var ddWrap = document.getElementById('dd-wrap');
-  if (bcImg && flipCard) {
-    var front = document.getElementById('dd-flip-front');
-    if (front) front.style.backgroundImage = 'url(img/bonus-clue.' + bcImg + ')';
-    var t1 = document.querySelector('#dd-flip-back .dd-title');
-    var t2 = document.querySelector('#dd-flip-back .dd-title.sub');
-    if (t1) t1.textContent = parts[0] || 'BONUS';
-    if (t2) t2.textContent = parts.slice(1).join(' ') || 'CLUE!';
-    flipCard.classList.remove('flipped');
-    flipCard.classList.remove('hidden');
-    if (ddWrap) ddWrap.classList.add('hidden');
-    // Auto-flip after 1.5s
-    if (window._bcFlipTimer) clearTimeout(window._bcFlipTimer);
-    window._bcFlipTimer = setTimeout(function() {
-      var fc = document.getElementById('dd-flip-card');
-      if (fc && !fc.classList.contains('hidden')) fc.classList.add('flipped');
-    }, 1500);
-  } else {
-    if (flipCard) flipCard.classList.add('hidden');
-    if (ddWrap) ddWrap.classList.remove('hidden');
-    var t1 = document.querySelector('#dd-wrap .dd-title');
-    var t2 = document.querySelector('#dd-wrap .dd-title.sub');
-    if (t1) t1.textContent = parts[0] || 'BONUS';
-    if (t2) t2.textContent = parts.slice(1).join(' ') || 'CLUE!';
+  var imgEl = document.getElementById('dd-image-inner');
+  var ddImg = document.getElementById('dd-image');
+  var ddWager = document.getElementById('dd-wager-screen');
+  if (bcImg && imgEl) {
+    imgEl.style.background = '';
+    imgEl.style.backgroundImage = 'url(img/bonus-clue.' + bcImg + ')';
+  } else if (imgEl) {
+    imgEl.style.background = 'radial-gradient(ellipse at 50% 45%, #0a10a0 0%, #060ce9 60%)';
+    imgEl.style.backgroundImage = '';
   }
+  if (ddImg) ddImg.classList.remove('hidden');
+  if (ddWager) ddWager.classList.add('hidden');
+  if (window._bcTimer) clearTimeout(window._bcTimer);
+  window._bcTimer = setTimeout(function() {
+    if (ddImg) ddImg.classList.add('hidden');
+    if (ddWager) ddWager.classList.remove('hidden');
+  }, 4000);
   show('dd');
   playBonusClue();
 });
 
 socket.on('bonus-clue-shown', function(d) {
+  if (window._bcTimer) { clearTimeout(window._bcTimer); window._bcTimer = null; }
   stopIntroAudio();
   show('clue');
   document.getElementById('clue-cat').textContent = d.category || '';
@@ -616,21 +619,16 @@ socket.on('bonus-clue-shown', function(d) {
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
   document.getElementById('clue-timer-fill').classList.remove('warning');
+  var track = document.getElementById('clue-timer-track');
+  if (track) track.classList.add('active');
   updateScores(st ? st.players : []);
 });
 
 socket.on('timer-tick', function(d) { setTimer(d.remaining); });
 
 socket.on('times-up', function() {
-  var ao = document.getElementById('answer-overlay');
-  if (ao && ao.className) return;
   play('timesup');
   setTimer(0);
-  var tu = document.getElementById('times-up-overlay');
-  if (tu) {
-    tu.classList.remove('hidden');
-    setTimeout(function() { tu.classList.add('hidden'); }, 3000);
-  }
 });
 
 socket.on('answer-revealed', function(d) {
@@ -647,6 +645,8 @@ socket.on('answer-hidden', function() {
 socket.on('board-return', function(d) {
   show('board');
   setPromo();
+  var track = document.getElementById('clue-timer-track');
+  if (track) track.classList.remove('active');
   if (st) {
     st.revealedCells = d.revealedCells;
     st.phase = d.phase;
@@ -872,6 +872,8 @@ socket.on('championship-clue-shown', function(d) {
   if (st) st.championshipPhase = 'showing';
 });
 
+var handFonts = ['Caveat', 'Indie Flower', 'Patrick Hand', 'Shadows Into Light', 'Kalam'];
+
 socket.on('championship-reveal-begin', function(d) {
   show('championship');
   document.getElementById('championship-hdr').textContent = label('championshipHdr') || 'CHAMPIONSHIP';
@@ -881,31 +883,50 @@ socket.on('championship-reveal-begin', function(d) {
   document.getElementById('championship-ans').classList.add('hidden');
   document.getElementById('championship-results').innerHTML = '';
   document.getElementById('championship-reveal-player').classList.remove('hidden');
-  document.getElementById('cr-result').classList.add('hidden');
   document.getElementById('cr-player-name').textContent = d.name || '';
-  document.getElementById('cr-player-answer').textContent = d.answer || '';
+  document.getElementById('cr-player-answer').classList.add('hidden');
+  document.getElementById('cr-wager').classList.add('hidden');
+  document.getElementById('cr-result').classList.add('hidden');
 });
 
 socket.on('championship-reveal-step', function(d) {
-  if (d.type === 'answer') {
-    document.getElementById('cr-result').classList.add('hidden');
+  if (d.type === 'name') {
     document.getElementById('cr-player-name').textContent = d.name || '';
-    document.getElementById('cr-player-answer').textContent = d.answer || '';
+    document.getElementById('cr-player-answer').classList.add('hidden');
+    document.getElementById('cr-wager').classList.add('hidden');
+    document.getElementById('cr-result').classList.add('hidden');
+  } else if (d.type === 'answer') {
+    document.getElementById('cr-player-name').textContent = d.name || '';
+    var ansEl = document.getElementById('cr-player-answer');
+    ansEl.textContent = d.answer || '';
+    ansEl.style.fontFamily = handFonts[(d.playerIndex || 0) % handFonts.length];
+    ansEl.classList.remove('hidden');
+    document.getElementById('cr-wager').classList.add('hidden');
+    document.getElementById('cr-result').classList.add('hidden');
   } else if (d.type === 'result') {
-    var resultEl = document.getElementById('cr-result-text');
+    document.getElementById('cr-player-name').textContent = d.name || '';
+    var ansEl = document.getElementById('cr-player-answer');
+    if (ansEl.textContent) {
+      ansEl.style.fontFamily = handFonts[(d.playerIndex || 0) % handFonts.length];
+    }
+    var wagerEl = document.getElementById('cr-wager');
+    wagerEl.querySelector('.cr-wager-val').textContent = fmt(d.wager);
+    wagerEl.classList.remove('hidden');
+    var corrEl = document.getElementById('cr-wager-correct');
+    if (d.correct) {
+      corrEl.textContent = 'CORRECT!';
+      corrEl.className = 'cr-wager-correction correct';
+    } else {
+      corrEl.textContent = 'WRONG';
+      corrEl.className = 'cr-wager-correction incorrect';
+    }
     var changeEl = document.getElementById('cr-score-change');
     if (d.correct) {
-      resultEl.textContent = 'CORRECT!';
-      resultEl.className = 'correct';
       changeEl.textContent = '+' + fmt(d.wager);
       changeEl.className = 'positive';
-      play('correct');
     } else {
-      resultEl.textContent = 'INCORRECT';
-      resultEl.className = 'incorrect';
       changeEl.textContent = '-' + fmt(d.wager);
       changeEl.className = 'negative';
-      play('incorrect');
     }
     document.getElementById('cr-result').classList.remove('hidden');
   }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Broadcast View</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;600;700&family=Caveat:wght@400;700&family=Indie+Flower&family=Patrick+Hand&family=Shadows+Into+Light&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/broadcast.css">
 </head>
 <body>
@@ -42,6 +42,10 @@
     <div id="board-scores"></div>
   </div>
 
+  <div id="clue-timer-track">
+    <div id="clue-timer-fill"></div>
+  </div>
+
   <div id="phase-clue" class="phase hidden">
     <div id="clue-wrap">
       <div id="clue-top">
@@ -50,9 +54,6 @@
       </div>
       <div id="clue-text"></div>
       <div id="clue-ans" class="hidden"></div>
-      <div id="clue-timer-track">
-        <div id="clue-timer-fill"></div>
-      </div>
     </div>
     <div id="clue-scores"></div>
   </div>
@@ -67,20 +68,12 @@
 
   <div id="phase-dd" class="phase hidden">
     <div id="dd-bg"></div>
-    <div id="dd-flip-card" class="hidden">
-      <div id="dd-flip-inner">
-        <div id="dd-flip-front"></div>
-        <div id="dd-flip-back">
-          <div class="dd-title">BONUS</div>
-          <div class="dd-title sub">CLUE!</div>
-        </div>
-      </div>
+    <div id="dd-image" class="hidden">
+      <div id="dd-image-inner"></div>
     </div>
-    <div id="dd-wrap">
-      <div class="dd-star left">★</div>
-      <div class="dd-star right">★</div>
-        <div class="dd-title">BONUS</div>
-        <div class="dd-title sub">CLUE!</div>
+    <div id="dd-wager-screen" class="hidden">
+      <div class="dd-title">SUBMIT WAGER</div>
+      <div class="dd-title sub">TO HOST</div>
     </div>
   </div>
 
@@ -93,14 +86,19 @@
         <div class="champ-wager-title">CHAMPIONSHIP</div>
         <div class="champ-wager-subject"></div>
         <div class="champ-wager-prompt">Write your wager now</div>
+        <div class="champ-wager-warning">Must be written as a question, not just the answer</div>
       </div>
       <div id="championship-text"></div>
       <div id="championship-ans" class="hidden"></div>
       <div id="championship-reveal-player" class="hidden">
         <div id="cr-player-name"></div>
-        <div id="cr-player-answer"></div>
+        <div id="cr-player-answer" class="hidden"></div>
+        <div id="cr-wager" class="hidden">
+          <span class="cr-wager-label">wager</span>
+          <span class="cr-wager-val"></span>
+          <span class="cr-wager-correction" id="cr-wager-correct"></span>
+        </div>
         <div id="cr-result" class="hidden">
-          <div id="cr-result-text"></div>
           <div id="cr-score-change"></div>
         </div>
       </div>
@@ -141,9 +139,6 @@
 
   <div id="phase-overlay"></div>
 
-  <div id="times-up-overlay" class="hidden">
-    <div id="times-up-text">TIME'S UP!</div>
-  </div>
 
   <div id="score-ticker-wrap">
     <div id="score-ticker"></div>
