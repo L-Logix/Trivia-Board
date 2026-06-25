@@ -6,16 +6,20 @@ var priceCoverVisible = true;
 var ansOverlayTimer = null;
 var videoEls = {};
 
+// Map audio key -> config asset key for config gating
+var audioAssetMap = {
+  intro:'hostIntro', introaudio:'introAudio', timesup:'timesUp', dd:'bonusClue',
+  think:'championshipThink', bgmusic:'backgroundMusic', applause:'applause',
+  boardfill:'boardFill', correct:'correct', incorrect:'incorrect', outro:'outro'
+};
+function isAudioConfigured(k) {
+  if (!st || !st.config || !st.config.assets) return false;
+  var assetKey = audioAssetMap[k];
+  return assetKey && st.config.assets[assetKey] === true;
+}
+
 function initSfx() {
   try { sfxCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
-  // Pre-decode audio for zero-latency playback
-  ['boardfill', 'dd'].forEach(function(k) {
-    if (sfxCtx && audio[k] && audio[k].src) {
-      fetch(audio[k].src).then(function(r) { return r.arrayBuffer(); }).then(function(buf) {
-        sfxCtx.decodeAudioData(buf, function(b) { decodedBuffers[k] = b; }, function(){});
-      }).catch(function(){});
-    }
-  });
 }
 function playTone(freq, dur, type, vol) {
   if (!sfxCtx) return;
@@ -65,7 +69,6 @@ function initAudio() {
 }
 
 var bgOrigVolume = 0.15;
-var decodedBuffers = {};
 var bgDuckTimer = null;
 var bgUnduckTimer = null;
 
@@ -118,26 +121,8 @@ function unduckBgMusic() {
 }
 
 function play(k) {
-  // Use decoded AudioBuffer for zero-latency playback when available
-  if (decodedBuffers[k] && sfxCtx) {
-    var src = sfxCtx.createBufferSource();
-    src.buffer = decodedBuffers[k];
-    var gain = sfxCtx.createGain();
-    var el = audio[k];
-    gain.gain.value = el && el.volume !== undefined ? el.volume : 1;
-    src.connect(gain); gain.connect(sfxCtx.destination);
-    src.start();
-    if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
-      duckBgMusic();
-      if (bgUnduckTimer) clearTimeout(bgUnduckTimer);
-      var dur = (decodedBuffers[k].duration * 1000 || 2000) + 500;
-      bgUnduckTimer = setTimeout(function() {
-        bgUnduckTimer = null;
-        unduckBgMusic();
-      }, dur);
-    }
-    return;
-  }
+  stopAll();
+  if (!isAudioConfigured(k)) return;
   var el = audio[k];
   if (el) {
     if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
@@ -159,6 +144,12 @@ function stop(k) {
     el.pause();
     el.currentTime = 0;
   }
+}
+function stopAll() {
+  Object.keys(audio).forEach(function(k) {
+    if (k === 'bgmusic') return;
+    stop(k);
+  });
 }
 function fadeOutAudio(k, duration, cb) {
   duration = duration || 5000;
@@ -521,9 +512,10 @@ function showAnswerOverlay(correct, noAutoReturn) {
 document.getElementById('init-overlay').addEventListener('click', function() {
   initSfx();
   if (hasLogo()) setLogo(document.getElementById('init-logo'));
-  // Warm up all audio elements to eliminate first-play latency
+  // Warm up all configured audio elements to eliminate first-play latency
   if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
   Object.keys(audio).forEach(function(k) {
+    if (!isAudioConfigured(k)) return;
     var el = audio[k];
     if (el) { el.muted = true; el.play().then(function() { el.pause(); el.muted = false; }).catch(function() {}); }
   });
