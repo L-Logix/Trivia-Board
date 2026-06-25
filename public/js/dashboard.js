@@ -417,7 +417,7 @@ socket.on('sync-state',function(state){
   renderPlayers(state.players);
   setPhase(state.phase);setRound(state.currentRound);
   switch(state.phase){
-    case'clue':side('card-clue');side('card-correct');document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-unpause').classList.add('hidden');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];var suffix=state.currentRound===2?(label('round2Suffix')||' (2X)'):'';info.textContent=cell.category+' - $'+cell.value + suffix}break;
+    case'clue':side('card-clue');side('card-correct');document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-unpause').classList.add('hidden');document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden');var info=document.getElementById('clue-info');if(state.currentClue){var cell=state.board[state.currentClue.col][state.currentClue.row];var suffix=state.currentRound===2?(label('round2Suffix')||' (2X)'):'';info.textContent=cell.category+' - $'+cell.value + suffix}break;
     case'bonus-clue':
       side('card-bonus');
       var sel = document.getElementById('bc-player');
@@ -475,7 +475,7 @@ socket.on('clue-opened',function(d){
     side('card-bonus');
   } else {   side('card-clue');
   side('card-correct');
-  document.getElementById('btn-done-reading').classList.add('hidden'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); document.getElementById('btn-done-reading').classList.remove('hidden'); document.getElementById('btn-unpause').classList.add('hidden'); }
+  document.getElementById('btn-done-reading').classList.add('hidden'); document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0); document.getElementById('btn-done-reading').classList.remove('hidden'); document.getElementById('btn-unpause').classList.add('hidden'); document.getElementById('btn-buzz').classList.add('hidden'); document.getElementById('btn-unbuzz').classList.add('hidden'); }
   updateMirror(d); mirrorAnswer(d.answer);
 });
 socket.on('bonus-clue-shown', function(d) {
@@ -487,6 +487,7 @@ socket.on('bonus-clue-shown', function(d) {
   document.getElementById('clue-info').textContent = (d.category || '') + ' - ' + (label('bonusClue') || 'BONUS CLUE');
   document.getElementById('btn-done-reading').classList.remove('hidden');
   document.getElementById('btn-unpause').classList.add('hidden');
+  document.getElementById('btn-buzz').classList.add('hidden'); document.getElementById('btn-unbuzz').classList.add('hidden');
   updateMirror(d); mirrorAnswer(null);
 });
 socket.on('bonus-clue-activated',function(){
