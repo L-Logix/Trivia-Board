@@ -122,7 +122,10 @@ function play(k) {
   if (decodedBuffers[k] && sfxCtx) {
     var src = sfxCtx.createBufferSource();
     src.buffer = decodedBuffers[k];
-    src.connect(sfxCtx.destination);
+    var gain = sfxCtx.createGain();
+    var el = audio[k];
+    gain.gain.value = el && el.volume !== undefined ? el.volume : 1;
+    src.connect(gain); gain.connect(sfxCtx.destination);
     src.start();
     if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
       duckBgMusic();
@@ -519,9 +522,10 @@ document.getElementById('init-overlay').addEventListener('click', function() {
   initSfx();
   if (hasLogo()) setLogo(document.getElementById('init-logo'));
   // Warm up all audio elements to eliminate first-play latency
+  if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
   Object.keys(audio).forEach(function(k) {
     var el = audio[k];
-    if (el) { el.volume = 0; el.play().then(function() { el.pause(); el.volume = 1; }).catch(function() {}); }
+    if (el) { el.muted = true; el.play().then(function() { el.pause(); el.muted = false; }).catch(function() {}); }
   });
   this.style.opacity = '0';
   var self = this;

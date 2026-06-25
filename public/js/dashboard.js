@@ -4,6 +4,8 @@ var boardPopulated = false;
 
 document.addEventListener('keydown',function(e){
   if (e.code==='Space') { e.preventDefault(); if (st&&st.phase==='idle') socket.emit('start-intro'); }
+  if ((e.code==='KeyB'||e.code==='Space') && st&&st.phase==='clue') { e.preventDefault(); var buzz=document.getElementById('btn-buzz'); if (!buzz.classList.contains('hidden')) buzz.click(); }
+  if (e.code==='KeyU' && st&&st.phase==='clue') { e.preventDefault(); var ub=document.getElementById('btn-unbuzz'); if (!ub.classList.contains('hidden')) ub.click(); }
 });
 
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -341,6 +343,16 @@ document.getElementById('btn-unpause').addEventListener('click',function(){
   socket.emit('timer-unpause');
   this.classList.add('hidden');
 });
+document.getElementById('btn-buzz').addEventListener('click',function(){
+  socket.emit('pause-timer');
+  this.classList.add('hidden');
+  document.getElementById('btn-unbuzz').classList.remove('hidden');
+});
+document.getElementById('btn-unbuzz').addEventListener('click',function(){
+  socket.emit('resume-timer');
+  this.classList.add('hidden');
+  document.getElementById('btn-buzz').classList.remove('hidden');
+});
 document.getElementById('walkthrough-start').addEventListener('click',function(){
   document.getElementById('modal-walkthrough').classList.add('hidden');
   localStorage.setItem('dash-walkthrough-seen','1');
@@ -497,22 +509,36 @@ socket.on('bonus-clue-activated',function(){
   }
   side('card-bonus');
 });
-socket.on('timer-tick',function(d){setTimer(d.remaining)});
-socket.on('times-up',function(){setTimer(0);document.getElementById('btn-show-answer').classList.remove('hidden');document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-unpause').classList.add('hidden')});
+socket.on('timer-tick',function(d){
+  setTimer(d.remaining);
+  if (d.running) {
+    document.getElementById('btn-buzz').classList.remove('hidden');
+    document.getElementById('btn-unbuzz').classList.add('hidden');
+  } else {
+    document.getElementById('btn-buzz').classList.add('hidden');
+  }
+});
+socket.on('times-up',function(){
+  setTimer(0);document.getElementById('btn-show-answer').classList.remove('hidden');document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-unpause').classList.add('hidden');
+  document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden');
+});
 socket.on('timer-paused', function(d) {
   setTimer(d.remaining);
   document.getElementById('btn-unpause').classList.remove('hidden');
   document.getElementById('btn-show-answer').classList.remove('hidden');
+  document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.remove('hidden');
 });
 socket.on('timer-resumed', function(d) {
   setTimer(d.remaining);
   document.getElementById('btn-unpause').classList.add('hidden');
+  document.getElementById('btn-buzz').classList.remove('hidden');document.getElementById('btn-unbuzz').classList.add('hidden');
 });
 socket.on('outro', function() {
   setTimer(0);
   document.getElementById('btn-show-answer').classList.add('hidden');
   document.getElementById('btn-done-reading').classList.add('hidden');
   document.getElementById('btn-unpause').classList.add('hidden');
+  document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden');
 });
 socket.on('buzz-result',function(d){document.querySelectorAll('.p-panel').forEach(function(p){p.classList.remove('buzz')});if(d.success){var el=document.querySelector('.p-panel[data-index="'+d.playerIndex+'"]');if(el)el.classList.add('buzz')}});
 socket.on('score-updated',function(d){

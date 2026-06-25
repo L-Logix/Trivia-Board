@@ -359,8 +359,6 @@ function setup(ioInstance, config) {
       gameState.championshipPhase = 'revealing';
       io.emit('championship-reveal-begin', { totalSteps: steps.length, currentStep: 0, ...steps[0] });
     });
-      io.emit('championship-reveal-begin', { totalSteps: steps.length, currentStep: 0, ...steps[0] });
-    });
 
     socket.on('next-reveal-step', () => {
       const seq = gameState.revealSequence;
