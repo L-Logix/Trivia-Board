@@ -8,7 +8,7 @@ class GameState {
     this.revealedCells = {};
     this.usedBonusClues = { round1: [], round2: [] };
     this.board = [];
-    this.timer = { remaining: 0, running: false, interval: null };
+    this.timer = { remaining: 0, running: false, paused: false, interval: null, token: 0 };
     this.championshipWagers = {};
     this.championshipAnswers = {};
     this.championshipPhase = null;
@@ -113,7 +113,7 @@ class GameState {
   selectClue(col, row) {
     const cell = this.getCell(col, row);
     if (!cell || cell.revealed) return null;
-    this.currentClue = { col, row };
+    this.currentClue = { col, row, incorrectPlayers: [], answered: false };
     this.phase = cell.isBonusClue ? 'bonus-clue' : 'clue';
     return cell;
   }
@@ -127,9 +127,13 @@ class GameState {
   }
 
   startTimer(onTimesUp, onTick) {
+    this.stopTimer();
     this.timer.remaining = this.config.timerSeconds;
     this.timer.running = true;
+    this.timer.paused = false;
+    const token = ++this.timer.token;
     this.timer.interval = setInterval(() => {
+      if (token !== this.timer.token) return;
       this.timer.remaining -= 0.1;
       if (this.timer.remaining <= 0) {
         this.timer.remaining = 0;
@@ -143,6 +147,8 @@ class GameState {
 
   stopTimer() {
     this.timer.running = false;
+    this.timer.paused = false;
+    this.timer.token++;
     if (this.timer.interval) {
       clearInterval(this.timer.interval);
       this.timer.interval = null;
@@ -151,6 +157,9 @@ class GameState {
 
   pauseTimer() {
     // Stop the interval but preserve remaining time for resume
+    this.timer.running = false;
+    this.timer.paused = this.timer.remaining > 0;
+    this.timer.token++;
     if (this.timer.interval) {
       clearInterval(this.timer.interval);
       this.timer.interval = null;
@@ -159,8 +168,15 @@ class GameState {
 
   resumeTimer(onTimesUp, onTick) {
     if (this.timer.remaining <= 0) return;
+    if (this.timer.interval) {
+      clearInterval(this.timer.interval);
+      this.timer.interval = null;
+    }
     this.timer.running = true;
+    this.timer.paused = false;
+    const token = ++this.timer.token;
     this.timer.interval = setInterval(() => {
+      if (token !== this.timer.token) return;
       this.timer.remaining -= 0.1;
       if (this.timer.remaining <= 0) {
         this.timer.remaining = 0;
@@ -173,9 +189,12 @@ class GameState {
   }
 
   adjustScore(playerIndex, delta) {
-    if (playerIndex < 0 || playerIndex >= this.players.length) return null;
-    this.players[playerIndex].score += delta;
-    return this.players[playerIndex].score;
+    const idx = parseInt(playerIndex, 10);
+    const amount = Number(delta);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= this.players.length) return null;
+    if (!Number.isFinite(amount)) return null;
+    this.players[idx].score += amount;
+    return this.players[idx].score;
   }
 
   setWager(playerIndex, amount) {
@@ -183,8 +202,10 @@ class GameState {
   }
 
   setBonusClueWager(playerIndex, amount) {
-    this.bonusCluePlayerIndex = playerIndex;
-    this.bonusClueWager = amount;
+    const idx = parseInt(playerIndex, 10);
+    const wager = Number(amount);
+    this.bonusCluePlayerIndex = Number.isInteger(idx) && idx >= 0 && idx < this.players.length ? idx : null;
+    this.bonusClueWager = Number.isFinite(wager) && wager > 0 ? wager : 0;
   }
 
   getBonusClueWager() {
@@ -523,7 +544,7 @@ class GameState {
         col: cell.col,
         row: cell.row
       }))),
-      timer: { remaining: this.timer.remaining, running: this.timer.running },
+      timer: { remaining: this.timer.remaining, running: this.timer.running, paused: this.timer.paused },
       championshipPhase: this.championshipPhase,
       championshipWagers: { ...this.championshipWagers },
       championshipAnswers: { ...this.championshipAnswers },

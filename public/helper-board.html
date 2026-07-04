@@ -9,33 +9,42 @@
     html,body{width:100%;min-height:100%;background:#0d0d1a;color:#ddd;font-family:'Segoe UI',Arial,sans-serif}
     h1{font-size:1.2rem;color:#ffcc00;letter-spacing:2px;text-align:center;padding:10px;background:#141428;border-bottom:2px solid #2a2a4a;text-transform:uppercase}
     #wrap{display:flex;gap:12px;padding:12px;max-width:900px;margin:0 auto}
-    #controls{width:240px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+    #controls{width:220px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
     .card{background:#141428;border-radius:6px;padding:12px;border:1px solid #2a2a4a}
     .card-lbl{font-size:.55rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
-    .btn{padding:7px 12px;border:none;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:1px;width:100%;margin-bottom:4px}
+    .btn{padding:7px 12px;border:none;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:1px;width:100%;margin-bottom:4px;display:block}
+    .btn:last-child{margin-bottom:0}
     .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
     .btn-gold{background:linear-gradient(180deg,#ffcc00,#d4a800);color:#1a1a2e}
     .btn-blue{background:linear-gradient(180deg,#4a90d9,#3570b0);color:#fff}
     .btn-red{background:linear-gradient(180deg,#d94a4a,#b03030);color:#fff}
     .btn-ghost{background:transparent;color:#999;border:1px solid #3a3a5e}
+    .btn-green{background:linear-gradient(180deg,#2ecc40,#1e9a30);color:#fff}
+    .btn-orange{background:linear-gradient(180deg,#e69900,#b37700);color:#fff}
     #grid{flex:1;display:grid;gap:2px}
-    .cell{background:#1a1a3a;border-radius:2px;display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#ffcc00;border:2px solid transparent;min-height:36px;text-align:center}
+    .cell{background:#1a1a3a;border-radius:2px;display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer;font-size:.7rem;font-weight:700;color:#ffcc00;border:2px solid transparent;min-height:36px;text-align:center;position:relative}
     .cell:hover{background:#2a2a5a;border-color:#4a90d9}
     .cell.revealed{background:rgba(255,255,255,.04);opacity:.4}
     .cell.bonus{border-color:#ffcc00}
+    .cell .bc-badge{position:absolute;top:2px;right:2px;font-size:.4rem;color:#ffcc00;background:rgba(255,204,0,.15);padding:1px 3px;border-radius:2px}
     .hidden{display:none!important}
     #cats{display:grid;gap:2px;margin-bottom:4px}
     .cat{background:#1a1a3a;color:#fff;font-size:.55rem;font-weight:700;text-transform:uppercase;display:flex;align-items:center;justify-content:center;padding:3px;border-radius:2px;letter-spacing:1px;text-align:center}
+    #phase-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.6rem;font-weight:700;text-transform:uppercase;background:#2a2a4a;color:#888;text-align:center;margin:8px auto;display:table}
+    #clue-info{font-size:.6rem;color:rgba(255,255,255,.4);text-align:center;margin-bottom:4px;word-wrap:break-word}
+    .cell-edit{width:100%;background:#0a0a2e;border:2px solid #4a90d9;color:#ffcc00;font-size:.8rem;font-weight:900;text-align:center;padding:2px;outline:none;border-radius:2px;box-sizing:border-box}
   </style>
 </head>
 <body>
   <h1>BOARD HELPER</h1>
+  <div id="phase-badge">WAITING...</div>
   <div id="wrap">
     <div id="controls">
       <div class="card">
         <div class="card-lbl">BOARD</div>
         <button class="btn btn-blue" id="btn-reveal-categories">REVEAL CATEGORIES</button>
         <button class="btn btn-gold" id="btn-populate-board">POPULATE BOARD</button>
+        <button class="btn btn-ghost" id="btn-hide-cat-reveal">DONE CATEGORIES</button>
       </div>
       <div class="card">
         <div class="card-lbl">GAME</div>
@@ -45,7 +54,9 @@
       </div>
       <div class="card">
         <div class="card-lbl">CLUE</div>
-        <button class="btn btn-gold" id="btn-reveal">REVEAL ANSWER</button>
+        <div id="clue-info"></div>
+        <button class="btn btn-gold hidden" id="btn-done-reading">DONE READING</button>
+        <button class="btn btn-green" id="btn-reveal">SHOW ANSWER</button>
         <button class="btn btn-blue" id="btn-board">RETURN TO BOARD</button>
       </div>
       <div class="card">
@@ -63,13 +74,23 @@
   <script src="js/socket-client.js"></script>
   <script>
     var st=null;
-    socket.on('sync-state',function(s){st=s;render(s.board,s.config.categories);document.querySelectorAll('.card .card-lbl').forEach(function(){})});
-    socket.on('board-shown',function(d){if(st){st.phase='board';st.board=d.board;st.players=d.players}render(d.board,d.categories)});
-    socket.on('round2-started',function(d){if(st){st.board=d.board;st.currentRound=2}render(d.board,d.categories||[])});
-    socket.on('board-return',function(d){if(st){st.board=d.board;st.phase='board'}render(st.board,st.config.categories)});
+    socket.on('sync-state',function(s){
+      st=s;render(s.board,s.config.categories);document.getElementById('phase-badge').textContent=s.phase.toUpperCase();
+      if(s.phase==='clue'&&(!s.timer||(!s.timer.running&&!s.timer.paused)))document.getElementById('btn-done-reading').classList.remove('hidden');
+      else document.getElementById('btn-done-reading').classList.add('hidden');
+    });
+    socket.on('board-shown',function(d){if(st){st.phase='board';st.board=d.board;st.players=d.players}render(d.board,d.categories);document.getElementById('phase-badge').textContent='BOARD'});
+    socket.on('round2-started',function(d){if(st){st.board=d.board;st.currentRound=2}render(d.board,d.categories||[]);document.getElementById('phase-badge').textContent='ROUND 2'});
+    socket.on('board-return',function(d){if(st){st.phase='board'}render(st.board,st.config.categories);document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('phase-badge').textContent='BOARD'});
     socket.on('clue-rehidden',function(d){if(st){st.board=d.board}render(d.board,st?st.config.categories:[])});
     socket.on('cell-value-set',function(d){if(st){st.board=d.board}render(d.board,st?st.config.categories:[])});
-    socket.on('game-reset',function(s){st=s;render(s.board,s.config.categories)});
+    socket.on('game-reset',function(s){st=s;render(s.board,s.config.categories);document.getElementById('phase-badge').textContent=s.phase.toUpperCase()});
+    socket.on('clue-opened',function(d){if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase}document.getElementById('clue-info').textContent=(d.category||'')+' - $'+(d.value||0)+(d.isBonusClue?' - DD':'');if(d.phase==='clue')document.getElementById('btn-done-reading').classList.remove('hidden');else document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('phase-badge').textContent=d.phase==='bonus-clue'?'BONUS CLUE':'CLUE'});
+    socket.on('bonus-clue-shown',function(d){if(st){st.phase='clue'}document.getElementById('clue-info').textContent=(d.category||'')+' - BONUS CLUE';document.getElementById('btn-done-reading').classList.remove('hidden')});
+    socket.on('timer-tick',function(d){if(d.running)document.getElementById('btn-done-reading').classList.add('hidden')});
+    socket.on('timer-paused',function(){document.getElementById('btn-done-reading').classList.add('hidden')});
+    socket.on('timer-resumed',function(){document.getElementById('btn-done-reading').classList.add('hidden')});
+    socket.on('times-up',function(){document.getElementById('btn-done-reading').classList.add('hidden')});
 
     function render(board,cats){
       if(!board||!board.length)return;
@@ -80,9 +101,38 @@
       for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){
         var cell=board[c][r];
         var d=document.createElement('div');
-        d.className='cell'+(cell.revealed?' revealed':'')+(cell.isBonusClue?' bonus':'');
-        d.textContent=cell.revealed?'':'$'+cell.value;
-        if(!cell.revealed)d.addEventListener('click',function(c2,r2){return function(){socket.emit('select-clue',{col:c2,row:r2})}}(c,r));
+        var cls = 'cell';
+        if (cell.revealed) cls += ' revealed';
+        if (cell.isBonusClue) cls += ' bonus';
+        d.className = cls;
+        if (!cell.revealed) {
+          d.textContent = '$' + cell.value;
+          if (cell.isBonusClue) {
+            var badge = document.createElement('span');
+            badge.className = 'bc-badge';
+            badge.textContent = 'DD';
+            d.appendChild(badge);
+          }
+        }
+        var colIdx=c, rowIdx=r;
+        if (!cell.revealed) {
+          d.addEventListener('click',function(c2,r2){return function(){socket.emit('select-clue',{col:c2,row:r2})}}(colIdx,rowIdx));
+          d.addEventListener('contextmenu',function(c2,r2){return function(e){
+            e.preventDefault();
+            socket.emit('toggle-bonus-clue',{col:c2,row:r2});
+          }}(colIdx,rowIdx));
+          d.addEventListener('dblclick',function(c2,r2){return function(e){
+            e.preventDefault();e.stopPropagation();
+            var inp=document.createElement('input');
+            inp.type='text';inp.className='cell-edit';
+            var txt=d.textContent.replace('$','');
+            inp.value=txt;
+            d.textContent='';d.appendChild(inp);inp.focus();inp.select();
+            function save(){var v=parseInt(inp.value);if(!isNaN(v)&&v>0){socket.emit('set-cell-value',{col:c2,row:r2,value:v})}d.textContent='$'+txt;d.removeChild(inp)}
+            inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();save()};if(ev.key==='Escape'){ev.preventDefault();d.textContent='$'+txt;d.removeChild(inp)}});
+            inp.addEventListener('blur',save);
+          }}(colIdx,rowIdx));
+        }
         g.appendChild(d);
       }
     }
@@ -91,10 +141,12 @@
     document.getElementById('btn-r2').addEventListener('click',function(){socket.emit('advance-round2')});
     document.getElementById('btn-championship').addEventListener('click',function(){socket.emit('advance-championship')});
     document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
+    document.getElementById('btn-done-reading').addEventListener('click',function(){socket.emit('done-reading');this.classList.add('hidden')});
     document.getElementById('btn-board').addEventListener('click',function(){if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row})});
     document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
-    document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-category', { index: 0 })});
+    document.getElementById('btn-reveal-categories').addEventListener('click',function(){socket.emit('reveal-categories')});
     document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
+    document.getElementById('btn-hide-cat-reveal').addEventListener('click',function(){socket.emit('hide-category-reveal')});
   </script>
 </body>
 </html>

@@ -7,7 +7,9 @@
   },
   "scripts": {
     "start": "node bin/trivia.js start",
-    "setup": "node bin/trivia.js setup"
+    "setup": "node bin/trivia.js setup",
+    "verify:done-reading": "node scripts/verify-done-reading-audio.js",
+    "stress": "node scripts/stress-test.js"
   },
   "dependencies": {
     "chalk": "^4.1.2",

@@ -10,6 +10,535 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const CONFIG_PATH = path.join(ROOT, 'config.json');
 const TEMPLATE_PATH = path.join(ROOT, 'trivia-template.csv');
 
+const ASSET_DEFS = {
+  logo: { dir: ['public', 'img'], basename: 'logo', defaultExt: 'svg', value: 'ext', label: 'logo' },
+  categoryCover: { dir: ['public', 'img'], basename: 'cat-cover', defaultExt: 'png', value: 'ext', label: 'price cover' },
+  introVideo: { dir: ['public', 'video'], filename: 'intro.mp4', value: true, label: 'intro video' },
+  introAudio: { dir: ['public', 'audio'], filename: 'intro-audio.mp3', value: true, label: 'intro video music' },
+  bonusClueImage: { dir: ['public', 'img'], basename: 'bonus-clue', defaultExt: 'png', value: 'ext', label: 'bonus clue image' },
+  promoImage: { dir: ['public', 'img'], basename: 'promo', defaultExt: 'png', value: 'ext', label: 'promo image' },
+  hostIntro: { dir: ['public', 'audio'], filename: 'host-intro.mp3', value: true, label: 'host intro audio' },
+  timesUp: { dir: ['public', 'audio'], filename: 'times-up.mp3', value: true, label: 'time up audio' },
+  bonusClue: { dir: ['public', 'audio'], filename: 'daily-double.mp3', value: true, label: 'bonus clue audio' },
+  championshipThink: { dir: ['public', 'audio'], filename: 'final-think.mp3', value: true, label: 'championship think music' },
+  applause: { dir: ['public', 'audio'], filename: 'applause.mp3', value: true, label: 'applause audio' },
+  boardFill: { dir: ['public', 'audio'], filename: 'board-fill.mp3', value: true, label: 'board fill audio' },
+  correct: { dir: ['public', 'audio'], filename: 'correct.mp3', value: true, label: 'correct answer audio' },
+  incorrect: { dir: ['public', 'audio'], filename: 'incorrect.mp3', value: true, label: 'incorrect answer audio' },
+  outro: { dir: ['public', 'audio'], filename: 'outro.mp3', value: true, label: 'outro audio' },
+  backgroundMusic: { dir: ['public', 'audio'], filename: 'background.mp3', value: true, label: 'background music' }
+};
+
+const ASSET_KEY_ALIASES = {
+  logo: 'logo',
+  'category-cover': 'categoryCover',
+  'cat-cover': 'categoryCover',
+  'price-cover': 'categoryCover',
+  introvideo: 'introVideo',
+  'intro-video': 'introVideo',
+  introaudio: 'introAudio',
+  'intro-audio': 'introAudio',
+  'intro-music': 'introAudio',
+  'video-music': 'introAudio',
+  bonusimage: 'bonusClueImage',
+  'bonus-image': 'bonusClueImage',
+  bonusclueimage: 'bonusClueImage',
+  'bonus-clue-image': 'bonusClueImage',
+  promoimage: 'promoImage',
+  'promo-image': 'promoImage',
+  hostintro: 'hostIntro',
+  'host-intro': 'hostIntro',
+  timesup: 'timesUp',
+  'times-up': 'timesUp',
+  bonussound: 'bonusClue',
+  'bonus-sound': 'bonusClue',
+  bonuscluesound: 'bonusClue',
+  'bonus-clue-sound': 'bonusClue',
+  dailydouble: 'bonusClue',
+  'daily-double': 'bonusClue',
+  thinkmusic: 'championshipThink',
+  'think-music': 'championshipThink',
+  championshipthink: 'championshipThink',
+  'championship-think': 'championshipThink',
+  finalthink: 'championshipThink',
+  'final-think': 'championshipThink',
+  applause: 'applause',
+  boardfill: 'boardFill',
+  'board-fill': 'boardFill',
+  correct: 'correct',
+  correctsound: 'correct',
+  'correct-sound': 'correct',
+  incorrect: 'incorrect',
+  incorrectsound: 'incorrect',
+  'incorrect-sound': 'incorrect',
+  outro: 'outro',
+  background: 'backgroundMusic',
+  backgroundmusic: 'backgroundMusic',
+  'background-music': 'backgroundMusic',
+  bgmusic: 'backgroundMusic',
+  'bg-music': 'backgroundMusic'
+};
+
+function setupArgs() {
+  var args = process.argv.slice(2);
+  if (args[0] === 'setup') args = args.slice(1);
+  return parseArgs(args);
+}
+
+function parseArgs(args) {
+  const opts = {
+    contentOnly: false,
+    saveSources: true,
+    refreshSavedContent: false,
+    round2SameAsRound1: false,
+    configUpdates: {},
+    labels: {},
+    assetUpdates: {},
+    assetToggles: {},
+    bonusPositions: {},
+    setValues: []
+  };
+
+  function takeValue(i, name) {
+    if (i + 1 >= args.length || args[i + 1].startsWith('--')) {
+      throw new Error(name + ' requires a value');
+    }
+    return args[i + 1];
+  }
+
+  function hasValue(i) {
+    return i + 1 < args.length && !args[i + 1].startsWith('--');
+  }
+
+  function setConfig(key, value) {
+    opts.contentOnly = true;
+    opts.configUpdates[key] = value;
+  }
+
+  function setLabel(key, value) {
+    opts.contentOnly = true;
+    opts.labels[key] = value;
+  }
+
+  function setAsset(key, value) {
+    opts.contentOnly = true;
+    opts.assetUpdates[normalizeAssetKey(key)] = value;
+  }
+
+  function setAssetToggle(key, value) {
+    opts.contentOnly = true;
+    opts.assetToggles[normalizeAssetKey(key)] = value;
+  }
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    switch (arg) {
+      case '-h':
+      case '--help':
+        opts.help = true;
+        break;
+      case '--content':
+      case '--update-content':
+        opts.contentOnly = true;
+        opts.refreshSavedContent = true;
+        break;
+      case '--round1':
+      case '--r1':
+        opts.contentOnly = true;
+        opts.round1 = takeValue(i, arg);
+        i++;
+        break;
+      case '--round2':
+      case '--r2':
+        opts.contentOnly = true;
+        opts.round2 = takeValue(i, arg);
+        i++;
+        break;
+      case '--championship':
+      case '--final':
+        opts.contentOnly = true;
+        opts.championship = takeValue(i, arg);
+        i++;
+        break;
+      case '--players':
+        opts.contentOnly = true;
+        opts.players = takeValue(i, arg);
+        i++;
+        break;
+      case '--columns':
+        setConfig('columns', parseIntegerValue(takeValue(i, arg), arg, 1, 12));
+        i++;
+        break;
+      case '--rows':
+        setConfig('rows', parseIntegerValue(takeValue(i, arg), arg, 1, 12));
+        i++;
+        break;
+      case '--timer':
+      case '--timer-seconds':
+        setConfig('timerSeconds', parseNumberValue(takeValue(i, arg), arg, 0, 3600));
+        i++;
+        break;
+      case '--double-round':
+        if (hasValue(i)) {
+          setConfig('doubleRound', parseBooleanValue(takeValue(i, arg), arg));
+          i++;
+        } else {
+          setConfig('doubleRound', true);
+        }
+        break;
+      case '--single-round':
+      case '--no-double-round':
+        setConfig('doubleRound', false);
+        break;
+      case '--bonus-r1':
+      case '--bonus-clues-r1':
+        setConfig('bonusCluesRound1', parseIntegerValue(takeValue(i, arg), arg, 0, 20));
+        i++;
+        break;
+      case '--bonus-r2':
+      case '--bonus-clues-r2':
+        setConfig('bonusCluesRound2', parseIntegerValue(takeValue(i, arg), arg, 0, 20));
+        i++;
+        break;
+      case '--bonus-positions-r1':
+        opts.contentOnly = true;
+        opts.bonusPositions.round1 = parsePositionList(takeValue(i, arg), arg);
+        i++;
+        break;
+      case '--bonus-positions-r2':
+        opts.contentOnly = true;
+        opts.bonusPositions.round2 = parsePositionList(takeValue(i, arg), arg);
+        i++;
+        break;
+      case '--bonus-method':
+        setConfig('bonusClueMethod', takeValue(i, arg).trim());
+        i++;
+        break;
+      case '--child-host':
+      case '--kid-mode':
+        if (hasValue(i)) {
+          setConfig('childHost', parseBooleanValue(takeValue(i, arg), arg));
+          i++;
+        } else {
+          setConfig('childHost', true);
+        }
+        break;
+      case '--no-child-host':
+      case '--no-kid-mode':
+        setConfig('childHost', false);
+        break;
+      case '--jeopardy-style':
+        if (hasValue(i)) {
+          setConfig('jeopardyStyle', parseBooleanValue(takeValue(i, arg), arg));
+          i++;
+        } else {
+          setConfig('jeopardyStyle', true);
+        }
+        break;
+      case '--no-jeopardy-style':
+        setConfig('jeopardyStyle', false);
+        break;
+      case '--bonus-label':
+        setLabel('bonusClue', takeValue(i, arg));
+        i++;
+        break;
+      case '--championship-label':
+      case '--final-label':
+        setLabel('championshipHdr', takeValue(i, arg));
+        i++;
+        break;
+      case '--championship-section':
+      case '--final-section':
+        setLabel('championshipSection', takeValue(i, arg));
+        i++;
+        break;
+      case '--round2-suffix':
+        setLabel('round2Suffix', takeValue(i, arg));
+        i++;
+        break;
+      case '--logo':
+        setAsset('logo', takeValue(i, arg));
+        i++;
+        break;
+      case '--category-cover':
+      case '--price-cover':
+        setAsset('categoryCover', takeValue(i, arg));
+        i++;
+        break;
+      case '--intro-video':
+        setAsset('introVideo', takeValue(i, arg));
+        i++;
+        break;
+      case '--intro-audio':
+      case '--intro-music':
+      case '--video-music':
+        setAsset('introAudio', takeValue(i, arg));
+        i++;
+        break;
+      case '--bonus-image':
+      case '--bonus-clue-image':
+        setAsset('bonusClueImage', takeValue(i, arg));
+        i++;
+        break;
+      case '--promo-image':
+        setAsset('promoImage', takeValue(i, arg));
+        i++;
+        break;
+      case '--host-intro':
+        setAsset('hostIntro', takeValue(i, arg));
+        i++;
+        break;
+      case '--times-up':
+        setAsset('timesUp', takeValue(i, arg));
+        i++;
+        break;
+      case '--bonus-sound':
+      case '--bonus-clue-sound':
+        setAsset('bonusClue', takeValue(i, arg));
+        i++;
+        break;
+      case '--think-music':
+      case '--final-think':
+        setAsset('championshipThink', takeValue(i, arg));
+        i++;
+        break;
+      case '--applause':
+        setAsset('applause', takeValue(i, arg));
+        i++;
+        break;
+      case '--board-fill':
+        setAsset('boardFill', takeValue(i, arg));
+        i++;
+        break;
+      case '--correct-sound':
+        setAsset('correct', takeValue(i, arg));
+        i++;
+        break;
+      case '--incorrect-sound':
+        setAsset('incorrect', takeValue(i, arg));
+        i++;
+        break;
+      case '--outro':
+        setAsset('outro', takeValue(i, arg));
+        i++;
+        break;
+      case '--background-music':
+      case '--bg-music':
+        setAsset('backgroundMusic', takeValue(i, arg));
+        i++;
+        break;
+      case '--asset':
+        opts.contentOnly = true;
+        opts.assetAssignments = opts.assetAssignments || [];
+        opts.assetAssignments.push(parseAssetAssignment(takeValue(i, arg), arg));
+        i++;
+        break;
+      case '--enable-asset':
+        setAssetToggle(takeValue(i, arg), true);
+        i++;
+        break;
+      case '--disable-asset':
+      case '--no-asset':
+        setAssetToggle(takeValue(i, arg), false);
+        i++;
+        break;
+      case '--set':
+        opts.contentOnly = true;
+        opts.setValues.push(parseSetAssignment(takeValue(i, arg), arg));
+        i++;
+        break;
+      case '--modern':
+        opts.contentOnly = true;
+        opts.preset = 'modern';
+        break;
+      case '--traditional':
+        opts.contentOnly = true;
+        opts.preset = 'traditional';
+        break;
+      case '--values':
+        opts.contentOnly = true;
+        opts.baseValues = parseValueList(takeValue(i, arg), arg);
+        i++;
+        break;
+      case '--double-values':
+        opts.contentOnly = true;
+        opts.doubleValues = parseValueList(takeValue(i, arg), arg);
+        i++;
+        break;
+      case '--round2-same-as-round1':
+        opts.contentOnly = true;
+        opts.round2SameAsRound1 = true;
+        break;
+      case '--no-save-sources':
+        opts.saveSources = false;
+        break;
+      default:
+        throw new Error('Unknown setup flag: ' + arg);
+    }
+  }
+
+  return opts;
+}
+
+function parseValueList(value, name) {
+  const values = String(value).split(',').map(s => parseInt(s.trim().replace(/[$\s]/g, ''))).filter(n => !isNaN(n));
+  if (values.length === 0) throw new Error(name + ' must contain at least one number');
+  return values;
+}
+
+function parseIntegerValue(value, name, min, max) {
+  const n = Number(value);
+  if (!Number.isInteger(n)) throw new Error(name + ' must be an integer');
+  if (min !== undefined && n < min) throw new Error(name + ' must be at least ' + min);
+  if (max !== undefined && n > max) throw new Error(name + ' must be at most ' + max);
+  return n;
+}
+
+function parseNumberValue(value, name, min, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) throw new Error(name + ' must be a number');
+  if (min !== undefined && n < min) throw new Error(name + ' must be at least ' + min);
+  if (max !== undefined && n > max) throw new Error(name + ' must be at most ' + max);
+  return n;
+}
+
+function parseBooleanValue(value, name) {
+  const normalized = String(value).trim().toLowerCase();
+  if (['true', 't', 'yes', 'y', '1', 'on'].includes(normalized)) return true;
+  if (['false', 'f', 'no', 'n', '0', 'off'].includes(normalized)) return false;
+  throw new Error(name + ' must be true or false');
+}
+
+function parsePositionList(value, name) {
+  const text = String(value).trim();
+  if (!text) return [];
+  return text.split(',').map(part => {
+    const pieces = part.trim().split(/[:x]/i);
+    if (pieces.length !== 2) {
+      throw new Error(name + ' positions must look like "col:row,col:row"');
+    }
+    const col = parseIntegerValue(pieces[0], name, 1, 99);
+    const row = parseIntegerValue(pieces[1], name, 1, 99);
+    return [col - 1, row - 1];
+  });
+}
+
+function normalizeAssetKey(key) {
+  const raw = String(key || '').trim();
+  if (ASSET_DEFS[raw]) return raw;
+  const normalized = raw.replace(/^--?/, '').replace(/[_\s]+/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+  const compact = normalized.replace(/-/g, '');
+  const assetKey = ASSET_KEY_ALIASES[normalized] || ASSET_KEY_ALIASES[compact] || raw;
+  if (!ASSET_DEFS[assetKey]) {
+    throw new Error('Unknown asset key: ' + key + '. Known assets: ' + Object.keys(ASSET_DEFS).join(', '));
+  }
+  return assetKey;
+}
+
+function parseAssetAssignment(value, name) {
+  const text = String(value);
+  const idx = text.indexOf('=');
+  if (idx <= 0) throw new Error(name + ' must look like key=path');
+  const key = normalizeAssetKey(text.slice(0, idx));
+  const sourcePath = text.slice(idx + 1).trim();
+  if (!sourcePath) throw new Error(name + ' must include a file path after =');
+  return { key, sourcePath };
+}
+
+function parseSetAssignment(value, name) {
+  const text = String(value);
+  const idx = text.indexOf('=');
+  if (idx <= 0) throw new Error(name + ' must look like path=value');
+  const pathExpr = text.slice(0, idx).trim();
+  if (!pathExpr) throw new Error(name + ' must include a config path before =');
+  return { path: pathExpr, value: parseConfigValue(text.slice(idx + 1)) };
+}
+
+function parseConfigValue(raw) {
+  const text = String(raw).trim();
+  const lower = text.toLowerCase();
+  if (lower === 'true') return true;
+  if (lower === 'false') return false;
+  if (lower === 'null') return null;
+  if (/^-?\d+(\.\d+)?$/.test(text)) return Number(text);
+  if ((text.startsWith('[') && text.endsWith(']')) || (text.startsWith('{') && text.endsWith('}'))) {
+    return JSON.parse(text);
+  }
+  return raw;
+}
+
+function showSetupUsage() {
+  console.log('');
+  console.log('  Trivia setup');
+  console.log('');
+  console.log('  Interactive wizard:');
+  console.log('    trivia setup');
+  console.log('');
+  console.log('  Content-only refresh:');
+  console.log('    trivia setup --update-content --round1 round1.csv --round2 round2.csv --championship final.csv');
+  console.log('    trivia setup --update-content --round1 "https://docs.google.com/.../pub?output=csv" --round2-same-as-round1');
+  console.log('');
+  console.log('  Presets, rules, and values:');
+  console.log('    trivia setup --modern');
+  console.log('    trivia setup --traditional');
+  console.log('    trivia setup --values 200,400,600,800,1000 --double-values 400,800,1200,1600,2000');
+  console.log('    trivia setup --columns 6 --rows 5 --timer 10 --bonus-r1 1 --bonus-r2 2');
+  console.log('    trivia setup --bonus-positions-r1 3:5 --bonus-positions-r2 2:3,1:4');
+  console.log('');
+  console.log('  Content flags:');
+  console.log('    --round1, --r1              Round 1 CSV file path or published Google Sheet CSV URL');
+  console.log('    --round2, --r2              Round 2 CSV file path or published Google Sheet CSV URL');
+  console.log('    --round2-same-as-round1     Load Round 2 from the Round 1 source using double values');
+  console.log('    --championship, --final     Championship CSV file path or URL');
+  console.log('    --players "A,B,C"           Replace player/team names');
+  console.log('    --no-save-sources           Do not remember sheet paths/URLs for next refresh');
+  console.log('');
+  console.log('  Game flags:');
+  console.log('    --columns N                 Board columns');
+  console.log('    --rows N                    Board rows');
+  console.log('    --timer, --timer-seconds N  Clue timer duration');
+  console.log('    --double-round [true|false] Enable or disable Round 2');
+  console.log('    --single-round              Shortcut for --double-round false');
+  console.log('    --bonus-r1 N                Number of Round 1 bonus clues');
+  console.log('    --bonus-r2 N                Number of Round 2 bonus clues');
+  console.log('    --bonus-positions-r1 LIST   1-based positions, for example 3:5,6:5');
+  console.log('    --bonus-positions-r2 LIST   1-based positions, for example 2:3,1:4');
+  console.log('    --bonus-method TEXT         Bonus clue assignment method label');
+  console.log('    --child-host [true|false]   Kid-friendly host mode');
+  console.log('    --jeopardy-style [true|false] Use Jeopardy-style labels');
+  console.log('');
+  console.log('  Label flags:');
+  console.log('    --bonus-label TEXT          Bonus clue label');
+  console.log('    --championship-label TEXT   Final/championship header label');
+  console.log('    --championship-section TEXT Final/championship section label');
+  console.log('    --round2-suffix TEXT        Round 2 suffix label');
+  console.log('');
+  console.log('  Asset flags:');
+  console.log('    --logo PATH                 Copy logo to public/img/logo.*');
+  console.log('    --category-cover PATH       Copy price cover to public/img/cat-cover.*');
+  console.log('    --intro-video PATH          Copy intro video to public/video/intro.mp4');
+  console.log('    --video-music PATH          Copy intro video music to public/audio/intro-audio.mp3');
+  console.log('    --bonus-image PATH          Copy bonus clue image to public/img/bonus-clue.*');
+  console.log('    --promo-image PATH          Copy promo image to public/img/promo.*');
+  console.log('    --host-intro PATH           Copy host intro audio');
+  console.log('    --times-up PATH             Copy timer-expired audio');
+  console.log('    --bonus-sound PATH          Copy bonus clue audio');
+  console.log('    --think-music PATH          Copy final/championship think music');
+  console.log('    --applause PATH             Copy applause audio');
+  console.log('    --board-fill PATH           Copy board-fill audio');
+  console.log('    --correct-sound PATH        Copy correct-answer audio');
+  console.log('    --incorrect-sound PATH      Copy incorrect-answer audio');
+  console.log('    --outro PATH                Copy outro audio');
+  console.log('    --background-music PATH     Copy background music');
+  console.log('    --asset key=PATH            Generic asset updater');
+  console.log('    --enable-asset KEY          Mark an existing asset enabled');
+  console.log('    --disable-asset KEY         Mark an asset disabled');
+  console.log('');
+  console.log('  Escape hatch:');
+  console.log('    --set path=value            Update any config.json field, e.g. labels.bonusClue=DAILY DOUBLE');
+  console.log('');
+}
+
 function showSplash() {
   console.clear();
   console.log(chalk.cyan('╔══════════════════════════════════════════════════════════╗'));
@@ -26,15 +555,17 @@ function convertSheetUrl(input) {
   if (input.includes('output=csv') || input.includes('format=csv')) {
     return input;
   }
+  const gidMatch = input.match(/[#?&]gid=(\d+)/);
+  const gid = gidMatch ? gidMatch[1] : '0';
   const pubMatch = input.match(/\/d\/e\/([a-zA-Z0-9_-]+)\/pub/);
   if (pubMatch) {
-    const converted = `https://docs.google.com/spreadsheets/d/e/${pubMatch[1]}/pub?gid=0&single=true&output=csv`;
+    const converted = `https://docs.google.com/spreadsheets/d/e/${pubMatch[1]}/pub?gid=${gid}&single=true&output=csv`;
     console.log(chalk.green('  \u21b3 Normalized published URL'));
     return converted;
   }
   const editMatch = input.match(/\/d\/([a-zA-Z0-9_-]+?)(?:\/|$)/);
   if (editMatch) {
-    const converted = `https://docs.google.com/spreadsheets/d/${editMatch[1]}/export?format=csv`;
+    const converted = `https://docs.google.com/spreadsheets/d/${editMatch[1]}/export?format=csv&gid=${gid}`;
     console.log(chalk.green('  \u21b3 Converted to CSV export URL automatically'));
     return converted;
   }
@@ -162,6 +693,332 @@ function buildBoard(parsed, columns, rows, values) {
   return buildGridBoard(parsed, columns, rows);
 }
 
+async function readCsvSource(input, label) {
+  if (!input || !String(input).trim()) return null;
+  const src = String(input).trim();
+  const converted = convertSheetUrl(src);
+  if (/^https?:\/\//i.test(converted)) {
+    console.log(chalk.cyan('  \u2192 Fetching ' + label + ' from URL...'));
+    return fetchUrl(converted);
+  }
+
+  const resolvedPath = path.isAbsolute(src) ? src : path.resolve(ROOT, src);
+  console.log(chalk.cyan('  \u2192 Reading ' + label + ' from ' + resolvedPath + '...'));
+  return fs.readFileSync(resolvedPath, 'utf-8');
+}
+
+function loadBoardFromCsv(csvText, config, values) {
+  const parsed = parseCsvData(csvText);
+  return buildBoard(parsed, config.columns, config.rows, values);
+}
+
+function loadChampionshipFromCsv(csvText) {
+  const parsed = parseCsvData(csvText);
+  if (parsed.length < 2) {
+    throw new Error('Championship CSV needs at least 2 rows (header + data)');
+  }
+
+  const questions = [];
+  for (let i = 1; i < parsed.length; i++) {
+    const row = parsed[i];
+    if (row.length < 3) continue;
+    questions.push({
+      category: row[0] || ('Championship ' + i),
+      clue: row[1] || 'Championship clue',
+      answer: row[2] || 'Championship answer'
+    });
+  }
+  if (!questions.length) throw new Error('Championship CSV did not contain any usable questions');
+  return questions;
+}
+
+function applyPreset(config, preset) {
+  if (preset === 'traditional') {
+    config.baseValues = [100, 200, 300, 400, 500];
+    config.doubleValues = [200, 400, 600, 800, 1000];
+  } else if (preset === 'modern') {
+    config.baseValues = [200, 400, 600, 800, 1000];
+    config.doubleValues = [400, 800, 1200, 1600, 2000];
+  }
+}
+
+function updateSavedSource(config, key, value, saveSources) {
+  if (!saveSources || !value) return;
+  if (!config.contentSources) config.contentSources = {};
+  config.contentSources[key] = value;
+}
+
+function resolveSourcePath(sourcePath) {
+  const trimmed = String(sourcePath || '').trim();
+  if (!trimmed || path.isAbsolute(trimmed) || fs.existsSync(trimmed)) return trimmed;
+  return path.resolve(ROOT, trimmed);
+}
+
+function assetDestination(def, sourcePath) {
+  const destDir = path.join(ROOT, ...def.dir);
+  if (def.filename) {
+    return { dest: path.join(destDir, def.filename), ext: null };
+  }
+
+  const ext = path.extname(sourcePath).toLowerCase().replace('.', '') || def.defaultExt;
+  return { dest: path.join(destDir, def.basename + '.' + ext), ext };
+}
+
+function findExistingAssetExtension(def) {
+  if (def.value !== 'ext') return null;
+  const candidates = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'];
+  for (const ext of candidates) {
+    const dest = path.join(ROOT, ...def.dir, def.basename + '.' + ext);
+    if (fs.existsSync(dest)) return ext;
+  }
+  return null;
+}
+
+function updateAssetFile(config, key, sourcePath) {
+  const assetKey = normalizeAssetKey(key);
+  const def = ASSET_DEFS[assetKey];
+  const resolvedSource = resolveSourcePath(sourcePath);
+  const target = assetDestination(def, resolvedSource);
+  if (!config.assets) config.assets = {};
+  if (!copyAssetFile(resolvedSource, target.dest)) {
+    throw new Error('Could not update ' + def.label + ' from: ' + sourcePath);
+  }
+  config.assets[assetKey] = def.value === 'ext' ? target.ext : true;
+  console.log(chalk.green('  \u2713 Updated ' + def.label));
+}
+
+function toggleAsset(config, key, enabled) {
+  const assetKey = normalizeAssetKey(key);
+  const def = ASSET_DEFS[assetKey];
+  if (!config.assets) config.assets = {};
+  if (!enabled) {
+    config.assets[assetKey] = false;
+    console.log(chalk.green('  \u2713 Disabled ' + def.label));
+    return;
+  }
+  if (def.value === 'ext') {
+    const current = typeof config.assets[assetKey] === 'string' ? config.assets[assetKey] : null;
+    const ext = current || findExistingAssetExtension(def);
+    if (!ext) {
+      throw new Error('Use --' + assetKey + ' PATH to enable ' + def.label + ' because no existing file extension was found');
+    }
+    config.assets[assetKey] = ext;
+  } else {
+    config.assets[assetKey] = true;
+  }
+  console.log(chalk.green('  \u2713 Enabled ' + def.label));
+}
+
+function setConfigPath(config, pathExpr, value) {
+  const parts = String(pathExpr).split('.').map(p => p.trim()).filter(Boolean);
+  if (!parts.length) throw new Error('Invalid config path: ' + pathExpr);
+  const banned = new Set(['__proto__', 'prototype', 'constructor']);
+  let target = config;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = parts[i];
+    if (banned.has(key)) throw new Error('Unsafe config path: ' + pathExpr);
+    if (target[key] === undefined || target[key] === null || typeof target[key] !== 'object') {
+      target[key] = {};
+    }
+    target = target[key];
+  }
+  const last = parts[parts.length - 1];
+  if (banned.has(last)) throw new Error('Unsafe config path: ' + pathExpr);
+  target[last] = value;
+}
+
+function applyConfigUpdates(config, options) {
+  let changed = false;
+
+  if (options.preset) {
+    applyPreset(config, options.preset);
+    changed = true;
+  }
+
+  if (options.baseValues) {
+    config.baseValues = options.baseValues;
+    if (!options.doubleValues && config.doubleRound !== false) {
+      config.doubleValues = options.baseValues.map(v => v * 2);
+    }
+    changed = true;
+  }
+
+  if (options.doubleValues) {
+    config.doubleValues = options.doubleValues;
+    changed = true;
+  }
+
+  const updates = options.configUpdates || {};
+  for (const [key, value] of Object.entries(updates)) {
+    config[key] = value;
+    changed = true;
+  }
+
+  if (config.doubleRound === false) {
+    config.bonusCluesRound2 = 0;
+    if (config.baseValues) config.doubleValues = config.baseValues;
+  } else if (options.configUpdates && options.configUpdates.doubleRound === true && config.baseValues && !config.doubleValues) {
+    config.doubleValues = config.baseValues.map(v => v * 2);
+  }
+
+  if (options.players) {
+    config.players = options.players.split(',').map(s => s.trim()).filter(Boolean);
+    console.log(chalk.green('  \u2713 Updated players: ') + config.players.join(', '));
+    changed = true;
+  }
+
+  if (options.configUpdates && options.configUpdates.jeopardyStyle === true) {
+    if (!config.labels) config.labels = {};
+    config.labels.bonusClue = 'DAILY DOUBLE';
+    config.labels.championshipHdr = 'FINAL JEOPARDY';
+    config.labels.championshipSection = 'FINAL ROUND';
+    config.labels.round2Suffix = ' (DOUBLE)';
+  } else if (options.configUpdates && options.configUpdates.jeopardyStyle === false) {
+    if (!config.labels) config.labels = {};
+    config.labels.bonusClue = config.labels.bonusClue || 'BONUS CLUE';
+    config.labels.championshipHdr = config.labels.championshipHdr || 'CHAMPIONSHIP';
+    config.labels.championshipSection = config.labels.championshipSection || config.labels.championshipHdr;
+    config.labels.round2Suffix = config.labels.round2Suffix || ' (2X)';
+  }
+
+  if (options.configUpdates && options.configUpdates.childHost === true) {
+    config.timerSeconds = config.timerSeconds || 8;
+    if (!config.labels) config.labels = {};
+    config.labels.bonusClue = config.labels.bonusClue || 'DAILY DOUBLE';
+    config.labels.championshipHdr = config.labels.championshipHdr || 'FINAL JEOPARDY';
+    config.labels.championshipSection = config.labels.championshipSection || 'FINAL ROUND';
+  }
+
+  if (options.labels && Object.keys(options.labels).length) {
+    if (!config.labels) config.labels = {};
+    Object.assign(config.labels, options.labels);
+    changed = true;
+  }
+
+  if (options.bonusPositions && Object.keys(options.bonusPositions).length) {
+    if (!config.bonusCluePositions) config.bonusCluePositions = { round1: [], round2: [] };
+    if (options.bonusPositions.round1) config.bonusCluePositions.round1 = options.bonusPositions.round1;
+    if (options.bonusPositions.round2) config.bonusCluePositions.round2 = options.bonusPositions.round2;
+    changed = true;
+  }
+
+  if (options.setValues && options.setValues.length) {
+    for (const assignment of options.setValues) {
+      setConfigPath(config, assignment.path, assignment.value);
+      console.log(chalk.green('  \u2713 Set ') + assignment.path);
+    }
+    changed = true;
+  }
+
+  return changed;
+}
+
+function applyAssetUpdates(config, options) {
+  let changed = false;
+  for (const [key, sourcePath] of Object.entries(options.assetUpdates || {})) {
+    updateAssetFile(config, key, sourcePath);
+    changed = true;
+  }
+  for (const assignment of options.assetAssignments || []) {
+    updateAssetFile(config, assignment.key, assignment.sourcePath);
+    changed = true;
+  }
+  for (const [key, enabled] of Object.entries(options.assetToggles || {})) {
+    toggleAsset(config, key, enabled);
+    changed = true;
+  }
+  return changed;
+}
+
+function shouldRefreshSavedSources(options) {
+  return Boolean(options.refreshSavedContent || options.round1 || options.round2 || options.championship || options.round2SameAsRound1);
+}
+
+async function runContentOnlyUpdate(options) {
+  console.log(chalk.cyan('\n  Trivia Setup Update'));
+  console.log(chalk.cyan('  ========================================\n'));
+
+  if (!fs.existsSync(CONFIG_PATH)) {
+    throw new Error('No config.json found. Run trivia setup once before using --update-content.');
+  }
+
+  const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+  const saved = config.contentSources || {};
+  const useSavedSources = shouldRefreshSavedSources(options);
+
+  let changed = false;
+  changed = applyConfigUpdates(config, options) || changed;
+  changed = applyAssetUpdates(config, options) || changed;
+
+  const round1Source = options.round1 || (useSavedSources ? saved.round1 : null);
+  let round1Csv = null;
+
+  if (round1Source) {
+    round1Csv = await readCsvSource(round1Source, 'Round 1 CSV');
+    const board = loadBoardFromCsv(round1Csv, config, config.baseValues);
+    config.categories = board.categories;
+    config.clues = board.clues;
+    config.answers = board.answers;
+    updateSavedSource(config, 'round1', round1Source, options.saveSources);
+    changed = true;
+    console.log(chalk.green('  \u2713 Loaded Round 1 content'));
+  } else {
+    console.log(chalk.gray('  - Kept existing Round 1 content (no --round1 or saved source)'));
+  }
+
+  if (config.doubleRound !== false) {
+    let round2Source = options.round2 || (useSavedSources ? saved.round2 : null);
+    let round2Csv = null;
+    if (options.round2SameAsRound1) {
+      round2Source = round1Source;
+      round2Csv = round1Csv || (round2Source ? await readCsvSource(round2Source, 'Round 2 CSV') : null);
+    } else if (round2Source) {
+      round2Csv = await readCsvSource(round2Source, 'Round 2 CSV');
+    }
+
+    if (round2Csv) {
+      const r2Board = loadBoardFromCsv(round2Csv, config, config.doubleValues || config.baseValues);
+      config.categoriesR2 = r2Board.categories;
+      config.cluesR2 = r2Board.clues;
+      config.answersR2 = r2Board.answers;
+      updateSavedSource(config, 'round2', round2Source, options.saveSources);
+      changed = true;
+      console.log(chalk.green('  \u2713 Loaded Round 2 content'));
+    } else {
+      console.log(chalk.gray('  - Kept existing Round 2 content (no --round2 or saved source)'));
+    }
+  }
+
+  const championshipSource = options.championship || (useSavedSources ? saved.championship : null);
+  if (championshipSource) {
+    const championshipCsv = await readCsvSource(championshipSource, 'Championship CSV');
+    const questions = loadChampionshipFromCsv(championshipCsv);
+    config.championshipQuestions = questions;
+    config.championshipCategory = questions[0].category;
+    config.championshipClue = questions[0].clue;
+    config.championshipAnswer = questions[0].answer;
+    updateSavedSource(config, 'championship', championshipSource, options.saveSources);
+    changed = true;
+    console.log(chalk.green('  \u2713 Loaded ' + questions.length + ' Championship question(s)'));
+  } else {
+    console.log(chalk.gray('  - Kept existing Championship content (no --championship or saved source)'));
+  }
+
+  const templateCsv = generateTemplate(config);
+  fs.writeFileSync(TEMPLATE_PATH, templateCsv);
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+
+  console.log('');
+  if (changed) {
+    console.log(chalk.green('\u2713 Setup update saved to config.json'));
+    if (config.baseValues) console.log(chalk.cyan('  Round 1 values: ') + config.baseValues.join(','));
+    if (config.doubleValues || config.baseValues) console.log(chalk.cyan('  Round 2 values: ') + (config.doubleValues || config.baseValues).join(','));
+  } else {
+    console.log(chalk.yellow('\u26a0 Nothing changed. Pass flags such as --round1, --modern, --logo, --timer, or --set.'));
+  }
+  console.log('');
+}
+
 function escapeCsv(val) {
   const s = String(val);
   if (s.includes('"') || s.includes(',') || s.includes('\n')) {
@@ -224,6 +1081,16 @@ function copyAssetFile(srcPath, destPath) {
 }
 
 async function main() {
+  const options = setupArgs();
+  if (options.help) {
+    showSetupUsage();
+    return;
+  }
+  if (options.contentOnly) {
+    await runContentOnlyUpdate(options);
+    return;
+  }
+
   showSplash();
 
   const configExists = fs.existsSync(CONFIG_PATH);

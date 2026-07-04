@@ -8,35 +8,116 @@
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;min-height:100%;background:#0d0d1a;color:#ddd;font-family:'Segoe UI',Arial,sans-serif}
     h1{font-size:1.2rem;color:#ffcc00;letter-spacing:2px;text-align:center;padding:10px;background:#141428;border-bottom:2px solid #2a2a4a;text-transform:uppercase}
-    #players{display:flex;flex-direction:column;gap:12px;padding:16px;max-width:600px;margin:0 auto}
-    .p-card{background:#141428;border-radius:8px;padding:12px 16px;border:1px solid #2a2a4a}
-    .p-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-    .p-name{font-size:1.1rem;font-weight:700;color:#fff}
-    .p-score{font-size:1.6rem;font-weight:700;color:#ffcc00}
-    .p-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-    .btn{padding:8px 16px;border:none;border-radius:5px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:1px}
+    #wrap{display:flex;gap:12px;padding:12px;max-width:900px;margin:0 auto}
+    #left{flex:1;min-width:0}
+    #right{width:220px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+    .card{background:#141428;border-radius:6px;padding:10px;border:1px solid #2a2a4a}
+    .card-lbl{font-size:.55rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+    #timer-num{font-size:2rem;font-weight:700;color:#ffcc00;text-align:center;font-variant-numeric:tabular-nums}
+    #phase-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.6rem;font-weight:700;text-transform:uppercase;background:#2a2a4a;color:#888;text-align:center;margin:8px auto;display:table}
+    #players{display:flex;flex-direction:column;gap:8px}
+    .p-card{background:#141428;border-radius:8px;padding:10px 14px;border:1px solid #2a2a4a}
+    .p-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .p-name{font-size:1rem;font-weight:700;color:#fff}
+    .p-score{font-size:1.4rem;font-weight:700;color:#ffcc00}
+    .p-actions{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+    .btn{padding:6px 12px;border:none;border-radius:4px;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:1px}
     .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
     .btn-gold{background:linear-gradient(180deg,#ffcc00,#d4a800);color:#1a1a2e}
     .btn-green{background:linear-gradient(180deg,#2ecc40,#1e9a30);color:#fff}
     .btn-red{background:linear-gradient(180deg,#d94a4a,#b03030);color:#fff}
-    .btn-sm{padding:5px 10px;font-size:.7rem}
+    .btn-blue{background:linear-gradient(180deg,#4a90d9,#3570b0);color:#fff}
+    .btn-ghost{background:transparent;color:#999;border:1px solid #3a3a5e}
+    .btn-sm{padding:4px 8px;font-size:.65rem}
+    .btn-buzz{background:linear-gradient(180deg,#d94a4a,#b03030);color:#fff;border:2px solid #ff6666;padding:10px 12px;font-size:1rem;width:100%;border-radius:6px}
+    .btn-buzz:hover{filter:brightness(1.2);box-shadow:0 0 20px rgba(217,74,74,.5);transform:scale(1.02)}
+    .btn-unbuzz{background:linear-gradient(180deg,#4ad94a,#30b030);color:#fff;border:2px solid #66ff66;padding:10px 12px;font-size:1rem;width:100%;border-radius:6px}
+    .btn-unbuzz:hover{filter:brightness(1.2);box-shadow:0 0 20px rgba(74,217,74,.5);transform:scale(1.02)}
+    .btn-full{width:100%}
     .btn-custom{background:#2a2a4a;color:#999;border:1px solid #3a3a5e}
-    input[type=number]{width:70px;padding:5px 8px;background:#0d0d1a;border:1px solid #2a2a4a;border-radius:4px;color:#ffcc00;font-size:.9rem;font-weight:700;text-align:center}
+    input[type=number]{width:65px;padding:4px 6px;background:#0d0d1a;border:1px solid #2a2a4a;border-radius:3px;color:#ffcc00;font-size:.8rem;font-weight:700;text-align:center}
     input:focus{outline:none;border-color:#4a90d9}
     .hidden{display:none!important}
-    #phase-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.6rem;font-weight:700;text-transform:uppercase;background:#2a2a4a;color:#888;text-align:center;margin:8px auto;display:table}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .modal-bx{background:#1a1a2e;border:1px solid #3a3a5e;border-radius:10px;padding:20px;min-width:260px;text-align:center}
+    .modal-bx h2{color:#ffcc00;margin-bottom:10px;font-size:1rem}
+    .modal-player-btn{display:block;width:100%;padding:10px;margin:4px 0;border:none;border-radius:5px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .12s}
+    .modal-player-btn:hover{transform:scale(1.03)}
+    .pick-correct{background:#1a6a3a;color:#8f8}
+    .pick-incorrect{background:#6a2a2a;color:#f88}
+    .modal-player-cancel{display:block;width:100%;padding:8px;margin-top:8px;border:1px solid #3a3a5e;border-radius:5px;background:transparent;color:#999;font-size:.75rem;cursor:pointer}
+    .modal-player-cancel:hover{background:#2a2a4a}
   </style>
 </head>
 <body>
   <h1>SCORING HELPER</h1>
   <div id="phase-badge">WAITING...</div>
-  <div id="players"></div>
+  <div id="wrap">
+    <div id="left">
+      <div id="players"></div>
+    </div>
+    <div id="right">
+      <div class="card">
+        <div class="card-lbl">TIMER</div>
+        <div id="timer-num">0.0</div>
+        <button class="btn btn-buzz hidden" id="btn-buzz">BUZZ</button>
+        <button class="btn btn-unbuzz hidden" id="btn-unbuzz">UNBUZZ</button>
+      </div>
+      <div class="card">
+        <div class="card-lbl">CLUE</div>
+        <button class="btn btn-gold btn-full hidden" id="btn-done-reading">DONE READING</button>
+        <button class="btn btn-green btn-full" id="btn-reveal">SHOW ANSWER</button>
+        <button class="btn btn-blue btn-full" id="btn-board">RETURN TO BOARD</button>
+        <button class="btn btn-ghost btn-full" id="btn-applause">APPLAUSE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-player-pick" class="modal hidden">
+    <div class="modal-bx">
+      <h2 id="picker-header">Who got it RIGHT?</h2>
+      <div id="picker-grid"></div>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket-client.js"></script>
   <script>
     var st = null;
+    var pickMode = 'correct';
     function fmt(s){return (s>=0?'':'-')+'$'+Math.abs(s)}
+    function setTimer(v){document.getElementById('timer-num').textContent=v.toFixed(1)}
+
+    function showPlayerPicker(mode) {
+      pickMode = mode;
+      var modal = document.getElementById('modal-player-pick');
+      var header = document.getElementById('picker-header');
+      var grid = document.getElementById('picker-grid');
+      header.textContent = mode === 'correct' ? 'Who got it RIGHT?' : 'Who got it WRONG?';
+      grid.innerHTML = '';
+      if (!st || !st.players) return;
+      st.players.forEach(function(p, i) {
+        var btn = document.createElement('button');
+        btn.className = 'modal-player-btn ' + (mode === 'correct' ? 'pick-correct' : 'pick-incorrect');
+        btn.innerHTML = p.name + ' <span style="opacity:.6;font-size:.7rem">' + fmt(p.score) + '</span>';
+        btn.addEventListener('click', function() {
+          modal.classList.add('hidden');
+          socket.emit(mode === 'correct' ? 'answer-correct' : 'answer-incorrect', { playerIndex: i });
+          if (mode === 'correct') {
+            document.getElementById('btn-done-reading').classList.add('hidden');
+          }
+        });
+        grid.appendChild(btn);
+      });
+      var cancel = document.createElement('button');
+      cancel.className = 'modal-player-cancel';
+      cancel.textContent = 'Cancel';
+      cancel.addEventListener('click', function() { modal.classList.add('hidden'); });
+      grid.appendChild(cancel);
+      modal.classList.remove('hidden');
+      modal.addEventListener('click', function(e) { if (e.target === modal) modal.classList.add('hidden'); });
+    }
+
     function render(players, currentVal){
       var c=document.getElementById('players');c.innerHTML='';
       if(!players||!players.length){c.innerHTML='<div style="text-align:center;color:rgba(255,255,255,.2);padding:40px">Waiting for game to start...</div>';return}
@@ -52,15 +133,15 @@
             '<button class="btn btn-red btn-sm" data-i="'+i+'" data-d="-100">-100</button>'+
             '<input type="number" id="hc-'+i+'" placeholder="Amt" min="0">'+
             '<button class="btn btn-custom btn-sm" data-i="'+i+'" id="hok-'+i+'">OK</button>'+
-            '<button class="btn btn-green btn-sm" data-i="'+i+'">CORRECT</button>'+
-            '<button class="btn btn-red btn-sm" data-i="'+i+'">INCORRECT</button>'+
+            '<button class="btn btn-green btn-sm pick-correct-btn" data-i="'+i+'">CORRECT</button>'+
+            '<button class="btn btn-red btn-sm pick-incorrect-btn" data-i="'+i+'">INCORRECT</button>'+
           '</div>';
         c.appendChild(card);
         card.querySelectorAll('.btn-gold.btn-sm, .btn-red.btn-sm').forEach(function(b){
           if(b.dataset.d)b.addEventListener('click',function(){socket.emit('adjust-score',{playerIndex:parseInt(this.dataset.i),delta:parseInt(this.dataset.d)})});
         });
-        card.querySelector('.btn-green').addEventListener('click',function(){socket.emit('answer-correct')});
-        card.querySelector('.btn-red:last-child').addEventListener('click',function(){socket.emit('answer-incorrect')});
+        card.querySelector('.pick-correct-btn').addEventListener('click',function(){showPlayerPicker('correct')});
+        card.querySelector('.pick-incorrect-btn').addEventListener('click',function(){showPlayerPicker('incorrect')});
         card.querySelector('#hok-'+i).addEventListener('click',function(){
           var inp=document.getElementById('hc-'+i);
           var v=parseInt(inp.value);
@@ -71,11 +152,63 @@
         });
       });
     }
-    socket.on('sync-state',function(s){st=s;var v=(s.currentClue&&s.board[s.currentClue.col]&&s.board[s.currentClue.col][s.currentClue.row])?s.board[s.currentClue.col][s.currentClue.row].value:200;render(s.players,v);document.getElementById('phase-badge').textContent=s.phase.toUpperCase()});
+
+    document.getElementById('btn-done-reading').addEventListener('click',function(){
+      socket.emit('done-reading');
+      this.classList.add('hidden');
+      document.getElementById('btn-buzz').classList.remove('hidden');
+    });
+    document.getElementById('btn-buzz').addEventListener('click',function(){
+      socket.emit('pause-timer');
+      this.classList.add('hidden');
+      document.getElementById('btn-unbuzz').classList.remove('hidden');
+    });
+    document.getElementById('btn-unbuzz').addEventListener('click',function(){
+      socket.emit('resume-timer');
+      this.classList.add('hidden');
+      document.getElementById('btn-buzz').classList.remove('hidden');
+    });
+    document.getElementById('btn-reveal').addEventListener('click',function(){socket.emit('reveal-answer')});
+    document.getElementById('btn-board').addEventListener('click',function(){
+      if(st&&st.currentClue)socket.emit('return-to-board',{col:st.currentClue.col,row:st.currentClue.row});
+    });
+    document.getElementById('btn-applause').addEventListener('click',function(){socket.emit('play-audio',{audio:'applause'})});
+
+    socket.on('sync-state',function(s){
+      st=s;
+      var v=(s.currentClue&&s.board[s.currentClue.col]&&s.board[s.currentClue.col][s.currentClue.row])?s.board[s.currentClue.col][s.currentClue.row].value:200;
+      render(s.players,v);
+      document.getElementById('phase-badge').textContent=s.phase.toUpperCase();
+      if (s.phase === 'clue') {
+        if (s.timer && s.timer.running) {
+          document.getElementById('btn-done-reading').classList.add('hidden');
+          document.getElementById('btn-buzz').classList.remove('hidden');
+          document.getElementById('btn-unbuzz').classList.add('hidden');
+        } else if (s.timer && s.timer.paused && s.timer.remaining > 0) {
+          document.getElementById('btn-done-reading').classList.add('hidden');
+          document.getElementById('btn-buzz').classList.add('hidden');
+          document.getElementById('btn-unbuzz').classList.remove('hidden');
+        } else {
+          document.getElementById('btn-done-reading').classList.remove('hidden');
+          document.getElementById('btn-buzz').classList.add('hidden');
+          document.getElementById('btn-unbuzz').classList.add('hidden');
+        }
+        setTimer(s.timer ? s.timer.remaining : 0);
+      } else {
+        document.getElementById('btn-done-reading').classList.add('hidden');
+        document.getElementById('btn-buzz').classList.add('hidden');
+        document.getElementById('btn-unbuzz').classList.add('hidden');
+      }
+    });
     socket.on('score-updated',function(d){if(st){st.players=d.players;var v=(st.currentClue&&st.board[st.currentClue.col]&&st.board[st.currentClue.col][st.currentClue.row])?st.board[st.currentClue.col][st.currentClue.row].value:200;render(d.players,v)}});
-    socket.on('clue-opened',function(d){if(st){st.currentClue={col:d.col,row:d.row};var v=d.value||200;render(st.players,v)}});
-    socket.on('board-return',function(){if(st)st.currentClue=null;var v=200;render(st?st.players:[],v)});
-    socket.on('game-reset',function(s){st=s;render(s.players,200)});
+    socket.on('clue-opened',function(d){if(st){st.currentClue={col:d.col,row:d.row};st.phase=d.phase;var v=d.value||200;render(st.players,v);setTimer(0);if(d.phase==='clue'){document.getElementById('btn-done-reading').classList.remove('hidden')}else{document.getElementById('btn-done-reading').classList.add('hidden')}document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')}});
+    socket.on('bonus-clue-shown',function(d){if(st){st.phase='clue';var v=d.value||200;render(st.players,v);setTimer(0)}document.getElementById('btn-done-reading').classList.remove('hidden');document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')});
+    socket.on('timer-tick',function(d){setTimer(d.remaining);if(d.running){document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-buzz').classList.remove('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')}else{document.getElementById('btn-buzz').classList.add('hidden')}});
+    socket.on('times-up',function(){setTimer(0);document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')});
+    socket.on('timer-paused',function(d){setTimer(d.remaining);document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.remove('hidden')});
+    socket.on('timer-resumed',function(d){setTimer(d.remaining);document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-buzz').classList.remove('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')});
+    socket.on('board-return',function(){if(st)st.currentClue=null;var v=200;render(st?st.players:[],v);document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')});
+    socket.on('game-reset',function(s){st=s;render(s.players,200);document.getElementById('btn-done-reading').classList.add('hidden');document.getElementById('btn-buzz').classList.add('hidden');document.getElementById('btn-unbuzz').classList.add('hidden')});
   </script>
 </body>
 </html>

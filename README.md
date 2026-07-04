@@ -2,192 +2,295 @@
 
 # Trivia Broadcast Engine
 
-**v1.0.0** — A professional dual-screen trivia game engine for live hosting
+Professional dual-screen trivia hosting with a broadcast view, host dashboard, helper controls, custom media, and scriptable setup flags.
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
-[![npm](https://img.shields.io/badge/npm-v10-blue)](https://npmjs.com/)
-[![Platform](https://img.shields.io/badge/platform-windows%20%7C%20macOS%20%7C%20linux-lightgrey)]()
-[![PRs](https://img.shields.io/badge/PRs-welcome-blue)]()
-[![Maintenance](https://img.shields.io/badge/maintained-yes-brightgreen)]()
-[![GitHub stars](https://img.shields.io/github/stars/L-Logix/Trivia-Board?style=social)]()
-[![GitHub issues](https://img.shields.io/github/issues/L-Logix/Trivia-Board)]()
-[![GitHub last commit](https://img.shields.io/github/last-commit/L-Logix/Trivia-Board)]()
-[![GitHub release](https://img.shields.io/github/v/release/L-Logix/Trivia-Board)]()
-[![WebSocket](https://img.shields.io/badge/WebSocket-Socket.IO-black)]()
-[![Express](https://img.shields.io/badge/Express-v4-blue)]()
-[![CSS3](https://img.shields.io/badge/CSS3-Grid%20%7C%20Flexbox-blue)]()
-[![JavaScript](https://img.shields.io/badge/JS-ES6+-yellow)]()
-[![Accessibility](https://img.shields.io/badge/a11y-friendly-brightgreen)]()
-[![Contributions](https://img.shields.io/badge/contributions-open-blue)]()
-[![Code size](https://img.shields.io/github/languages/code-size/L-Logix/Trivia-Board)]()
-[![Top language](https://img.shields.io/github/languages/top/L-Logix/Trivia-Board)]()
-[![GitHub repo size](https://img.shields.io/github/repo-size/L-Logix/Trivia-Board)]()
-[![Lines of Code](https://img.shields.io/badge/LOC-8748-blue)]()
-
----
-
-**Fully customizable** — terminology, logo, audio, visuals, and rules. No trademarked content included.
+[![Socket.IO](https://img.shields.io/badge/realtime-Socket.IO-black)](https://socket.io/)
+[![Express](https://img.shields.io/badge/server-Express-blue)](https://expressjs.com/)
+[![GitHub stars](https://img.shields.io/github/stars/L-Logix/Trivia-Board?style=social)](https://github.com/L-Logix/Trivia-Board/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/L-Logix/Trivia-Board)](https://github.com/L-Logix/Trivia-Board/issues)
 
 </div>
 
-## Overview
+## What It Does
 
-Built for live hosted trivia events. A zero-UI broadcast display drives the audience screen (projector/TV), while a feature-rich dashboard gives the host full control over every aspect of the game.
+Trivia Broadcast Engine runs a live-hosted trivia game on your local network. The audience sees a full-screen broadcast board, while the host controls clue selection, reveals, scores, wagers, audio, and game flow from a dashboard.
 
 | View | URL | Purpose |
-|------|-----|---------|
-| **Broadcast** | `/broadcast` | Audience-facing display (full-screen, no UI) |
-| **Dashboard** | `/dashboard` | Host controls (grid, scoring, reveals) |
-| **Scoring Helper** | `/helper-scoring` | Secondary scoring controls |
-| **Board Helper** | `/helper-board` | Secondary board controls |
-| **Editor** | `/editor` | Game content editor (questions, categories, bonus clues) |
-| **Stats** | `/stats` | Post-game statistics with charts and printable reports |
+| --- | --- | --- |
+| Broadcast | `/broadcast` | Audience-facing display for a TV, projector, or capture card |
+| Dashboard | `/dashboard` | Main host controls for the whole game |
+| Scoring Helper | `/helper-scoring` | Secondary scoring controls |
+| Board Helper | `/helper-board` | Secondary board controls |
+| Editor | `/editor` | In-browser content and settings editor |
+| Stats | `/stats` | Post-game charts and printable reports |
 
-## Features
+## Star Graph
 
-- **Dual-screen architecture** — separate broadcast view and host dashboard
-- **3-round format** — Round 1, Round 2 (double values), Championship (Final)
-- **Bonus Clues** — configurable per-round with full wager flow
-- **Per-category reveal** — full-screen cover → flip animation for each category
-- **Custom branding** — logo, promo image, intro video, all labels configurable
-- **Custom audio** — intro, timer, bonus clue, think music, applause, correct/incorrect
-- **Auto timer** — configurable per-clue countdown with TIME'S UP overlay
-- **Responsive board** — scales to any screen size / aspect ratio
-- **Network accessible** — other devices can reach dashboard/helpers on the LAN
-- **Revealed cell editing** — double-click values, right-click toggle bonus clue
-- **Show/hide answers** — host controls answer visibility per clue
-- **Content editor** — `/editor` for live editing questions, categories, values, bonus clues
-- **Post-game stats** — `/stats` with charts, per-player breakdowns, and printable reports
-- **Scrolling score ticker** — live player scores on broadcast display
-- **100+ tracked stats** — accuracy, streaks, value buckets, category performance, and more
-
-## Installation
-
-Requires **Node.js 18+**.
-
-```bash
-gh repo clone L-Logix/Trivia-Board
-cd Trivia-Board
-npm install
+```mermaid
+flowchart TD
+  Core((Trivia Engine))
+  Core --- Setup["Setup Flags"]
+  Core --- Broadcast["Broadcast View"]
+  Core --- Dashboard["Host Dashboard"]
+  Core --- Audio["Audio System"]
+  Core --- Sheets["CSV / Sheets"]
+  Core --- Final["Final Wagers"]
+  Core --- Stats["Stats"]
 ```
 
-## Setup
+| Area | Rating |
+| --- | --- |
+| Live hosting flow | ***** |
+| Scriptable setup | ***** |
+| Custom audio and visuals | ***** |
+| Google Sheets / CSV imports | ***** |
+| Helper-device support | **** |
+| Post-game reporting | **** |
+
+## Quick Start
+
+Requires Node.js 18+.
+
+```bash
+git clone https://github.com/L-Logix/Trivia-Board.git
+cd Trivia-Board
+npm install
+npm run setup
+npm start
+```
+
+The server opens on port `3333`. Use `http://localhost:3333` on the host machine, or the LAN address printed in the terminal for another device.
+
+## Game Flow
+
+1. Open `/broadcast` on the audience screen and click once to unlock browser audio.
+2. Open `/dashboard` on the host laptop.
+3. Start the intro, reveal categories, populate the board, and select clues.
+4. Use the dashboard to mark correct/incorrect answers and control the timer.
+5. Bonus clues use wagers.
+6. Final/championship only asks the host for wagers. The host does not enter contestant answers.
+
+## Setup Wizard
 
 ```bash
 trivia setup
 ```
 
-The setup wizard walks you through:
-1. Grid dimensions (columns × rows)
-2. Point values for each row
-3. Number of bonus clues per round
-4. Timer duration
-5. Round 1 data (CSV file or Google Sheets URL)
-6. Round 2 data (optional)
-7. Championship data (optional)
-8. Player names
-9. Custom terminology (Bonus Clue / Championship labels)
-10. Custom assets (logo, promo image, intro video, audio files)
+The wizard configures board size, values, bonus clues, timer duration, CSV or Google Sheets content, players, labels, and media files.
 
-### CSV Format
+If the global `trivia` command fails with `node.exe is not recognized`, Node is not on your PATH. Install Node.js 18+, reopen PowerShell, then reinstall or relink the package with `npm install -g .` from this folder.
 
-Each row is one question with four columns:
+## Flag Examples
 
-| Category | Clue | Answer | Value |
-|----------|------|--------|-------|
-| History | This president was born in 1732 | Who is George Washington? | 200 |
-| History | H2O is the chemical formula for this | What is water? | 400 |
-
-Row 1 must be the header row: `Category, Clue, Answer, Value`.
-
-- The **Value** column is optional but recommended. When present, clues are automatically sorted by value within each category and placed on the correct board row. Without it, clues fill rows in the order they appear.
-- Categories, clues, and answers can be in any order — the engine auto-organizes by category and value.
-- Clues with the same value in the same category will be placed at that value's row (first seen wins).
-- Minimum 3 clue rows per category; extra clues beyond the configured row count are ignored.
-
-## Running
+Refresh your saved sheets without walking through the wizard:
 
 ```bash
-trivia start
+trivia setup --update-content
 ```
 
-Opens on port **3333**. Open `http://localhost:3333` in your browser, or use the LAN address printed in the terminal for other devices.
+Load specific sheets and use modern values:
 
-### Quick Start
-
-1. Open **Broadcast** (`/broadcast`) on your TV/projector — click to initialize audio
-2. Open **Dashboard** (`/dashboard`) on your host laptop
-3. Press **SPACEBAR** or click **START** on the dashboard to begin
-
-### Game Flow
-
-1. **Intro** — video or logo animation plays → automatically advances to board
-2. **Board phase** — categories are covered; click each category cell to reveal (individual cover → name animation) or use REVEAL CATEGORIES for bulk reveal
-3. **Populate Board** — price cover drops, cells flip in with board-fill sound
-4. **Select clues** — click any cell to open it
-5. **Bonus Clues** — when found, broadcast shows animation + sound; host selects player + wager, then reveals the clue and starts the timer
-6. **Answer** — host reveals answer, marks correct/incorrect (bonus wager auto-applied)
-7. **Round 2** — same flow with doubled values
-8. **Championship** — final question with wager and think music; host reveals results then shows winner with outro music
-
-## Asset Files
-
-Place custom files in `public/`:
-
-| File | Location | Purpose |
-|------|----------|---------|
-| `audio/host-intro.mp3` | Intro theme | Plays during logo animation |
-| `audio/times-up.mp3` | Time's up | When timer expires |
-| `audio/daily-double.mp3` | Bonus clue | When bonus clue is activated |
-| `audio/final-think.mp3` | Think music | During championship thinking phase |
-| `audio/applause.mp3` | Applause | End of game |
-| `audio/board-fill.mp3` | Board fill | When cells populate |
-| `audio/correct.mp3` | Correct | Correct answer |
-| `audio/incorrect.mp3` | Incorrect | Incorrect answer |
-| `audio/outro.mp3` | Outro | End credits |
-| `video/intro.mp4` | Intro video | Full-screen intro (optional) |
-| `img/logo.*` | Logo | Custom logo (PNG/SVG) |
-| `img/promo.*` | Promo | Background image (optional) |
-
-## Architecture
-
+```bash
+trivia setup --modern --round1 round1.csv --round2 round2.csv --championship final.csv
 ```
+
+Update only players, labels, and intro video music:
+
+```bash
+trivia setup --players "Alice,Bob,Charlie" --bonus-label "DAILY DOUBLE" --video-music intro-theme.mp3
+```
+
+Update exact bonus clue positions. Positions are 1-based as `column:row`.
+
+```bash
+trivia setup --bonus-positions-r1 3:5 --bonus-positions-r2 2:3,1:4
+```
+
+Set any config value directly:
+
+```bash
+trivia setup --set "labels.bonusClue=DAILY DOUBLE" --set timerSeconds=8
+```
+
+## Full Flag Reference
+
+### Content
+
+| Flag | Meaning |
+| --- | --- |
+| `--content`, `--update-content` | Refresh from saved sources or sources passed in this command |
+| `--round1 PATH_OR_URL`, `--r1 PATH_OR_URL` | Round 1 CSV file or published Google Sheets CSV URL |
+| `--round2 PATH_OR_URL`, `--r2 PATH_OR_URL` | Round 2 CSV file or published Google Sheets CSV URL |
+| `--round2-same-as-round1` | Build Round 2 from the Round 1 source using double values |
+| `--championship PATH_OR_URL`, `--final PATH_OR_URL` | Final/championship CSV file or URL |
+| `--players "A,B,C"` | Replace player names |
+| `--no-save-sources` | Do not remember the passed sheet/file sources |
+
+### Presets And Values
+
+| Flag | Meaning |
+| --- | --- |
+| `--modern` | Use `200,400,600,800,1000` and `400,800,1200,1600,2000` |
+| `--traditional` | Use `100,200,300,400,500` and `200,400,600,800,1000` |
+| `--values LIST` | Round 1 values, for example `200,400,600,800,1000` |
+| `--double-values LIST` | Round 2 values |
+
+### Game Settings
+
+| Flag | Meaning |
+| --- | --- |
+| `--columns N` | Board column count |
+| `--rows N` | Board row count |
+| `--timer N`, `--timer-seconds N` | Clue timer duration in seconds |
+| `--double-round [true|false]` | Enable or disable Round 2 |
+| `--single-round`, `--no-double-round` | Disable Round 2 |
+| `--bonus-r1 N`, `--bonus-clues-r1 N` | Number of Round 1 bonus clues |
+| `--bonus-r2 N`, `--bonus-clues-r2 N` | Number of Round 2 bonus clues |
+| `--bonus-positions-r1 LIST` | Round 1 bonus positions, for example `3:5,6:5` |
+| `--bonus-positions-r2 LIST` | Round 2 bonus positions, for example `2:3,1:4` |
+| `--bonus-method TEXT` | Bonus clue assignment method label stored in config |
+| `--child-host [true|false]`, `--kid-mode [true|false]` | Toggle child-host mode |
+| `--no-child-host`, `--no-kid-mode` | Disable child-host mode |
+| `--jeopardy-style [true|false]` | Toggle Jeopardy-style labels |
+| `--no-jeopardy-style` | Disable Jeopardy-style labels |
+
+### Labels
+
+| Flag | Meaning |
+| --- | --- |
+| `--bonus-label TEXT` | Label for bonus clues |
+| `--championship-label TEXT`, `--final-label TEXT` | Header label for Final/championship |
+| `--championship-section TEXT`, `--final-section TEXT` | Section label for Final/championship |
+| `--round2-suffix TEXT` | Round 2 suffix label |
+
+### Assets
+
+Asset flags copy your file into the correct `public/` folder and update `config.json`.
+
+| Flag | Destination |
+| --- | --- |
+| `--logo PATH` | `public/img/logo.*` |
+| `--category-cover PATH`, `--price-cover PATH` | `public/img/cat-cover.*` |
+| `--intro-video PATH` | `public/video/intro.mp4` |
+| `--intro-audio PATH`, `--intro-music PATH`, `--video-music PATH` | `public/audio/intro-audio.mp3` |
+| `--bonus-image PATH`, `--bonus-clue-image PATH` | `public/img/bonus-clue.*` |
+| `--promo-image PATH` | `public/img/promo.*` |
+| `--host-intro PATH` | `public/audio/host-intro.mp3` |
+| `--times-up PATH` | `public/audio/times-up.mp3` |
+| `--bonus-sound PATH`, `--bonus-clue-sound PATH` | `public/audio/daily-double.mp3` |
+| `--think-music PATH`, `--final-think PATH` | `public/audio/final-think.mp3` |
+| `--applause PATH` | `public/audio/applause.mp3` |
+| `--board-fill PATH` | `public/audio/board-fill.mp3` |
+| `--correct-sound PATH` | `public/audio/correct.mp3` |
+| `--incorrect-sound PATH` | `public/audio/incorrect.mp3` |
+| `--outro PATH` | `public/audio/outro.mp3` |
+| `--background-music PATH`, `--bg-music PATH` | `public/audio/background.mp3` |
+
+Generic asset controls:
+
+| Flag | Meaning |
+| --- | --- |
+| `--asset key=PATH` | Update any asset by key |
+| `--enable-asset KEY` | Mark an existing asset enabled |
+| `--disable-asset KEY`, `--no-asset KEY` | Mark an asset disabled |
+
+Asset keys are `logo`, `categoryCover`, `introVideo`, `introAudio`, `bonusClueImage`, `promoImage`, `hostIntro`, `timesUp`, `bonusClue`, `championshipThink`, `applause`, `boardFill`, `correct`, `incorrect`, `outro`, and `backgroundMusic`.
+
+### Escape Hatch
+
+| Flag | Meaning |
+| --- | --- |
+| `--set path=value` | Set any `config.json` field, including nested paths |
+
+Use quotes when the value contains spaces:
+
+```bash
+trivia setup --set "labels.championshipHdr=FINAL JEOPARDY"
+```
+
+JSON arrays and objects are accepted:
+
+```bash
+trivia setup --set "baseValues=[200,400,600,800,1000]"
+```
+
+## CSV Format
+
+Simple CSV format:
+
+| Category | Clue | Answer | Value |
+| --- | --- | --- | --- |
+| History | This president was born in 1732 | Who is George Washington? | 200 |
+| Science | H2O is the chemical formula for this | What is water? | 400 |
+
+Rules:
+
+- Row 1 should be `Category,Clue,Answer,Value`.
+- `Value` is optional but recommended.
+- Clues are grouped by category and sorted into rows by value when values are present.
+- Published Google Sheets CSV URLs work anywhere a CSV path works.
+
+Final/championship CSV uses:
+
+```csv
+Category,Clue,Answer
+Famous Homes,This estate stored National Gallery art during World War II,What is the Biltmore?
+```
+
+## Verification
+
+Run the focused audio/done-reading verifier:
+
+```bash
+npm run verify:done-reading
+```
+
+Run the full stress suite:
+
+```bash
+npm run stress
+```
+
+The stress suite covers duplicate `done-reading` events, timer stability, answer scoring, bonus wagers, Final wager-only behavior, reset behavior, invalid inputs, broadcast audio playback, and setup flags.
+
+## Project Layout
+
+```text
+bin/
+  trivia.js
 src/
   cli/
-    setup.js    — Interactive configuration wizard
-    start.js    — Server launcher
+    setup.js
+    start.js
   server/
-    index.js    — Express + Socket.IO setup
-    socket-handlers.js — All game event handlers
-    game-state.js      — Game state management
+    game-state.js
+    socket-handlers.js
 public/
-  broadcast.html — Audience display
-  dashboard.html  — Host dashboard
-  editor.html     — Game content editor
-  stats.html      — Post-game statistics page
-  helper-scoring.html — Secondary scoring page
-  helper-board.html   — Secondary board page
-  css/
-    broadcast.css
-    dashboard.css
+  broadcast.html
+  dashboard.html
+  editor.html
+  stats.html
+  helper-board.html
+  helper-scoring.html
   js/
-    broadcast.js
-    dashboard.js
-    socket-client.js
+  css/
+  audio/
+  img/
+  video/
+scripts/
+  stress-test.js
+  verify-done-reading-audio.js
 ```
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding guidelines, and pull request process.
-
-This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## Security
-
-Report vulnerabilities privately via [SECURITY.md](SECURITY.md).
 
 ## Development
 
-**Current session**: +812 lines, 1 syntax fix (13 files)
-**Total project LOC**: 8,748
+```bash
+npm install
+npm run setup
+npm start
+npm run stress
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md) for project process and reporting.

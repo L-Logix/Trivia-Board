@@ -10,7 +10,7 @@ var videoEls = {};
 var audioAssetMap = {
   intro:'hostIntro', introaudio:'introAudio', timesup:'timesUp', dd:'bonusClue',
   think:'championshipThink', bgmusic:'backgroundMusic', applause:'applause',
-  boardfill:'boardFill', correct:'correct', incorrect:'incorrect', outro:'outro'
+  boardfill:'boardFill', correct:'correct', outro:'outro'
 };
 function isAudioConfigured(k) {
   if (!st || !st.config || !st.config.assets) return false;
@@ -55,7 +55,6 @@ function initAudio() {
     applause:'audio/applause.mp3',
     boardfill:'audio/board-fill.mp3',
     correct:'audio/correct.mp3',
-    incorrect:'audio/incorrect.mp3',
     outro:'audio/outro.mp3'
   };
   Object.keys(map).forEach(function(k) {
@@ -121,8 +120,14 @@ function unduckBgMusic() {
 }
 
 function play(k) {
-  stopAll();
   if (!isAudioConfigured(k)) return;
+  // Stop all other sounds (not bgmusic), leave the element we're about to play alone
+  Object.keys(audio).forEach(function(n) {
+    if (n === k || n === 'bgmusic') return;
+    if (!audio[n]) return;
+    audio[n].pause();
+    audio[n].currentTime = 0;
+  });
   var el = audio[k];
   if (el) {
     if (k !== 'bgmusic' && audio['bgmusic'] && !audio['bgmusic'].paused) {
@@ -134,6 +139,7 @@ function play(k) {
         unduckBgMusic();
       }, dur);
     }
+    el.muted = false;
     el.currentTime = 0;
     el.play().catch(function(){});
   }
@@ -184,8 +190,9 @@ function playBgMusic() {
   if (bgUnduckTimer) { clearTimeout(bgUnduckTimer); bgUnduckTimer = null; }
   el.volume = bgOrigVolume;
   el.loop = true;
-  el.currentTime = 0;
-  el.play().catch(function(){});
+    el.muted = false;
+    el.currentTime = 0;
+    el.play().catch(function(){});
 }
 function stopBgMusic() {
   if (bgDuckTimer) { clearInterval(bgDuckTimer); bgDuckTimer = null; }
@@ -395,6 +402,8 @@ function showClue(cell) {
   document.getElementById('clue-cat').textContent = cell.category || '';
   document.getElementById('clue-val').textContent = cell.isBonusClue ? label('bonusClue') || 'BONUS CLUE' : '$' + cell.value;
   document.getElementById('clue-text').textContent = cell.clue || '';
+  var badge = document.getElementById('answer-shown-badge');
+  if (badge) badge.classList.add('hidden');
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
   document.getElementById('clue-timer-fill').classList.remove('warning');
@@ -409,6 +418,8 @@ function showClueFromData(d) {
   document.getElementById('clue-cat').textContent = d.category || '';
   document.getElementById('clue-val').textContent = d.isBonusClue ? label('bonusClue') || 'BONUS CLUE' : '$' + (d.value || 0);
   document.getElementById('clue-text').textContent = d.clue || '';
+  var badge = document.getElementById('answer-shown-badge');
+  if (badge) badge.classList.add('hidden');
   document.getElementById('clue-ans').classList.add('hidden');
   if (!d.isBonusClue) {
     var pct = d.timerSeconds > 0 ? (d.timerRemaining / d.timerSeconds) * 100 : 100;
@@ -517,7 +528,7 @@ document.getElementById('init-overlay').addEventListener('click', function() {
   Object.keys(audio).forEach(function(k) {
     if (!isAudioConfigured(k)) return;
     var el = audio[k];
-    if (el) { el.muted = true; el.play().then(function() { el.pause(); el.muted = false; }).catch(function() {}); }
+    if (el) { el.load(); }
   });
   this.style.opacity = '0';
   var self = this;
@@ -612,6 +623,8 @@ socket.on('bonus-clue-shown', function(d) {
   document.getElementById('clue-cat').textContent = d.category || '';
   document.getElementById('clue-val').textContent = label('bonusClue') || 'BONUS CLUE';
   document.getElementById('clue-text').textContent = d.clue || '';
+  var badge = document.getElementById('answer-shown-badge');
+  if (badge) badge.classList.add('hidden');
   document.getElementById('clue-ans').classList.add('hidden');
   document.getElementById('clue-timer-fill').style.width = '100%';
   document.getElementById('clue-timer-fill').classList.remove('warning');
@@ -631,11 +644,15 @@ socket.on('answer-revealed', function(d) {
   var el = document.getElementById('clue-ans');
   el.textContent = d.answer;
   el.classList.remove('hidden');
+  var badge = document.getElementById('answer-shown-badge');
+  if (badge) badge.classList.remove('hidden');
 });
 
 socket.on('answer-hidden', function() {
   var el = document.getElementById('clue-ans');
   if (el) el.classList.add('hidden');
+  var badge = document.getElementById('answer-shown-badge');
+  if (badge) badge.classList.add('hidden');
 });
 
 socket.on('board-return', function(d) {
@@ -680,10 +697,10 @@ socket.on('think-music-start', function() {
 socket.on('championship-revealed', function(d) {
   show('championship');
   document.getElementById('championship-reveal-player').classList.add('hidden');
+  document.getElementById('championship-ans').classList.add('hidden');
   playChampionshipReveal();
   document.getElementById('championship-cat-wager').classList.add('hidden');
   document.getElementById('championship-cat').classList.remove('hidden');
-  if (d.answer) { document.getElementById('championship-ans').textContent = d.answer; document.getElementById('championship-ans').classList.remove('hidden'); }
   if (d.players) {
     var lbl = d.hasMore ? 'Scores After Question ' + ((d.questionIndex || 0) + 1) : 'Final Scores';
     var html = '<div style="margin:15px 0;font-size:1.3vw;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase">' + lbl + '</div>';
@@ -734,7 +751,7 @@ socket.on('game-reset', function(state) {
 });
 
 socket.on('answer-correct', function() { showAnswerOverlay(true, true); });
-socket.on('answer-incorrect', function() { showAnswerOverlay(false, false); });
+socket.on('answer-incorrect', function(d) { showAnswerOverlay(false, d && d.noAutoReturn); });
 
 socket.on('show-winner', function(d) {
   stopBgMusic();
@@ -842,7 +859,6 @@ function showChampionship(d) {
     document.getElementById('championship-cat-wager').classList.add('hidden');
     document.getElementById('championship-text').classList.add('hidden');
     document.getElementById('championship-cat').classList.remove('hidden');
-    if (d.answer) { document.getElementById('championship-ans').textContent = d.answer; document.getElementById('championship-ans').classList.remove('hidden'); }
   } else if (phase === 'showing' || phase === 'thinking') {
     document.getElementById('championship-cat-wager').classList.add('hidden');
     document.getElementById('championship-cat').classList.remove('hidden');
@@ -883,6 +899,9 @@ socket.on('championship-reveal-begin', function(d) {
   document.getElementById('cr-player-name').textContent = d.name || '';
   document.getElementById('cr-player-answer').classList.add('hidden');
   document.getElementById('cr-wager').classList.add('hidden');
+  var corrEl = document.getElementById('cr-wager-correct');
+  corrEl.textContent = '';
+  corrEl.className = 'cr-wager-correction';
 });
 
 socket.on('championship-reveal-step', function(d) {
@@ -890,29 +909,20 @@ socket.on('championship-reveal-step', function(d) {
     document.getElementById('cr-player-name').textContent = d.name || '';
     document.getElementById('cr-player-answer').classList.add('hidden');
     document.getElementById('cr-wager').classList.add('hidden');
+    var corrEl = document.getElementById('cr-wager-correct');
+    corrEl.textContent = '';
+    corrEl.className = 'cr-wager-correction';
   } else if (d.type === 'answer') {
-    document.getElementById('cr-player-name').textContent = d.name || '';
-    var ansEl = document.getElementById('cr-player-answer');
-    ansEl.textContent = d.answer || '';
-    ansEl.style.fontFamily = handFonts[(d.playerIndex || 0) % handFonts.length];
-    ansEl.classList.remove('hidden');
+    document.getElementById('cr-player-answer').classList.add('hidden');
     document.getElementById('cr-wager').classList.add('hidden');
-  } else if (d.type === 'result') {
+  } else if (d.type === 'wager' || d.type === 'result') {
     document.getElementById('cr-player-name').textContent = d.name || '';
-    var ansEl = document.getElementById('cr-player-answer');
-    if (ansEl.textContent) {
-      ansEl.style.fontFamily = handFonts[(d.playerIndex || 0) % handFonts.length];
-    }
+    document.getElementById('cr-player-answer').classList.add('hidden');
     var wagerEl = document.getElementById('cr-wager');
     wagerEl.querySelector('.cr-wager-val').textContent = fmt(d.wager);
     wagerEl.classList.remove('hidden');
     var corrEl = document.getElementById('cr-wager-correct');
-    if (d.correct) {
-      corrEl.textContent = 'CORRECT!';
-      corrEl.className = 'cr-wager-correction correct';
-    } else {
-      corrEl.textContent = 'WRONG';
-      corrEl.className = 'cr-wager-correction incorrect';
-    }
+    corrEl.textContent = '';
+    corrEl.className = 'cr-wager-correction';
   }
 });

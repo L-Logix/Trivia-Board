@@ -4,39 +4,9 @@ let gameState = null;
 let io = null;
 let allCategoriesRevealed = {};
 
-// Fuzzy answer comparison: case-insensitive, punctuation-tolerant
-function normalizeAnswer(s) {
-  return (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-}
-function isAnswerCloseEnough(playerAns, correctAns) {
-  var p = normalizeAnswer(playerAns);
-  var c = normalizeAnswer(correctAns);
-  if (!p || !c) return false;
-  if (p === c) return true;
-  // Remove common Jeopardy prefixes for matching
-  var prefixes = ['what is ', 'what are ', 'who is ', 'who are ', 'where is ', 'where are ', 'when is ', 'when are ', 'why is ', 'why are ', 'the '];
-  var pc = c;
-  prefixes.forEach(function(pre) { if (pc.indexOf(pre) === 0) pc = pc.slice(pre.length); });
-  var pp = p;
-  prefixes.forEach(function(pre) { if (pp.indexOf(pre) === 0) pp = pp.slice(pre.length); });
-  if (pc === pp) return true;
-  // Check if one contains the other
-  if (pc.indexOf(pp) >= 0 || pp.indexOf(pc) >= 0) return true;
-  // Levenshtein distance for small differences
-  function levenshtein(a, b) {
-    var m = a.length, n = b.length;
-    var d = Array(m + 1); for (var i = 0; i <= m; i++) d[i] = Array(n + 1);
-    for (var i = 0; i <= m; i++) d[i][0] = i;
-    for (var j = 0; j <= n; j++) d[0][j] = j;
-    for (var j = 1; j <= n; j++) for (var i = 1; i <= m; i++)
-      d[i][j] = a[i-1] === b[j-1] ? d[i-1][j-1] : Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+1);
-    return d[m][n];
-  }
-  var maxLen = Math.max(pc.length, pp.length);
-  if (maxLen === 0) return false;
-  var dist = levenshtein(pc, pp);
-  // Allow up to 30% difference
-  return (dist / maxLen) <= 0.3;
+function parseNonNegativeAmount(value) {
+  const n = parseInt(String(value || '0').replace(/[^\d-]/g, ''), 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 function setup(ioInstance, config) {
@@ -88,6 +58,9 @@ function setup(ioInstance, config) {
 
     socket.on('select-clue', (data) => {
       const { col, row } = data;
+      // Don't allow selecting a new clue while one is active
+      if (gameState.phase === 'clue' || gameState.phase === 'bonus-clue') return;
+      if (gameState.timer && gameState.timer.running) return;
       const cell = gameState.selectClue(col, row);
       if (!cell) return;
 
@@ -112,7 +85,9 @@ function setup(ioInstance, config) {
     });
 
     socket.on('bonus-clue-wager', (data) => {
-      const { playerIndex, wager } = data;
+      if (!gameState.currentClue || gameState.phase !== 'bonus-clue') return;
+      const { playerIndex } = data || {};
+      const wager = parseNonNegativeAmount(data && data.wager);
       gameState.setBonusClueWager(playerIndex, wager);
       gameState.confirmBonusClue();
       gameState.recordBonusClueAttempt(playerIndex);
@@ -129,14 +104,18 @@ function setup(ioInstance, config) {
     });
 
     socket.on('timer-tick-request', () => {
-      socket.emit('timer-tick', { remaining: gameState.timer.remaining, running: gameState.timer.running });
+      socket.emit('timer-tick', {
+        remaining: gameState.timer.remaining,
+        running: gameState.timer.running,
+        paused: gameState.timer.paused
+      });
     });
 
     socket.on('player-buzz', (data) => {
       const wasRunning = gameState.timer.running;
-      gameState.stopTimer();
+      if (wasRunning) gameState.stopTimer();
       io.emit('buzz-result', {
-        playerIndex: data.playerIndex,
+        playerIndex: data && data.playerIndex,
         timeRemaining: gameState.timer.remaining,
         success: wasRunning
       });
@@ -151,6 +130,8 @@ function setup(ioInstance, config) {
     });
 
     socket.on('done-reading', () => {
+      if (!gameState.currentClue || gameState.phase !== 'clue') return;
+      if (gameState.timer.running || gameState.timer.paused) return;
       gameState.startTimer(
         () => { gameState.recordTimesUp(); io.emit('times-up'); },
         (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
@@ -162,18 +143,22 @@ function setup(ioInstance, config) {
     });
 
     socket.on('answer-correct', (data) => {
+      if (gameState.currentClue && gameState.currentClue.answered) return;
       var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
-      if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
+      if (gameState.bonusCluePlayerIndex !== null) {
         pi = gameState.bonusCluePlayerIndex;
-        gameState.adjustScore(pi, gameState.bonusClueWager);
+        var bonusDelta = gameState.bonusClueWager;
+        if (gameState.currentClue) gameState.currentClue.answered = true;
+        gameState.adjustScore(pi, bonusDelta);
         gameState.bonusCluePlayerIndex = null;
         gameState.bonusClueWager = 0;
         io.emit('score-updated', {
           players: gameState.players.map(p => ({ ...p })),
           playerIndex: pi,
-          delta: 0
+          delta: bonusDelta
         });
       } else if (pi !== undefined && pi !== null && gameState.currentClue) {
+        gameState.currentClue.answered = true;
         var cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
         if (cell) gameState.adjustScore(pi, cell.value);
         io.emit('score-updated', {
@@ -184,43 +169,56 @@ function setup(ioInstance, config) {
       }
       gameState.stopTimer();
       if (gameState.currentClue) {
-        gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, true, pi !== null ? pi : -1, false);
+        var answeredCell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
+        gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, true, pi !== null ? pi : -1, answeredCell ? answeredCell.isBonusClue : false);
       }
       io.emit('answer-correct');
     });
 
     socket.on('answer-incorrect', (data) => {
+      if (gameState.currentClue && gameState.currentClue.answered) return;
       var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
-      if (gameState.bonusCluePlayerIndex !== null && gameState.bonusClueWager > 0) {
+      if (gameState.bonusCluePlayerIndex !== null) {
         pi = gameState.bonusCluePlayerIndex;
-        gameState.adjustScore(pi, -gameState.bonusClueWager);
+        var bonusDelta = -gameState.bonusClueWager;
+        if (gameState.currentClue) gameState.currentClue.answered = true;
+        gameState.adjustScore(pi, bonusDelta);
         gameState.bonusCluePlayerIndex = null;
         gameState.bonusClueWager = 0;
         io.emit('score-updated', {
           players: gameState.players.map(p => ({ ...p })),
           playerIndex: pi,
-          delta: 0
+          delta: bonusDelta
         });
         gameState.stopTimer();
         if (gameState.currentClue) {
-          gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi, false);
+          var bonusCell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
+          gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi, bonusCell ? bonusCell.isBonusClue : false);
         }
-        io.emit('answer-incorrect');
+        io.emit('answer-incorrect', { noAutoReturn: true, playerIndex: pi });
       } else if (pi !== undefined && pi !== null && gameState.currentClue) {
+        if (!Array.isArray(gameState.currentClue.incorrectPlayers)) gameState.currentClue.incorrectPlayers = [];
+        if (gameState.currentClue.incorrectPlayers.indexOf(pi) !== -1) return;
+        gameState.currentClue.incorrectPlayers.push(pi);
         var cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
         if (cell) gameState.adjustScore(pi, -cell.value);
-        gameState.pauseTimer();
+        const shouldPause = gameState.timer.running;
+        if (shouldPause) gameState.pauseTimer();
+        if (cell) gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi, cell.isBonusClue);
         io.emit('score-updated', {
           players: gameState.players.map(p => ({ ...p })),
           playerIndex: pi,
           delta: cell ? -cell.value : 0
         });
-        io.emit('timer-paused', { remaining: gameState.timer.remaining });
+        if (shouldPause) io.emit('timer-paused', { remaining: gameState.timer.remaining });
+        io.emit('answer-incorrect', { noAutoReturn: true, playerIndex: pi });
       }
     });
 
     socket.on('timer-unpause', () => {
       if (!gameState.currentClue) return;
+      if (gameState.timer.running) return;
+      if (!gameState.timer.paused) return;
       gameState.resumeTimer(
         () => { gameState.recordTimesUp(); io.emit('times-up'); },
         (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
@@ -229,15 +227,22 @@ function setup(ioInstance, config) {
     });
 
     socket.on('pause-timer', () => {
+      if (!gameState.currentClue || !gameState.timer.running) return;
       gameState.pauseTimer();
+      io.emit('timer-paused', { remaining: gameState.timer.remaining });
     });
 
     socket.on('resume-timer', () => {
       if (!gameState.currentClue) return;
+      if (gameState.timer.running) return;
+      if (!gameState.timer.paused) return;
       gameState.resumeTimer(
         () => { gameState.recordTimesUp(); io.emit('times-up'); },
         (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
       );
+      if (gameState.timer.running) {
+        io.emit('timer-resumed', { remaining: gameState.timer.remaining });
+      }
     });
 
     socket.on('return-to-board', (data) => {
@@ -336,26 +341,23 @@ function setup(ioInstance, config) {
     });
 
     socket.on('championship-reveal-data', (data) => {
+      if (gameState.phase !== 'championship') return;
+      if (gameState.revealSequence || gameState.championshipPhase === 'revealing' || gameState.championshipPhase === 'revealed') return;
       gameState.revealChampionship();
-      const q = gameState.getCurrentChampionshipQuestion();
-      const correctAnswer = q.answer || '';
-      // Build reveal sequence sorted by pre-reveal score ascending
+      const wagerData = data && data.wagers ? data.wagers : {};
+      // Build reveal sequence sorted by pre-reveal score ascending.
       const playersWithData = gameState.players.map((p, i) => {
-        var ans = data.answers && data.answers[i] !== undefined ? data.answers[i] : '';
-        var wgr = data.wagers && data.wagers[i] !== undefined ? data.wagers[i] : 0;
-        var corr = isAnswerCloseEnough(ans, correctAnswer);
-        return { index: i, name: p.name, score: p.score, answer: ans, wager: wgr, correct: corr };
+        const wgr = parseNonNegativeAmount(wagerData[i]);
+        gameState.setWager(i, wgr);
+        return { index: i, name: p.name, score: p.score, wager: wgr };
       });
       playersWithData.sort((a, b) => a.score - b.score);
       const steps = [];
-      const pendingChanges = {};
       playersWithData.forEach(p => {
         steps.push({ type: 'name', playerIndex: p.index, name: p.name });
-        steps.push({ type: 'answer', playerIndex: p.index, name: p.name, answer: p.answer });
-        steps.push({ type: 'result', playerIndex: p.index, name: p.name, correct: p.correct, wager: p.wager });
-        pendingChanges[p.index] = { correct: p.correct, wager: p.wager };
+        steps.push({ type: 'wager', playerIndex: p.index, name: p.name, wager: p.wager });
       });
-      gameState.revealSequence = { steps, currentStep: 0, updatedPlayers: gameState.players.map(p => ({ ...p })), pendingChanges };
+      gameState.revealSequence = { steps, currentStep: 0 };
       gameState.championshipPhase = 'revealing';
       io.emit('championship-reveal-begin', { totalSteps: steps.length, currentStep: 0, ...steps[0] });
     });
@@ -367,30 +369,15 @@ function setup(ioInstance, config) {
       if (seq.currentStep >= seq.steps.length) {
         gameState.championshipPhase = 'revealed';
         gameState.revealSequence = null;
-        const q = gameState.getCurrentChampionshipQuestion();
         const hasMore = gameState.hasMoreChampionshipQuestions();
         io.emit('championship-revealed', {
-          players: gameState.players.map(p => ({ ...p })),
+          players: gameState.players.map((p, i) => ({ ...p, wager: gameState.championshipWagers[i] || 0 })),
           championshipPhase: 'revealed',
-          answer: q.answer,
           hasMore: hasMore,
           questionIndex: gameState.currentChampionshipIndex
         });
       } else {
         const step = seq.steps[seq.currentStep];
-        // Apply score change on result step
-        if (step.type === 'result' && seq.pendingChanges && seq.pendingChanges[step.playerIndex]) {
-          const ch = seq.pendingChanges[step.playerIndex];
-          const delta = ch.correct ? ch.wager : -ch.wager;
-          gameState.adjustScore(step.playerIndex, delta);
-          gameState.recordChampionshipResult(step.playerIndex, ch.correct);
-          seq.updatedPlayers = gameState.players.map(p => ({ ...p }));
-          io.emit('score-updated', {
-            players: seq.updatedPlayers,
-            playerIndex: step.playerIndex,
-            delta: delta
-          });
-        }
         io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...step });
       }
     });
