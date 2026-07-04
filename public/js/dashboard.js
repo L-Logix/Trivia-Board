@@ -645,7 +645,9 @@ function updateChampMirror(d) {
   if (round) round.textContent = 'CHAMPIONSHIP';
   if (info) info.textContent = (d.category || '') + ' - Question ' + ((d.questionIndex || 0) + 1) + ' of ' + (d.totalQuestions || 1);
   if (clue) clue.textContent = d.clue || '';
-  if (ans) { ans.textContent = d.answer || ''; }
+  if (ans) { ans.textContent = d.answer || ''; ans.classList.remove('hidden'); }
+  var status = document.getElementById('mirror-champ-status');
+  if (status) status.classList.add('hidden');
   var scores = document.getElementById('mirror-scores');
   if (scores && st && st.players) {
     var html = '';
@@ -699,6 +701,17 @@ socket.on('championship-reveal-begin', function(d) {
   if (lastChamp) updateChampMirror({ category: lastChamp.category, clue: lastChamp.clue, answer: lastChamp.answer, questionIndex: st.currentChampionshipIndex, totalQuestions: (st.config.championshipQuestions || []).length });
 });
 socket.on('championship-reveal-step', function(d) {
+  var status = document.getElementById('mirror-champ-status');
+  if (status) {
+    status.classList.remove('hidden');
+    if (d.type === 'name') {
+      status.textContent = 'Revealing: ' + (d.name || '');
+    } else if (d.type === 'show-answer') {
+      status.textContent = 'Hold up your answer now';
+    } else if (d.type === 'wager' || d.type === 'result') {
+      status.textContent = 'Wager: $' + fmt(d.wager || 0);
+    }
+  }
   if (d.type === 'name') {
     document.getElementById('btn-next-reveal-step').classList.remove('hidden');
     document.getElementById('btn-next-reveal-step').textContent = 'SHOW ANSWER';
@@ -730,6 +743,8 @@ socket.on('championship-revealed',function(d){
   document.getElementById('btn-next-reveal-step').classList.add('hidden');
   document.getElementById('btn-champ-correct').classList.add('hidden');
   document.getElementById('btn-champ-incorrect').classList.add('hidden');
+  var status = document.getElementById('mirror-champ-status');
+  if (status) status.classList.add('hidden');
   // Show/hide next question button
   var nextBtn = document.getElementById('btn-next-champ-question');
   if (nextBtn) {

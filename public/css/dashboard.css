@@ -154,6 +154,12 @@ kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px
   border:1px solid rgba(255,204,0,.2);
 }
 #mirror-ans.hidden { display:none!important; }
+#mirror-champ-status {
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:1rem; font-weight:700; color:#ffcc00;
+  margin-top:8px; text-transform:uppercase; letter-spacing:1px;
+}
+#mirror-champ-status.hidden { display:none!important; }
 #mirror-answer-badge {
   position:absolute; bottom:8px; right:8px;
   font-family:'Oswald','Impact',sans-serif;
