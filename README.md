@@ -26,28 +26,35 @@ Trivia Broadcast Engine runs a live-hosted trivia game on your local network. Th
 | Editor | `/editor` | In-browser content and settings editor |
 | Stats | `/stats` | Post-game charts and printable reports |
 
-## Star Graph
+## Features
 
-```mermaid
-flowchart TD
-  Core((Trivia Engine))
-  Core --- Setup["Setup Flags"]
-  Core --- Broadcast["Broadcast View"]
-  Core --- Dashboard["Host Dashboard"]
-  Core --- Audio["Audio System"]
-  Core --- Sheets["CSV / Sheets"]
-  Core --- Final["Final Wagers"]
-  Core --- Stats["Stats"]
-```
+- **Dual-screen hosting** — broadcast view for the audience, dashboard for the host, plus helper screens for scoring and board control
+- **Fully scriptable setup** — configure everything from CLI flags: board size, values, players, labels, audio, video, and CSV/Sheets imports
+- **Google Sheets & CSV import** — paste a published Sheets URL or local CSV path; supports simple column format and grid format
+- **Custom audio & video** — per-clue timer, intro video/music, background music, bonus clue sound, applause, and more — all config-gated so unconfigured assets are silent no-ops
+- **Timer with pause/resume** — starts on DONE READING; pauses on INCORRECT for other players to buzz; keyboard shortcuts for BUZZ/UNBUZZ
+- **Bonus clue (Daily Double)** — full-screen cover flip, auto-transition to wager screen, configurable per-round count and positions
+- **Championship / Final** — wager-only reveal (no answer input needed); step-by-step name → wager reveal; multiple questions support
+- **Fuzzy answer comparison** — server-side answer matching tolerates extra spaces, casing, and parenthetical variations
+- **Answer shown indicator** — visual badge on broadcast and dashboard mirror when the answer has been revealed
+- **Category cover reveal** — full-screen image cover that flips to show each category name; includes progress indicator (current / next category)
+- **Player selector modal** — CORRECT/INCORRECT buttons open a popup with player name buttons; auto-adjusts score and pauses timer
+- **Blocking toasts** — prevent returning to board without showing the answer first
+- **Child-host mode** — shorter timer, friendlier labels, walkthrough shown on first load
+- **Practice mode** — `/practice` page to cycle through all clues from Rounds 1, 2, and Final with back/next navigation and answer toggle
+- **Post-game stats** — detailed per-player and per-game charts: correct/incorrect streaks, category breakdown, value distribution, and printable reports
+- **In-browser editor** — edit categories, clues, answers, and settings directly from the browser at `/editor`
+- **Stress-tested** — dedicated verification script for timer/audio desync plus full stress suite covering duplicates, scoring, wagers, reset, and edge cases
 
-| Area | Rating |
-| --- | --- |
-| Live hosting flow | ***** |
-| Scriptable setup | ***** |
-| Custom audio and visuals | ***** |
-| Google Sheets / CSV imports | ***** |
-| Helper-device support | **** |
-| Post-game reporting | **** |
+## Star History
+
+<a href="https://www.star-history.com/?repos=L-Logix%2Ftrivia-board&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## Quick Start
 
