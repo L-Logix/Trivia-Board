@@ -320,6 +320,7 @@ function setup(ioInstance, config) {
         championshipPhase: 'wagering',
         category: q.category,
         clue: q.clue,
+        answer: q.answer,
         totalQuestions: (gameState.config.championshipQuestions || []).length,
         questionIndex: gameState.currentChampionshipIndex
       });
@@ -331,7 +332,8 @@ function setup(ioInstance, config) {
       io.emit('championship-clue-shown', {
         championshipPhase: 'showing',
         clue: q.clue,
-        category: q.category
+        category: q.category,
+        answer: q.answer
       });
     });
 
@@ -364,7 +366,7 @@ function setup(ioInstance, config) {
 
     socket.on('next-reveal-step', () => {
       const seq = gameState.revealSequence;
-      if (!seq) return;
+      if (!seq || seq.waitingForScoring) return;
       seq.currentStep++;
       if (seq.currentStep >= seq.steps.length) {
         gameState.championshipPhase = 'revealed';
@@ -379,6 +381,44 @@ function setup(ioInstance, config) {
       } else {
         const step = seq.steps[seq.currentStep];
         io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...step });
+        if (step.type === 'wager') {
+          seq.waitingForScoring = true;
+        }
+      }
+    });
+
+    socket.on('championship-scoring', (data) => {
+      const seq = gameState.revealSequence;
+      if (!seq || !seq.waitingForScoring) return;
+      const currentStep = seq.steps[seq.currentStep];
+      if (currentStep.type !== 'wager') return;
+      const correct = data && data.correct;
+      const pi = currentStep.playerIndex;
+      const wager = currentStep.wager || 0;
+      const delta = correct ? wager : -wager;
+      gameState.adjustScore(pi, delta);
+      gameState.setChampionshipAnswer(pi, correct);
+      gameState.recordChampionshipResult(pi, correct);
+      io.emit('score-updated', { players: gameState.players.map(p => ({ ...p })), playerIndex: pi, delta });
+      io.emit('championship-scored', { playerIndex: pi, correct: !!correct, wager });
+      seq.waitingForScoring = false;
+      seq.currentStep++;
+      if (seq.currentStep >= seq.steps.length) {
+        gameState.championshipPhase = 'revealed';
+        gameState.revealSequence = null;
+        const hasMore = gameState.hasMoreChampionshipQuestions();
+        io.emit('championship-revealed', {
+          players: gameState.players.map((p, i) => ({ ...p, wager: gameState.championshipWagers[i] || 0 })),
+          championshipPhase: 'revealed',
+          hasMore: hasMore,
+          questionIndex: gameState.currentChampionshipIndex
+        });
+      } else {
+        const nextStep = seq.steps[seq.currentStep];
+        io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...nextStep });
+        if (nextStep.type === 'wager') {
+          seq.waitingForScoring = true;
+        }
       }
     });
 
@@ -390,6 +430,7 @@ function setup(ioInstance, config) {
         championshipPhase: 'wagering',
         category: q.category,
         clue: q.clue,
+        answer: q.answer,
         totalQuestions: (gameState.config.championshipQuestions || []).length,
         questionIndex: gameState.currentChampionshipIndex
       });

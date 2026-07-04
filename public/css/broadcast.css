@@ -572,9 +572,9 @@ html,body {
   font-family:'Oswald','Impact',sans-serif;
   font-size:clamp(28px, 4vw, 5vw);
   font-weight:700; letter-spacing:8px;
+  transition:color .3s;
 }
-#cr-wager .cr-wager-correction.correct { color:#4caf50; }
-#cr-wager .cr-wager-correction.incorrect { color:#f44336; }
+#cr-wager .cr-wager-correction.cr-judging { color:rgba(255,255,255,.35); font-size:clamp(16px, 2vw, 2.5vw); letter-spacing:4px; }
 
 /* Championship Wager Screen */
 #championship-cat-wager {

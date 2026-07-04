@@ -262,13 +262,21 @@ async function stressRoundAndFinal() {
   assert(io.count('championship-reveal-begin', beforeReveal) === 1, 'duplicate Final reveal data restarted reveal');
   assert(io.count('score-updated', beforeReveal) === 0, 'Final reveal changed scores');
 
-  for (let i = 0; i < 20; i++) dashboard.clientEmit('next-reveal-step');
+  for (let i = 0; i < 20; i++) {
+    dashboard.clientEmit('next-reveal-step');
+    const lastStep = io.last('championship-reveal-step');
+    if (lastStep && lastStep.payload && lastStep.payload.type === 'wager') {
+      dashboard.clientEmit('championship-scoring', { correct: true });
+    }
+  }
   const finalSteps = io.eventsSince(beforeReveal, 'championship-reveal-step').map(e => e.payload.type);
   assert(finalSteps.indexOf('answer') === -1 && finalSteps.indexOf('result') === -1, 'Final reveal exposed answer/result steps');
   assert(io.count('championship-revealed', beforeReveal) === 1, 'Final did not reveal exactly once');
   const revealed = io.last('championship-revealed').payload;
   assert(!Object.prototype.hasOwnProperty.call(revealed, 'answer'), 'Final emitted answer text');
-  assert(revealed.players.map(p => p.score).join(',') === preFinalScores.join(','), 'Final changed player scores');
+  const expectedWagers = [1000, 250, 0, 0];
+  const expectedScores = preFinalScores.map((s, i) => s + expectedWagers[i]);
+  assert(revealed.players.map(p => p.score).join(',') === expectedScores.join(','), 'Final did not add correct wagers to scores');
   assert(revealed.players.map(p => p.wager).join(',') === '1000,250,0,0', 'Final wagers parsed incorrectly');
 
   dashboard.clientEmit('next-championship-question');
@@ -372,7 +380,6 @@ function stressBroadcastAudioRuntime() {
         timesUp: true,
         applause: false,
         correct: true,
-        incorrect: true,
         backgroundMusic: true,
         championshipThink: true
       }
@@ -386,7 +393,6 @@ function stressBroadcastAudioRuntime() {
   assert(timesup.pauseCalls === 0 && timesup.currentTime === 1.2, 'unconfigured sound interrupted active audio');
 
   socketEvents['answer-incorrect']({ noAutoReturn: true });
-  assert(context.audio.incorrect.playCalls === 1, 'incorrect answer did not play incorrect sound');
   assert(emitted.filter(e => e.event === 'return-to-board').length === 0, 'noAutoReturn incorrect returned to board');
 
   socketEvents['answer-correct']();

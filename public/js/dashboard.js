@@ -324,6 +324,8 @@ document.getElementById('btn-confirm-answer').addEventListener('click',function(
   document.getElementById('champ-wager-area').classList.remove('hidden');
 });
 document.getElementById('btn-next-reveal-step').addEventListener('click',function(){socket.emit('next-reveal-step')});
+document.getElementById('btn-champ-correct').addEventListener('click',function(){socket.emit('championship-scoring',{correct:true})});
+document.getElementById('btn-champ-incorrect').addEventListener('click',function(){socket.emit('championship-scoring',{correct:false})});
 document.getElementById('btn-next-champ-question').addEventListener('click',function(){socket.emit('next-championship-question')});
 document.getElementById('btn-show-winner').addEventListener('click',function(){socket.emit('show-winner')});
 document.getElementById('btn-show-stats').addEventListener('click',function(){socket.emit('show-stats')});
@@ -632,6 +634,28 @@ socket.on('board-return',function(d){
   updateMirror(null);
 });
 socket.on('round2-started',function(d){if(st){st.board=d.board;st.players=d.players;st.currentRound=2;st.phase='board';st.currentClue=null}renderGrid(d.board,d.categories||(st&&st.config&&st.config.categoriesR2?st.config.categoriesR2:[]));renderPlayers(d.players);setRound(2);setPhase('board');categoriesRevealed=false;boardPopulated=false;side('card-populate');addCategoryRevealButtons();updateMirror(null)});
+function updateChampMirror(d) {
+  var mirror = document.getElementById('dash-mirror');
+  if (!mirror) return;
+  mirror.classList.remove('hidden');
+  var round = document.getElementById('mirror-round');
+  var info = document.getElementById('mirror-info');
+  var clue = document.getElementById('mirror-clue');
+  var ans = document.getElementById('mirror-ans');
+  if (round) round.textContent = 'CHAMPIONSHIP';
+  if (info) info.textContent = (d.category || '') + ' - Question ' + ((d.questionIndex || 0) + 1) + ' of ' + (d.totalQuestions || 1);
+  if (clue) clue.textContent = d.clue || '';
+  if (ans) { ans.textContent = d.answer || ''; }
+  var scores = document.getElementById('mirror-scores');
+  if (scores && st && st.players) {
+    var html = '';
+    st.players.forEach(function(p) {
+      html += '<span class="ms-item"><span class="ms-name">' + esc(p.name) + '</span><span class="ms-score">' + fmt(p.score) + '</span></span>';
+    });
+    scores.innerHTML = html;
+  }
+}
+
 socket.on('championship-started',function(d){
   if(st)st.phase='championship';
   setPhase('championship');
@@ -650,6 +674,9 @@ socket.on('championship-started',function(d){
   if (qlbl) qlbl.textContent = 'Have players write their wagers on paper';
   var info = document.getElementById('champ-question-info');
   if (info) info.textContent = 'Question ' + ((d.questionIndex || 0) + 1) + ' of ' + (d.totalQuestions || 1) + ' - ' + (d.category || '');
+  var mBadge = document.getElementById('mirror-answer-badge');
+  if (mBadge) mBadge.classList.add('hidden');
+  updateChampMirror(d);
 });
 socket.on('championship-clue-shown',function(){
   document.getElementById('champ-wager-area').classList.add('hidden');
@@ -662,23 +689,35 @@ socket.on('championship-reveal-begin', function(d) {
   document.getElementById('champ-reveal-area').classList.add('hidden');
   document.getElementById('btn-next-reveal-step').classList.remove('hidden');
   document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+  document.getElementById('btn-champ-correct').classList.add('hidden');
+  document.getElementById('btn-champ-incorrect').classList.add('hidden');
   var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
   if (qlbl) qlbl.textContent = 'Click REVEAL to show their wager';
   document.getElementById('champ-wager-area').classList.remove('hidden');
+  // Keep mirror showing championship question/answer
+  var lastChamp = st && st.config && st.config.championshipQuestions && st.config.championshipQuestions[st.currentChampionshipIndex || 0];
+  if (lastChamp) updateChampMirror({ category: lastChamp.category, clue: lastChamp.clue, answer: lastChamp.answer, questionIndex: st.currentChampionshipIndex, totalQuestions: (st.config.championshipQuestions || []).length });
 });
 socket.on('championship-reveal-step', function(d) {
   if (d.type === 'name') {
+    document.getElementById('btn-next-reveal-step').classList.remove('hidden');
     document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+    document.getElementById('btn-champ-correct').classList.add('hidden');
+    document.getElementById('btn-champ-incorrect').classList.add('hidden');
     var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
     if (qlbl) qlbl.textContent = 'Click REVEAL to show their wager';
   } else if (d.type === 'answer') {
     document.getElementById('btn-next-reveal-step').textContent = 'NEXT';
+    document.getElementById('btn-champ-correct').classList.add('hidden');
+    document.getElementById('btn-champ-incorrect').classList.add('hidden');
     var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
     if (qlbl) qlbl.textContent = 'Click NEXT to show wager';
   } else if (d.type === 'wager' || d.type === 'result') {
-    document.getElementById('btn-next-reveal-step').textContent = 'NEXT';
+    document.getElementById('btn-next-reveal-step').classList.add('hidden');
+    document.getElementById('btn-champ-correct').classList.remove('hidden');
+    document.getElementById('btn-champ-incorrect').classList.remove('hidden');
     var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
-    if (qlbl) qlbl.textContent = 'Click NEXT for next player';
+    if (qlbl) qlbl.textContent = 'Correct or incorrect?';
   }
 });
 socket.on('championship-revealed',function(d){
@@ -688,6 +727,8 @@ socket.on('championship-revealed',function(d){
   document.getElementById('champ-reveal-area').classList.remove('hidden');
   document.getElementById('btn-confirm-answer').classList.add('hidden');
   document.getElementById('btn-next-reveal-step').classList.add('hidden');
+  document.getElementById('btn-champ-correct').classList.add('hidden');
+  document.getElementById('btn-champ-incorrect').classList.add('hidden');
   // Show/hide next question button
   var nextBtn = document.getElementById('btn-next-champ-question');
   if (nextBtn) {

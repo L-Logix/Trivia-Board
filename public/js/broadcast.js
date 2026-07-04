@@ -658,6 +658,8 @@ socket.on('answer-hidden', function() {
 socket.on('board-return', function(d) {
   show('board');
   setPromo();
+  var badge = document.getElementById('answer-shown-badge');
+  if (badge) badge.classList.add('hidden');
   var track = document.getElementById('clue-timer-track');
   if (track) track.classList.remove('active');
   if (st) {
@@ -943,7 +945,9 @@ socket.on('championship-reveal-step', function(d) {
     wagerEl.querySelector('.cr-wager-val').textContent = fmt(d.wager);
     wagerEl.classList.remove('hidden');
     var corrEl = document.getElementById('cr-wager-correct');
-    corrEl.textContent = '';
-    corrEl.className = 'cr-wager-correction';
+    corrEl.textContent = 'Judging…';
+    corrEl.className = 'cr-wager-correction cr-judging';
   }
 });
+
+
