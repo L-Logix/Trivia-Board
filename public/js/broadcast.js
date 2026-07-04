@@ -921,6 +921,7 @@ socket.on('championship-reveal-begin', function(d) {
   document.getElementById('championship-reveal-player').classList.remove('hidden');
   document.getElementById('cr-player-name').textContent = d.name || '';
   document.getElementById('cr-player-answer').classList.add('hidden');
+  document.getElementById('cr-hold-answer').classList.add('hidden');
   document.getElementById('cr-wager').classList.add('hidden');
   var corrEl = document.getElementById('cr-wager-correct');
   corrEl.textContent = '';
@@ -931,22 +932,29 @@ socket.on('championship-reveal-step', function(d) {
   if (d.type === 'name') {
     document.getElementById('cr-player-name').textContent = d.name || '';
     document.getElementById('cr-player-answer').classList.add('hidden');
+    document.getElementById('cr-hold-answer').classList.add('hidden');
     document.getElementById('cr-wager').classList.add('hidden');
     var corrEl = document.getElementById('cr-wager-correct');
     corrEl.textContent = '';
     corrEl.className = 'cr-wager-correction';
-  } else if (d.type === 'answer') {
-    document.getElementById('cr-player-answer').classList.add('hidden');
-    document.getElementById('cr-wager').classList.add('hidden');
-  } else if (d.type === 'wager' || d.type === 'result') {
+  } else if (d.type === 'show-answer') {
     document.getElementById('cr-player-name').textContent = d.name || '';
     document.getElementById('cr-player-answer').classList.add('hidden');
+    document.getElementById('cr-hold-answer').classList.remove('hidden');
+    document.getElementById('cr-wager').classList.add('hidden');
+    var corrEl = document.getElementById('cr-wager-correct');
+    corrEl.textContent = 'Judging…';
+    corrEl.className = 'cr-wager-correction cr-judging';
+  } else if (d.type === 'wager') {
+    document.getElementById('cr-player-name').textContent = d.name || '';
+    document.getElementById('cr-player-answer').classList.add('hidden');
+    document.getElementById('cr-hold-answer').classList.add('hidden');
     var wagerEl = document.getElementById('cr-wager');
     wagerEl.querySelector('.cr-wager-val').textContent = fmt(d.wager);
     wagerEl.classList.remove('hidden');
     var corrEl = document.getElementById('cr-wager-correct');
-    corrEl.textContent = 'Judging…';
-    corrEl.className = 'cr-wager-correction cr-judging';
+    corrEl.textContent = '';
+    corrEl.className = 'cr-wager-correction';
   }
 });
 

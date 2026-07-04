@@ -262,10 +262,10 @@ async function stressRoundAndFinal() {
   assert(io.count('championship-reveal-begin', beforeReveal) === 1, 'duplicate Final reveal data restarted reveal');
   assert(io.count('score-updated', beforeReveal) === 0, 'Final reveal changed scores');
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     dashboard.clientEmit('next-reveal-step');
     const lastStep = io.last('championship-reveal-step');
-    if (lastStep && lastStep.payload && lastStep.payload.type === 'wager') {
+    if (lastStep && lastStep.payload && lastStep.payload.type === 'show-answer') {
       dashboard.clientEmit('championship-scoring', { correct: true });
     }
   }

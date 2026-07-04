@@ -357,6 +357,7 @@ function setup(ioInstance, config) {
       const steps = [];
       playersWithData.forEach(p => {
         steps.push({ type: 'name', playerIndex: p.index, name: p.name });
+        steps.push({ type: 'show-answer', playerIndex: p.index, name: p.name });
         steps.push({ type: 'wager', playerIndex: p.index, name: p.name, wager: p.wager });
       });
       gameState.revealSequence = { steps, currentStep: 0 };
@@ -381,7 +382,7 @@ function setup(ioInstance, config) {
       } else {
         const step = seq.steps[seq.currentStep];
         io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...step });
-        if (step.type === 'wager') {
+        if (step.type === 'show-answer') {
           seq.waitingForScoring = true;
         }
       }
@@ -391,10 +392,10 @@ function setup(ioInstance, config) {
       const seq = gameState.revealSequence;
       if (!seq || !seq.waitingForScoring) return;
       const currentStep = seq.steps[seq.currentStep];
-      if (currentStep.type !== 'wager') return;
+      if (currentStep.type !== 'show-answer') return;
       const correct = data && data.correct;
       const pi = currentStep.playerIndex;
-      const wager = currentStep.wager || 0;
+      const wager = gameState.championshipWagers[pi] || 0;
       const delta = correct ? wager : -wager;
       gameState.adjustScore(pi, delta);
       gameState.setChampionshipAnswer(pi, correct);
@@ -416,9 +417,7 @@ function setup(ioInstance, config) {
       } else {
         const nextStep = seq.steps[seq.currentStep];
         io.emit('championship-reveal-step', { totalSteps: seq.steps.length, currentStep: seq.currentStep, ...nextStep });
-        if (nextStep.type === 'wager') {
-          seq.waitingForScoring = true;
-        }
+        // wager step does not block — host clicks NEXT to proceed
       }
     });
 

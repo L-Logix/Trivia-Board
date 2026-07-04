@@ -688,11 +688,11 @@ socket.on('championship-reveal-begin', function(d) {
   document.getElementById('champ-clue-area').classList.add('hidden');
   document.getElementById('champ-reveal-area').classList.add('hidden');
   document.getElementById('btn-next-reveal-step').classList.remove('hidden');
-  document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+  document.getElementById('btn-next-reveal-step').textContent = 'SHOW ANSWER';
   document.getElementById('btn-champ-correct').classList.add('hidden');
   document.getElementById('btn-champ-incorrect').classList.add('hidden');
   var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
-  if (qlbl) qlbl.textContent = 'Click REVEAL to show their wager';
+  if (qlbl) qlbl.textContent = 'Click SHOW ANSWER to ask them to hold up their answer';
   document.getElementById('champ-wager-area').classList.remove('hidden');
   // Keep mirror showing championship question/answer
   var lastChamp = st && st.config && st.config.championshipQuestions && st.config.championshipQuestions[st.currentChampionshipIndex || 0];
@@ -701,23 +701,24 @@ socket.on('championship-reveal-begin', function(d) {
 socket.on('championship-reveal-step', function(d) {
   if (d.type === 'name') {
     document.getElementById('btn-next-reveal-step').classList.remove('hidden');
-    document.getElementById('btn-next-reveal-step').textContent = 'REVEAL';
+    document.getElementById('btn-next-reveal-step').textContent = 'SHOW ANSWER';
     document.getElementById('btn-champ-correct').classList.add('hidden');
     document.getElementById('btn-champ-incorrect').classList.add('hidden');
     var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
-    if (qlbl) qlbl.textContent = 'Click REVEAL to show their wager';
-  } else if (d.type === 'answer') {
-    document.getElementById('btn-next-reveal-step').textContent = 'NEXT';
-    document.getElementById('btn-champ-correct').classList.add('hidden');
-    document.getElementById('btn-champ-incorrect').classList.add('hidden');
-    var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
-    if (qlbl) qlbl.textContent = 'Click NEXT to show wager';
-  } else if (d.type === 'wager' || d.type === 'result') {
+    if (qlbl) qlbl.textContent = 'Click SHOW ANSWER to have them hold it up';
+  } else if (d.type === 'show-answer') {
     document.getElementById('btn-next-reveal-step').classList.add('hidden');
     document.getElementById('btn-champ-correct').classList.remove('hidden');
     document.getElementById('btn-champ-incorrect').classList.remove('hidden');
     var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
     if (qlbl) qlbl.textContent = 'Correct or incorrect?';
+  } else if (d.type === 'wager' || d.type === 'result') {
+    document.getElementById('btn-next-reveal-step').classList.remove('hidden');
+    document.getElementById('btn-next-reveal-step').textContent = 'NEXT';
+    document.getElementById('btn-champ-correct').classList.add('hidden');
+    document.getElementById('btn-champ-incorrect').classList.add('hidden');
+    var qlbl = document.querySelector('#champ-wager-area .card-lbl-sub');
+    if (qlbl) qlbl.textContent = 'Click NEXT for next player';
   }
 });
 socket.on('championship-revealed',function(d){
