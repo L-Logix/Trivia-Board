@@ -43,8 +43,24 @@ function start(port, config, callback) {
     res.sendFile(path.join(PUBLIC_DIR, 'editor.html'));
   });
 
-  app.get('/stats', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'stats.html'));
+  app.get('/practice', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'practice.html'));
+  });
+
+  app.get('/api/practice-data', (req, res) => {
+    res.json({
+      columns: config.columns,
+      rows: config.rows,
+      categories: config.categories,
+      clues: config.clues,
+      answers: config.answers,
+      categoriesR2: config.categoriesR2,
+      cluesR2: config.cluesR2,
+      answersR2: config.answersR2,
+      baseValues: config.baseValues,
+      doubleValues: config.doubleValues,
+      championshipQuestions: config.championshipQuestions
+    });
   });
 
   app.get('/api/stats', (req, res) => {

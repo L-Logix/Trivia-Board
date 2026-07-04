@@ -421,6 +421,22 @@ html,body {
   text-transform:uppercase;
   line-height:1.2;
 }
+#cat-progress {
+  margin-top:28px; text-align:center;
+  font-family:'Inter',sans-serif;
+  animation:catRevealZoom .7s cubic-bezier(.175,.885,.32,1.275);
+}
+#cat-progress-num {
+  display:block;
+  font-size:clamp(11px, 1.2vmin, 1.1vw);
+  letter-spacing:4px; color:rgba(255,255,255,.3);
+  text-transform:uppercase;
+}
+#cat-progress-next {
+  display:block; margin-top:8px;
+  font-size:clamp(10px, 1vmin, 1vw);
+  letter-spacing:2px; color:rgba(255,204,0,.35);
+}
 @keyframes catRevealZoom {
   0%{opacity:0;transform:scale(0.3)}
   60%{transform:scale(1.05)}

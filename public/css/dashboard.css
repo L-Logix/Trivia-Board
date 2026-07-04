@@ -154,6 +154,15 @@ kbd{font-size:.55rem;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:2px
   border:1px solid rgba(255,204,0,.2);
 }
 #mirror-ans.hidden { display:none!important; }
+#mirror-answer-badge {
+  position:absolute; bottom:8px; right:8px;
+  font-family:'Oswald','Impact',sans-serif;
+  font-size:.65rem; letter-spacing:2px;
+  color:#000; background:#ffcc00;
+  padding:3px 10px; border-radius:3px;
+  font-weight:700; text-transform:uppercase;
+}
+#mirror-answer-badge.hidden { display:none!important; }
 #mirror-scores {
   display:flex; gap:16px; justify-content:center;
   padding:12px 16px;

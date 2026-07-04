@@ -792,6 +792,21 @@ socket.on('outro', function() {
   play('outro');
 });
 
+function updateCatProgress(index) {
+  var cats = st ? (st.currentRound === 2 && st.config.categoriesR2 ? st.config.categoriesR2 : st.config.categories) : [];
+  var total = cats.length || 0;
+  var numEl = document.getElementById('cat-progress-num');
+  var nextEl = document.getElementById('cat-progress-next');
+  if (numEl) numEl.textContent = 'Category ' + (index + 1) + ' of ' + total;
+  if (nextEl) {
+    if (index + 1 < total) {
+      nextEl.textContent = 'Next up: ' + (cats[index + 1] || '');
+    } else {
+      nextEl.textContent = 'Last one!';
+    }
+  }
+}
+
 socket.on('category-reveal-cover', function(d) {
   // Show full-screen cover overlay on top of the board with category cover image
   var coverLayer = document.getElementById('cat-cover-layer');
@@ -813,6 +828,7 @@ socket.on('category-reveal-cover', function(d) {
     void coverLayer.offsetWidth;
     coverLayer.classList.remove('hidden');
   }
+  updateCatProgress(d.index);
 });
 
 socket.on('category-reveal-name', function(d) {
@@ -828,6 +844,7 @@ socket.on('category-reveal-name', function(d) {
     if (nc) { nc.style.animation = 'none'; void nc.offsetWidth; nc.style.animation = ''; }
   }
   if (nameLayer) nameLayer.classList.remove('hidden');
+  updateCatProgress(d.index);
 });
 
 socket.on('reveal-all-category-covers', function() {
@@ -845,6 +862,10 @@ socket.on('hide-category-reveal', function() {
   var nameLayer = document.getElementById('cat-name-layer');
   if (coverLayer) { coverLayer.classList.remove('cover-flip'); coverLayer.classList.add('hidden'); }
   if (nameLayer) nameLayer.classList.add('hidden');
+  var numEl = document.getElementById('cat-progress-num');
+  var nextEl = document.getElementById('cat-progress-next');
+  if (numEl) numEl.textContent = '';
+  if (nextEl) nextEl.textContent = '';
 });
 
 function showChampionship(d) {

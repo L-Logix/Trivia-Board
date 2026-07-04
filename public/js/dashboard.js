@@ -608,9 +608,13 @@ socket.on('score-updated',function(d){
 });
 socket.on('answer-revealed', function(d) {
   mirrorAnswer(d.answer);
+  var badge = document.getElementById('mirror-answer-badge');
+  if (badge) badge.classList.remove('hidden');
 });
 socket.on('answer-hidden', function() {
   mirrorAnswer(null);
+  var badge = document.getElementById('mirror-answer-badge');
+  if (badge) badge.classList.add('hidden');
 });
 socket.on('board-return',function(d){
   if(st){

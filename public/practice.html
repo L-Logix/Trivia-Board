@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practice Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/practice.css">
+</head>
+<body>
+  <div id="practice-app">
+    <header id="practice-hdr">
+      <h1>PRACTICE MODE</h1>
+      <div class="hdr-rounds">
+        <button class="round-btn active" data-round="1">ROUND 1</button>
+        <button class="round-btn" data-round="2">ROUND 2</button>
+        <button class="round-btn" data-round="final">FINAL</button>
+      </div>
+    </header>
+
+    <main id="practice-main">
+      <div id="clue-counter"></div>
+
+      <div id="practice-clue-area">
+        <div id="practice-cat"></div>
+        <div id="practice-val"></div>
+        <div id="practice-clue-text"></div>
+        <div id="practice-ans-wrap">
+          <div id="practice-ans" class="hidden"></div>
+        </div>
+      </div>
+
+      <div id="practice-actions">
+        <button id="btn-prev" class="p-btn p-btn-nav">← BACK</button>
+        <button id="btn-show-ans" class="p-btn p-btn-gold">SHOW ANSWER</button>
+        <button id="btn-next" class="p-btn p-btn-nav">NEXT →</button>
+      </div>
+
+      <div id="practice-help">
+        <span>← / → or A / D to navigate</span>
+        <span>Space to toggle answer</span>
+        <span>1 / 2 / 3 for rounds</span>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Load practice data from API
+    var practiceData = null;
+    var currentRound = 1;
+    var currentIndex = 0;
+    var answerVisible = false;
+
+    var rounds = {
+      1: { label: 'ROUND 1', clues: [], answers: [], categories: [], values: [] },
+      2: { label: 'ROUND 2', clues: [], answers: [], categories: [], values: [] },
+      final: { label: 'FINAL', clues: [], answers: [], categories: [] }
+    };
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function fetchData() {
+      fetch('/api/practice-data').then(function(r){ return r.json(); }).then(function(d) {
+        practiceData = d;
+        buildRounds(d);
+        showClue();
+      }).catch(function(e) {
+        document.getElementById('practice-clue-text').textContent = 'Failed to load practice data. Is the server running?';
+      });
+    }
+
+    function buildRounds(d) {
+      var cols = d.columns || 6;
+      var rows = d.rows || 5;
+
+      // Round 1
+      var cats1 = d.categories || [];
+      var clues1 = d.clues || [];
+      var ans1 = d.answers || [];
+      var vals1 = d.baseValues || [200,400,600,800,1000];
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < cols; c++) {
+          if (clues1[r] && clues1[r][c] !== undefined && clues1[r][c] !== '') {
+            rounds[1].clues.push(clues1[r][c]);
+            rounds[1].answers.push(ans1[r] ? ans1[r][c] || '' : '');
+            rounds[1].categories.push(cats1[c] || '');
+            rounds[1].values.push(vals1[r] || 0);
+          }
+        }
+      }
+
+      // Round 2
+      var cats2 = d.categoriesR2 || d.categories || [];
+      var clues2 = d.cluesR2 || d.clues || [];
+      var ans2 = d.answersR2 || d.answers || [];
+      var vals2 = d.doubleValues || d.baseValues || [400,800,1200,1600,2000];
+      for (var r2 = 0; r2 < rows; r2++) {
+        for (var c2 = 0; c2 < cols; c2++) {
+          if (clues2[r2] && clues2[r2][c2] !== undefined && clues2[r2][c2] !== '') {
+            rounds[2].clues.push(clues2[r2][c2]);
+            rounds[2].answers.push(ans2[r2] ? ans2[r2][c2] || '' : '');
+            rounds[2].categories.push(cats2[c2] || '');
+            rounds[2].values.push(vals2[r2] || 0);
+          }
+        }
+      }
+
+      // Final
+      var champ = d.championshipQuestions || [];
+      champ.forEach(function(q) {
+        rounds.final.clues.push(q.clue || '');
+        rounds.final.answers.push(q.answer || '');
+        rounds.final.categories.push(q.category || '');
+      });
+    }
+
+    function showClue() {
+      var rd = rounds[currentRound];
+      if (!rd || rd.clues.length === 0) {
+        document.getElementById('practice-clue-text').textContent = 'No clues available for this round.';
+        document.getElementById('practice-cat').textContent = '';
+        document.getElementById('practice-val').textContent = '';
+        document.getElementById('practice-ans').textContent = '';
+        document.getElementById('clue-counter').textContent = '';
+        return;
+      }
+      if (currentIndex < 0) currentIndex = 0;
+      if (currentIndex >= rd.clues.length) currentIndex = rd.clues.length - 1;
+
+      document.getElementById('clue-counter').textContent = 'Clue ' + (currentIndex + 1) + ' of ' + rd.clues.length;
+      document.getElementById('practice-cat').textContent = rd.categories[currentIndex] || '';
+      if (currentRound === 'final') {
+        document.getElementById('practice-val').textContent = 'CHAMPIONSHIP';
+      } else {
+        document.getElementById('practice-val').textContent = '$' + (rd.values[currentIndex] || 0);
+      }
+      document.getElementById('practice-clue-text').textContent = rd.clues[currentIndex] || '';
+
+      if (answerVisible) {
+        document.getElementById('practice-ans').textContent = rd.answers[currentIndex] || '';
+        document.getElementById('practice-ans').classList.remove('hidden');
+        document.getElementById('btn-show-ans').textContent = 'HIDE ANSWER';
+      } else {
+        document.getElementById('practice-ans').classList.add('hidden');
+        document.getElementById('btn-show-ans').textContent = 'SHOW ANSWER';
+      }
+    }
+
+    function toggleAnswer() {
+      answerVisible = !answerVisible;
+      showClue();
+    }
+
+    function nextClue() {
+      var rd = rounds[currentRound];
+      if (!rd || currentIndex < rd.clues.length - 1) {
+        currentIndex++;
+        answerVisible = false;
+        showClue();
+      }
+    }
+
+    function prevClue() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        answerVisible = false;
+        showClue();
+      }
+    }
+
+    function switchRound(r) {
+      currentRound = r;
+      currentIndex = 0;
+      answerVisible = false;
+      document.querySelectorAll('.round-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.round == r);
+      });
+      showClue();
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchData();
+
+      document.getElementById('btn-next').addEventListener('click', nextClue);
+      document.getElementById('btn-prev').addEventListener('click', prevClue);
+      document.getElementById('btn-show-ans').addEventListener('click', toggleAnswer);
+
+      document.querySelectorAll('.round-btn').forEach(function(b) {
+        b.addEventListener('click', function() {
+          switchRound(parseInt(this.dataset.round) || this.dataset.round);
+        });
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); nextClue(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); prevClue(); }
+        else if (e.key === ' ' || e.key === 'Space') { e.preventDefault(); toggleAnswer(); }
+        else if (e.key === '1') { e.preventDefault(); switchRound(1); }
+        else if (e.key === '2') { e.preventDefault(); switchRound(2); }
+        else if (e.key === '3') { e.preventDefault(); switchRound('final'); }
+      });
+    });
+  </script>
+</body>
+</html>
