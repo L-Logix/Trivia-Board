@@ -1,0 +1,130 @@
+name: Asset & Terminology Check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Jeopardy terminology
+        id: jeopardy
+        run: |
+          FAILED=0
+          # Trademarked Jeopardy terms that should not appear in generic trivia source files
+          for f in $(git diff --name-only origin/main...HEAD -- '*.js' '*.css' '*.html' '*.md' 2>/dev/null || echo ""); do
+            if [ -f "$f" ]; then
+              grep -iqE 'Double Jeopardy|Final Jeopardy|Daily Double|Alex Trebek|Ken Jennings|Jeopardy!' "$f" && { echo "Found in $f:"; grep -inE 'Double Jeopardy|Final Jeopardy|Daily Double|Alex Trebek|Ken Jennings|Jeopardy!' "$f"; FAILED=1; }
+            fi
+          done
+          if [ "$FAILED" = "1" ]; then echo "jeopardy_found=true" >> $GITHUB_ENV; exit 1; fi
+        continue-on-error: true
+
+      - name: Check for uploaded media files
+        id: media
+        run: |
+          FAILED=0
+          for f in $(git diff --name-only origin/main...HEAD 2>/dev/null || echo ""); do
+            # Check for audio/video files that aren't in the expected structure
+            case "$f" in
+              public/audio/*|public/video/*|public/img/*)
+                # These directories are allowed but flag new files for review
+                echo "New media file: $f"
+                ;;
+              public/*.mp3|public/*.mp4|public/*.wav|public/*.ogg|public/*.webm|public/*.mov)
+                echo "Media file outside structured dirs: $f"
+                FAILED=1
+                ;;
+            esac
+          done
+          if [ "$FAILED" = "1" ]; then echo "media_outside=true" >> $GITHUB_ENV; exit 1; fi
+        continue-on-error: true
+
+      - name: Check for config.json in PR
+        id: config
+        run: |
+          CONFIG_FILES=$(git diff --name-only origin/main...HEAD -- 'config.json' 'data/config.json' '*/config.json' 2>/dev/null || true)
+          if [ -n "$CONFIG_FILES" ]; then
+            echo "Config file found in changes:"
+            echo "$CONFIG_FILES"
+            echo "config_committed=true" >> $GITHUB_ENV
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Check for large binary files
+        id: large
+        run: |
+          FAILED=0
+          for f in $(git diff --name-only origin/main...HEAD 2>/dev/null || echo ""); do
+            if [ -f "$f" ]; then
+              SIZE=$(stat --format=%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null || echo 0)
+              if [ "$SIZE" -gt 10485760 ] 2>/dev/null; then
+                echo "Large file: $f ($(echo "scale=1; $SIZE/1048576" | bc)MB)"
+                FAILED=1
+              fi
+            fi
+          done
+          if [ "$FAILED" = "1" ]; then echo "large_files=true" >> $GITHUB_ENV; exit 1; fi
+        continue-on-error: true
+
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = [];
+            if ('${{ env.jeopardy_found }}' === 'true') issues.push('Jeopardy terminology detected');
+            if ('${{ env.media_outside }}' === 'true') issues.push('Media files outside expected directories');
+            if ('${{ env.config_committed }}' === 'true') issues.push('Config file committed — remove config.json from the PR');
+            if ('${{ env.large_files }}' === 'true') issues.push('Large binary files detected (>10MB)');
+
+            if (issues.length === 0) return;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '## Asset & Terminology Check\n\nThe following issues were found:\n\n' + issues.map(i => '- ' + i).join('\n')
+            });
+
+      - name: Create issue on push failure
+        if: github.event_name == 'push' && (env.jeopardy_found == 'true' || env.media_outside == 'true' || env.config_committed == 'true' || env.large_files == 'true')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = [];
+            if ('${{ env.jeopardy_found }}' === 'true') issues.push('Jeopardy terminology detected in source files');
+            if ('${{ env.media_outside }}' === 'true') issues.push('Media files outside expected directories');
+            if ('${{ env.config_committed }}' === 'true') issues.push('Config file committed to main');
+            if ('${{ env.large_files }}' === 'true') issues.push('Large binary files pushed to main');
+            const title = 'Asset check failure: ' + issues.join(', ');
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'auto-fail'
+            });
+            if (existing.find(i => i.title === title)) {
+              console.log('Issue already exists');
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              labels: ['auto-fail', 'bug'],
+              body: '## Asset Check Failure\n\n- ' + issues.join('\n- ') + '\n\n**Commit:** ' + context.sha
+            });
