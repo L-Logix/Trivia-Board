@@ -4,12 +4,29 @@
 
 Professional dual-screen trivia hosting with a broadcast view, host dashboard, helper controls, custom media, and scriptable setup flags.
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
-[![Socket.IO](https://img.shields.io/badge/realtime-Socket.IO-black)](https://socket.io/)
-[![Express](https://img.shields.io/badge/server-Express-blue)](https://expressjs.com/)
-[![GitHub stars](https://img.shields.io/github/stars/L-Logix/Trivia-Board?style=social)](https://github.com/L-Logix/Trivia-Board/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/L-Logix/Trivia-Board)](https://github.com/L-Logix/Trivia-Board/issues)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-38bdf8?logo=gnu)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-38bdf8?logo=nodedotjs)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-38bdf8?logo=express)](https://expressjs.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-38bdf8?logo=socket.io)](https://socket.io/)
+[![Chart.js](https://img.shields.io/badge/Chart.js-38bdf8?logo=chartdotjs)](https://www.chartjs.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-f7df1e?logo=javascript&logoColor=000)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![GitHub release](https://img.shields.io/github/v/release/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/releases)
+[![GitHub last commit](https://img.shields.io/github/last-commit/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/commits/main)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/commits/main)
+[![GitHub contributors](https://img.shields.io/github/contributors/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/graphs/contributors)
+[![GitHub repo size](https://img.shields.io/github/repo-size/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board)
+[![GitHub code size](https://img.shields.io/github/languages/code-size/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board)
+[![GitHub top language](https://img.shields.io/github/languages/top/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board)
+[![GitHub language count](https://img.shields.io/github/languages/count/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board)
+[![GitHub stars](https://img.shields.io/github/stars/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/forks)
+[![GitHub watchers](https://img.shields.io/github/watchers/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/watchers)
+[![GitHub open issues](https://img.shields.io/github/issues/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/issues)
+[![GitHub closed issues](https://img.shields.io/github/issues-closed/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/issues?q=is%3Aissue+is%3Aclosed)
+[![GitHub open PRs](https://img.shields.io/github/issues-pr/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/pulls)
+[![GitHub closed PRs](https://img.shields.io/github/issues-pr-closed/L-Logix/Trivia-Board?color=38bdf8&logo=github)](https://github.com/L-Logix/Trivia-Board/pulls?q=is%3Apr+is%3Aclosed)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-38bdf8?logo=github)](https://github.com/L-Logix/Trivia-Board/pulls)
+[![Made with love](https://img.shields.io/badge/Made%20with-❤-38bdf8)](https://github.com/L-Logix/Trivia-Board)
 
 </div>
 
@@ -48,7 +65,7 @@ Trivia Broadcast Engine runs a live-hosted trivia game on your local network. Th
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=L-Logix%2Ftrivia-board&type=date&legend=top-left">
+<a href="https://star-history.com/#L-Logix/trivia-board&Date" target="_blank">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&theme=dark&legend=top-left" />
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />

@@ -148,5 +148,32 @@
     document.getElementById('btn-populate-board').addEventListener('click',function(){socket.emit('populate-board')});
     document.getElementById('btn-hide-cat-reveal').addEventListener('click',function(){socket.emit('hide-category-reveal')});
   </script>
+
+  <div id="gpl-notice" class="hidden">
+    <div id="gpl-notice-box">
+      <h2>Trivia Broadcast Engine</h2>
+      <p class="gpl-copy">Copyright &copy; 2026  TechnoThatch Software Solutions</p>
+      <p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+      <p>This program is distributed in the hope that it will be useful, but <strong>WITHOUT ANY WARRANTY</strong>; without even the implied warranty of <strong>MERCHANTABILITY</strong> or <strong>FITNESS FOR A PARTICULAR PURPOSE</strong>. See the GNU General Public License for more details.</p>
+      <p>You should have received a copy of the GNU General Public License along with this program. If not, see <a href="https://www.gnu.org/licenses/" target="_blank">https://www.gnu.org/licenses/</a>.</p>
+      <button id="gpl-accept">I Understand</button>
+    </div>
+  </div>
+  <style>
+    #gpl-notice{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.85);animation:fadeIn .3s ease-out}
+    #gpl-notice.hidden{display:none!important}
+    #gpl-notice-box{max-width:560px;width:90%;padding:36px 32px;background:#0f172a;border:1px solid rgba(56,189,248,.15);border-radius:12px;text-align:center}
+    #gpl-notice-box h2{font-family:'Oswald',sans-serif;font-size:1.4rem;letter-spacing:1px;text-transform:uppercase;color:#38bdf8;margin-bottom:4px}
+    #gpl-notice-box .gpl-copy{font-size:.82rem;color:rgba(148,163,184,.5);margin-bottom:16px}
+    #gpl-notice-box p{font-size:.88rem;line-height:1.6;color:rgba(148,163,184,.75);margin-bottom:12px}
+    #gpl-notice-box p strong{color:#e2e8f0}
+    #gpl-notice-box a{color:#38bdf8}
+    #gpl-notice-box button{margin-top:12px;padding:12px 32px;background:#38bdf8;color:#070b17;border:none;border-radius:6px;font-family:'Inter',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+    #gpl-notice-box button:hover{opacity:.85}
+    @keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+  </style>
+  <script>
+    (function(){var n=document.getElementById('gpl-notice');if(!n)return;if(localStorage.getItem('triviaBoardGplAccepted'))return;n.classList.remove('hidden');document.getElementById('gpl-accept').addEventListener('click',function(){n.classList.add('hidden');try{localStorage.setItem('triviaBoardGplAccepted','1')}catch(e){}})})();
+  </script>
 </body>
 </html>

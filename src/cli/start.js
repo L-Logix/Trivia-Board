@@ -86,6 +86,11 @@ function main() {
   ensureDefaultLogo();
   if (!fs.existsSync(VIDEO_DIR)) fs.mkdirSync(VIDEO_DIR, { recursive: true });
   console.log('');
+  console.log(chalk.bold('  Trivia Broadcast Engine  Copyright (C) 2025  TechnoThatch Software Solutions'));
+  console.log(chalk.dim('  This program comes with ABSOLUTELY NO WARRANTY; for details type `trivia show w\'.'));
+  console.log(chalk.dim('  This is free software, and you are welcome to redistribute it'));
+  console.log(chalk.dim('  under certain conditions; type `trivia show c\' for details.'));
+  console.log('');
 
   const server = require('../server/index');
   const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));

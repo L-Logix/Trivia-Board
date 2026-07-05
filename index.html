@@ -12,8 +12,8 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #060ce9;
-      color: #fff;
+      background: #070b17;
+      color: #e2e8f0;
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
@@ -34,9 +34,9 @@
       z-index: 1;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 20% 50%, rgba(6,12,233,0) 0%, rgba(6,12,233,1) 70%),
-        radial-gradient(ellipse at 80% 20%, rgba(255,204,0,0.04) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(0,200,255,0.03) 0%, transparent 50%);
+        radial-gradient(ellipse at 20% 50%, rgba(7,11,23,0) 0%, rgba(7,11,23,1) 70%),
+        radial-gradient(ellipse at 80% 20%, rgba(56,189,248,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(129,140,248,0.03) 0%, transparent 50%);
     }
     .grid-overlay {
       position: fixed;
@@ -45,8 +45,8 @@
       z-index: 1;
       pointer-events: none;
       background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        linear-gradient(rgba(148,163,184,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.03) 1px, transparent 1px);
       background-size: 60px 60px;
     }
 
@@ -76,11 +76,11 @@
     .hero-logo img {
       height: 80px;
       width: auto;
-      filter: drop-shadow(0 0 30px rgba(255,204,0,0.15));
+      filter: drop-shadow(0 0 30px rgba(56,189,248,0.12));
       transition: filter 0.4s;
     }
     .hero-logo:hover img {
-      filter: drop-shadow(0 0 50px rgba(255,204,0,0.3));
+      filter: drop-shadow(0 0 50px rgba(56,189,248,0.25));
     }
     .hero-logo::after {
       content: '';
@@ -88,7 +88,7 @@
       bottom: -8px; left: 50%;
       transform: translateX(-50%);
       width: 60px; height: 2px;
-      background: linear-gradient(90deg, transparent, #ffcc00, transparent);
+      background: linear-gradient(90deg, transparent, #38bdf8, transparent);
       border-radius: 1px;
     }
     .hero h1 {
@@ -97,7 +97,7 @@
       font-size: clamp(2.2rem, 5.5vw, 4.2rem);
       letter-spacing: 3px;
       text-transform: uppercase;
-      background: linear-gradient(135deg, #fff 30%, #ffcc00 100%);
+      background: linear-gradient(135deg, #f1f5f9 20%, #38bdf8 60%, #818cf8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -107,21 +107,21 @@
     .hero .subtitle {
       font-size: clamp(0.8rem, 1.5vw, 1.15rem);
       font-weight: 300;
-      color: rgba(255,255,255,0.5);
+      color: rgba(148,163,184,0.6);
       letter-spacing: 6px;
       text-transform: uppercase;
       margin-bottom: 16px;
     }
     .hero .tagline {
       font-size: clamp(0.9rem, 1.3vw, 1.05rem);
-      color: rgba(255,255,255,0.65);
+      color: rgba(148,163,184,0.7);
       max-width: 620px;
       margin: 0 auto;
       line-height: 1.6;
       font-weight: 300;
     }
     .hero .tagline em {
-      color: #ffcc00;
+      color: #38bdf8;
       font-style: normal;
     }
 
@@ -149,34 +149,34 @@
       transition: all 0.25s ease;
     }
     .link-bar .btn-primary {
-      background: #ffcc00;
-      color: #060ce9;
-      box-shadow: 0 4px 20px rgba(255,204,0,0.25);
+      background: #38bdf8;
+      color: #070b17;
+      box-shadow: 0 4px 20px rgba(56,189,248,0.25);
     }
     .link-bar .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(255,204,0,0.35);
+      box-shadow: 0 8px 30px rgba(56,189,248,0.35);
     }
     .link-bar .btn-secondary {
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.85);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(148,163,184,0.06);
+      color: rgba(241,245,249,0.85);
+      border: 1px solid rgba(148,163,184,0.12);
       backdrop-filter: blur(8px);
     }
     .link-bar .btn-secondary:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.25);
+      background: rgba(148,163,184,0.12);
+      border-color: rgba(148,163,184,0.25);
       transform: translateY(-2px);
     }
     .link-bar .btn-ghost {
       background: transparent;
-      color: rgba(255,255,255,0.55);
-      border: 1px solid rgba(255,255,255,0.06);
+      color: rgba(148,163,184,0.55);
+      border: 1px solid rgba(148,163,184,0.06);
     }
     .link-bar .btn-ghost:hover {
-      color: rgba(255,255,255,0.85);
-      border-color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.04);
+      color: rgba(241,245,249,0.85);
+      border-color: rgba(148,163,184,0.2);
+      background: rgba(148,163,184,0.04);
       transform: translateY(-2px);
     }
 
@@ -195,27 +195,27 @@
       gap: 6px;
       font-size: 0.78rem;
       font-weight: 500;
-      color: rgba(255,255,255,0.35);
+      color: rgba(148,163,184,0.4);
       letter-spacing: 1px;
       text-transform: uppercase;
       padding: 6px 14px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(148,163,184,0.06);
+      background: rgba(148,163,184,0.03);
     }
     .info-bar .badge .dot {
       width: 6px; height: 6px;
       border-radius: 50%;
       display: inline-block;
     }
-    .info-bar .badge .dot.green { background: #00e676; box-shadow: 0 0 8px rgba(0,230,118,0.4); }
-    .info-bar .badge .dot.gold { background: #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); }
-    .info-bar .badge strong { color: rgba(255,255,255,0.6); font-weight: 600; }
+    .info-bar .badge .dot.green { background: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.4); }
+    .info-bar .badge .dot.sky { background: #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.4); }
+    .info-bar .badge strong { color: rgba(148,163,184,0.7); font-weight: 600; }
     .info-bar .badge a {
-      color: rgba(255,255,255,0.35);
+      color: rgba(148,163,184,0.4);
       text-decoration: none;
     }
-    .info-bar .badge a:hover { color: #ffcc00; }
+    .info-bar .badge a:hover { color: #38bdf8; }
 
     /* ===== Section Title ===== */
     .section-title {
@@ -229,16 +229,16 @@
       font-size: clamp(1.4rem, 2.5vw, 1.8rem);
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.15);
+      color: rgba(148,163,184,0.2);
       position: relative;
     }
-    .section-title h2 span { color: #ffcc00; }
+    .section-title h2 span { color: #38bdf8; }
     .section-title h2::after {
       content: '';
       display: block;
       width: 80px;
       height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(255,204,0,0.4), transparent);
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.4), transparent);
       margin: 12px auto 0;
     }
 
@@ -252,8 +252,8 @@
     }
     .feature-card {
       position: relative;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.06);
       border-radius: 12px;
       padding: 28px 24px;
       transition: all 0.3s ease;
@@ -265,15 +265,15 @@
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: linear-gradient(135deg, rgba(255,204,0,0.03) 0%, transparent 50%);
+      background: linear-gradient(135deg, rgba(56,189,248,0.04) 0%, transparent 50%);
       opacity: 0;
       transition: opacity 0.3s;
     }
     .feature-card:hover::before { opacity: 1; }
     .feature-card:hover {
-      border-color: rgba(255,204,0,0.2);
+      border-color: rgba(56,189,248,0.2);
       transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px rgba(255,204,0,0.03);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px rgba(56,189,248,0.03);
     }
     .feature-card .fc-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
     .feature-card h3 {
@@ -282,13 +282,13 @@
       font-size: 1.15rem;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: #fff;
+      color: #f1f5f9;
       margin-bottom: 8px;
     }
     .feature-card p {
       font-size: 0.88rem;
       line-height: 1.6;
-      color: rgba(255,255,255,0.45);
+      color: rgba(148,163,184,0.5);
       font-weight: 300;
     }
     .feature-card .fc-tag {
@@ -298,17 +298,17 @@
       font-weight: 600;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: #ffcc00;
+      color: #38bdf8;
       padding: 3px 10px;
       border-radius: 4px;
-      background: rgba(255,204,0,0.08);
-      border: 1px solid rgba(255,204,0,0.12);
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.12);
     }
 
     /* ===== Quick Start ===== */
     .quickstart {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.06);
       border-radius: 12px;
       padding: 40px 32px;
       margin-bottom: 56px;
@@ -321,10 +321,10 @@
       letter-spacing: 1px;
       text-transform: uppercase;
       text-align: center;
-      color: rgba(255,255,255,0.2);
+      color: rgba(148,163,184,0.3);
       margin-bottom: 24px;
     }
-    .quickstart h3 span { color: #ffcc00; }
+    .quickstart h3 span { color: #38bdf8; }
     .quickstart .steps {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -336,19 +336,19 @@
       text-align: center;
       padding: 20px 16px;
       border-radius: 8px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.05);
       transition: border-color 0.3s;
     }
-    .quickstart .step:hover { border-color: rgba(255,204,0,0.15); }
+    .quickstart .step:hover { border-color: rgba(56,189,248,0.15); }
     .quickstart .step .num {
       display: inline-flex;
       align-items: center; justify-content: center;
       width: 32px; height: 32px;
       border-radius: 50%;
-      background: rgba(255,204,0,0.1);
-      border: 1px solid rgba(255,204,0,0.2);
-      color: #ffcc00;
+      background: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.2);
+      color: #38bdf8;
       font-family: 'Oswald', sans-serif;
       font-weight: 600;
       font-size: 0.9rem;
@@ -358,8 +358,8 @@
       display: block;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.85rem;
-      color: rgba(255,255,255,0.6);
-      background: rgba(0,0,0,0.2);
+      color: rgba(148,163,184,0.7);
+      background: rgba(0,0,0,0.3);
       padding: 8px 12px;
       border-radius: 4px;
       margin-top: 6px;
@@ -367,7 +367,7 @@
     }
     .quickstart .step p {
       font-size: 0.82rem;
-      color: rgba(255,255,255,0.35);
+      color: rgba(148,163,184,0.4);
       margin-top: 6px;
     }
 
@@ -386,7 +386,7 @@
       width: 100%;
       height: auto;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(148,163,184,0.06);
     }
 
     /* ===== Footer ===== */
@@ -394,7 +394,7 @@
       margin-top: auto;
       text-align: center;
       padding-top: 40px;
-      border-top: 1px solid rgba(255,255,255,0.04);
+      border-top: 1px solid rgba(148,163,184,0.04);
       animation: fadeIn 2s ease-out;
     }
     footer .brand {
@@ -403,9 +403,9 @@
       font-size: 0.85rem;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.2);
+      color: rgba(148,163,184,0.25);
     }
-    footer .brand strong { color: rgba(255,255,255,0.35); }
+    footer .brand strong { color: rgba(148,163,184,0.4); }
     footer .stack {
       display: flex;
       flex-wrap: wrap;
@@ -417,14 +417,14 @@
       font-size: 0.7rem;
       padding: 4px 12px;
       border-radius: 4px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.25);
+      background: rgba(148,163,184,0.04);
+      border: 1px solid rgba(148,163,184,0.06);
+      color: rgba(148,163,184,0.3);
       font-family: 'JetBrains Mono', monospace;
       font-weight: 400;
     }
-    footer .stack span em { color: rgba(255,204,0,0.4); font-style: normal; }
-    footer .copy { margin-top: 12px; font-size: 0.72rem; color: rgba(255,255,255,0.12); }
+    footer .stack span em { color: rgba(56,189,248,0.4); font-style: normal; }
+    footer .copy { margin-top: 12px; font-size: 0.72rem; color: rgba(148,163,184,0.15); }
 
     /* ===== Animations ===== */
     @keyframes fadeIn {
@@ -496,7 +496,7 @@
 
     <!-- Badges -->
     <div class="info-bar">
-      <span class="badge"><span class="dot gold"></span> <strong>Node.js</strong> 18+</span>
+      <span class="badge"><span class="dot sky"></span> <strong>Node.js</strong> 18+</span>
       <span class="badge"><span class="dot green"></span> <strong>Socket.IO</strong> Real-time</span>
       <span class="badge"><strong>Express</strong></span>
       <span class="badge"><strong>v1.0.0</strong></span>
@@ -597,13 +597,13 @@
 
     <!-- Star History -->
     <div class="star-history">
-      <a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date" target="_blank">
+      <a href="https://star-history.com/#L-Logix/trivia-board&Date" target="_blank">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=L-Logix/Trivia-Board&type=Date&theme=dark" />
-          <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=L-Logix/Trivia-Board&type=Date" />
-          <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=L-Logix/Trivia-Board&type=Date" />
-        </a>
-      </div>
+          <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&theme=dark&legend=top-left" />
+          <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />
+          <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />
+        </picture>
+      </a>
     </div>
 
     <!-- Footer -->
@@ -644,7 +644,7 @@
         this.r = Math.random() * 1.8 + 0.4;
         this.dx = (Math.random() - 0.5) * 0.25;
         this.dy = (Math.random() - 0.5) * 0.25 - 0.08;
-        this.alpha = Math.random() * 0.4 + 0.05;
+        this.alpha = Math.random() * 0.35 + 0.04;
         this.life = Math.random() * 300 + 100;
         this.maxLife = this.life;
       };
@@ -658,7 +658,7 @@
         var a = this.alpha * (this.life / this.maxLife);
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,204,0,' + a + ')';
+        ctx.fillStyle = 'rgba(56,189,248,' + a + ')';
         ctx.fill();
       };
 
@@ -676,14 +676,14 @@
             var dy = particles[i].y - particles[j].y;
             var dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 150) {
-              var a = (1 - dist / 150) * 0.06;
+              var a = (1 - dist / 150) * 0.05;
               var aI = (particles[i].life / particles[i].maxLife);
               var aJ = (particles[j].life / particles[j].maxLife);
               a = a * Math.min(aI, aJ);
               ctx.beginPath();
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.strokeStyle = 'rgba(255,204,0,' + a + ')';
+              ctx.strokeStyle = 'rgba(56,189,248,' + a + ')';
               ctx.lineWidth = 0.5;
               ctx.stroke();
             }

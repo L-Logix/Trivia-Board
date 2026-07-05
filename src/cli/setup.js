@@ -549,6 +549,11 @@ function showSplash() {
   console.log(chalk.cyan('║'));
   console.log(chalk.cyan('╚══════════════════════════════════════════════════════════╝'));
   console.log('');
+  console.log(chalk.dim('  Trivia Broadcast Engine  Copyright (C) 2025  TechnoThatch Software Solutions'));
+  console.log(chalk.dim('  This program comes with ABSOLUTELY NO WARRANTY.'));
+  console.log(chalk.dim('  This is free software, and you are welcome to redistribute it'));
+  console.log(chalk.dim('  under certain conditions.'));
+  console.log('');
 }
 
 function convertSheetUrl(input) {
