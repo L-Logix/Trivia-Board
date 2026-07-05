@@ -1,0 +1,59 @@
+name: PR Failure Issues
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  create:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha
+            });
+
+            const failures = checks.check_runs.filter(run => run.conclusion === 'failure' || run.conclusion === 'cancelled');
+
+            for (const check of failures) {
+              const title = 'Check failure: ' + check.name + ' (merged in PR #' + pr.number + ')';
+              const { data: existing } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: 'auto-fail'
+              });
+              if (existing.find(i => i.title === title)) {
+                console.log('Issue exists for ' + check.name + ', skipping');
+                continue;
+              }
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                labels: ['auto-fail', 'bot-generated', 'ci-failure'],
+                body: [
+                  '## Check Failure on Merged PR',
+                  '',
+                  '| Field | Value |',
+                  '| --- | --- |',
+                  '| Check | ' + check.name + ' |',
+                  '| PR | [' + pr.title + '](' + pr.html_url + ') |',
+                  '| Commit | ' + pr.head.sha.substring(0, 7) + ' |',
+                  '| Merge SHA | ' + pr.merge_commit_sha + ' |',
+                  '',
+                  'This check failed on a PR that was merged. The failure may require investigation.',
+                  '',
+                  '_Auto-generated from PR merge event._'
+                ].join('\n')
+              });
+            }

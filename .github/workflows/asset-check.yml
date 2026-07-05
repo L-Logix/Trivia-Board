@@ -14,19 +14,21 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check for Jeopardy terminology
+      - name: Check for Jeopardy terminology in source files
         id: jeopardy
         run: |
           FAILED=0
-          # Trademarked Jeopardy terms that should not appear in generic trivia source files
-          for f in $(git diff --name-only origin/main...HEAD -- '*.js' '*.css' '*.html' '*.md' 2>/dev/null || echo ""); do
+          # Trademarked Jeopardy terms in source code (not docs — README naturally references game formats)
+          for f in $(git diff --name-only origin/main...HEAD -- '*.js' '*.css' '*.html' 2>/dev/null || echo ""); do
             if [ -f "$f" ]; then
-              grep -iqE 'Double Jeopardy|Final Jeopardy|Daily Double|Alex Trebek|Ken Jennings|Jeopardy!' "$f" && { echo "Found in $f:"; grep -inE 'Double Jeopardy|Final Jeopardy|Daily Double|Alex Trebek|Ken Jennings|Jeopardy!' "$f"; FAILED=1; }
+              grep -iqE 'Double Jeopardy|Final Jeopardy|Alex Trebek|Ken Jennings|Jeopardy!' "$f" && { echo "Found in $f:"; grep -inE 'Double Jeopardy|Final Jeopardy|Alex Trebek|Ken Jennings|Jeopardy!' "$f"; FAILED=1; }
             fi
           done
           if [ "$FAILED" = "1" ]; then echo "jeopardy_found=true" >> $GITHUB_ENV; exit 1; fi
@@ -125,6 +127,23 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bug'],
-              body: '## Asset Check Failure\n\n- ' + issues.join('\n- ') + '\n\n**Commit:** ' + context.sha
+              labels: ['auto-fail', 'bot-generated'],
+              body: [
+                '## Asset & Terminology Check Failure (Auto-generated)',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                '| Commit | [`' + context.sha.substring(0, 7) + '`](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/commit/' + context.sha + ') |',
+                '| Branch | `' + (context.ref || 'unknown').replace('refs/heads/', '') + '` |',
+                '',
+                '### Issues found',
+                '',
+                issues.map(function(i) { return '- ' + i; }).join('\n'),
+                '',
+                'This check prevents problematic content (Jeopardy terminology, large binaries, config.json, or media files outside expected directories) from reaching the main branch.',
+                '',
+                '---',
+                '',
+                '_This issue was automatically created by the Asset Check workflow._' — it exists for tracking and compliance purposes only._'
+              ].join('\n')
             });

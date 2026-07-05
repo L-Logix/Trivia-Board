@@ -11,6 +11,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +64,28 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bug'],
-              body: `## Nightly Check Failure\n\n**Failures:**\n- ${failures.join('\n- ')}\n\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+              labels: ['auto-fail', 'bot-generated'],
+              body: [
+                '## Nightly Check Failure (Auto-generated)',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                '| Failures | ' + failures.join(', ') + ' |',
+                '| Run | [Actions #' + context.runId + '](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId + ') |',
+                '| Date | ' + new Date().toISOString().split('T')[0] + ' |',
+                '',
+                '### What failed',
+                '',
+                failures.map(function(f) { return '- ' + f; }).join('\n'),
+                '',
+                '### Investigation steps',
+                '',
+                '1. Open the Actions run link above',
+                '2. Review the failing check output',
+                '3. Determine if this is a transient failure or a persistent issue',
+                '',
+                '---',
+                '',
+                '_This issue was automatically created by the Nightly Check workflow._'
+              ].join('\n')
             });

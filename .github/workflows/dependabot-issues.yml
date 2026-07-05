@@ -1,0 +1,63 @@
+name: Dependabot Issue
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  issue:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title;
+            const prUrl = pr.html_url;
+
+            const depName = title.replace(/^chore:\s*/, '').split(/\s+/)[0];
+            const { data: issue } = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              labels: ['dependencies', 'bot-generated', 'no-public-action', 'auto-fail'],
+              body: [
+                '## Dependency Update (Auto-generated)',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                '| Package | `' + depName + '` |',
+                '| PR | [' + prUrl + '](' + prUrl + ') |',
+                '| Branch | `' + pr.head.ref + '` |',
+                '| Author | Dependabot |',
+                '',
+                'This issue tracks a dependency update proposed by Dependabot.',
+                '',
+                '### Review checklist',
+                '',
+                '- [ ] Does the new version contain breaking changes?',
+                '- [ ] Does the project import this package via CommonJS (`require`) or ESM (`import`)?',
+                '- [ ] Have the stress tests passed on the PR?',
+                '',
+                '### Notes',
+                '',
+                '- If the package is ESM-only but imported via CommonJS, the PR should be closed and the package added to `dependabot.yml` `ignore` list.',
+                '- Major-version bumps for `chalk` and `inquirer` are already blocked in `dependabot.yml` for this reason.',
+                '',
+                '---',
+                '',
+                '_This issue was automatically created by the Dependabot Issue workflow. No public action required — it exists for tracking dependency updates._'
+              ].join('\n')
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['dependencies', 'auto-fail']
+            });
