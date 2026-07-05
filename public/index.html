@@ -3,26 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Broadcast Engine</title>
+  <title>Trivia Broadcast Engine — Launch</title>
+  <link rel="icon" href="img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { margin:0; background:#070b17; color:#e2e8f0; font-family:'Inter','Segoe UI',Arial,sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; }
-    #idx-logo { max-width:40%; max-height:30vh; object-fit:contain; margin-bottom:2rem; filter:drop-shadow(0 0 30px rgba(56,189,248,0.1)); }
-    p { font-size:1.1rem; margin-bottom:2rem; color:rgba(148,163,184,0.6); }
-    .links { display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center; }
-    .links a { display:inline-block; padding:1rem 2rem; background:#38bdf8; color:#070b17; text-decoration:none; font-size:1.15rem; font-weight:600; border-radius:8px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 4px 20px rgba(56,189,248,0.2); }
-    .links a:hover { transform:scale(1.05); box-shadow:0 8px 30px rgba(56,189,248,0.3); }
-    .links a.dash { background:rgba(148,163,184,0.08); color:#e2e8f0; border:1px solid rgba(148,163,184,0.12); box-shadow:none; }
-    .links a.dash:hover { background:rgba(148,163,184,0.14); border-color:rgba(148,163,184,0.25); }
-    footer { margin-top:3rem; font-size:0.8rem; color:rgba(148,163,184,0.2); }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #070b17;
+      color: #e2e8f0;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(129,140,248,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 50%, rgba(56,189,248,0.03) 0%, transparent 50%);
+    }
+    .card {
+      max-width: 520px;
+      width: 100%;
+      padding: 48px 36px;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .logo svg {
+      height: 50px;
+      width: auto;
+      filter: drop-shadow(0 0 20px rgba(56,189,248,0.1));
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #e2e8f0;
+      margin-bottom: 6px;
+    }
+    h1 .accent {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sub {
+      font-size: 0.85rem;
+      color: rgba(148,163,184,0.4);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+    hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(148,163,184,0.08), transparent);
+      margin: 20px 0;
+    }
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+    }
+    .links a.primary {
+      background: linear-gradient(135deg, #38bdf8, #22d3ee);
+      color: #070b17;
+      box-shadow: 0 4px 20px rgba(56,189,248,0.2);
+    }
+    .links a.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(56,189,248,0.3);
+    }
+    .links a.secondary {
+      background: rgba(148,163,184,0.06);
+      color: rgba(241,245,249,0.8);
+      border: 1px solid rgba(148,163,184,0.1);
+    }
+    .links a.secondary:hover {
+      background: rgba(148,163,184,0.1);
+      border-color: rgba(148,163,184,0.2);
+      transform: translateY(-2px);
+    }
+    .tip {
+      font-size: 0.75rem;
+      color: rgba(148,163,184,0.25);
+      font-weight: 300;
+      margin-top: 16px;
+      letter-spacing: 0.5px;
+    }
+    .tip span {
+      display: inline-block;
+      background: rgba(56,189,248,0.06);
+      border: 1px solid rgba(56,189,248,0.06);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: rgba(56,189,248,0.3);
+    }
   </style>
 </head>
 <body>
-  <img id="idx-logo" src="img/logo.svg" alt="Logo">
-  <p>TechnoThatch Software Solutions &mdash; Broadcast Engine</p>
-  <div class="links">
-    <a href="/broadcast" target="_blank">Open Broadcast View</a>
-    <a href="/dashboard" class="dash" target="_blank">Open Host Dashboard</a>
+  <div class="card">
+    <div class="logo">
+      <svg viewBox="0 0 800 200" width="auto" height="50" xmlns="http://www.w3.org/2000/svg">
+        <text x="400" y="150" font-family="Oswald, Impact, sans-serif" font-size="90" font-weight="700" fill="#38bdf8" text-anchor="middle" letter-spacing="6">TRIVIA BOARD</text>
+      </svg>
+    </div>
+    <h1>Broadcast <span class="accent">Engine</span></h1>
+    <div class="sub">TechnoThatch Software Solutions</div>
+    <hr>
+    <div class="links">
+      <a href="/broadcast" target="_blank" class="primary">Open Broadcast View</a>
+      <a href="/dashboard" target="_blank" class="secondary">Open Host Dashboard</a>
+    </div>
+    <div class="tip">
+      <span>Pro tip:</span> Drag Broadcast to your TV/projector. Keep Dashboard on your laptop.
+    </div>
   </div>
-  <footer>Drag Broadcast to TV. Keep Dashboard on your laptop.</footer>
 </body>
 </html>
