@@ -19,7 +19,7 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --no-progress '*.md' '**/*.md' --exclude 'localhost|star-history.com|github.com/L-Logix'
+          args: --no-progress '*.md' '**/*.md' --exclude 'localhost|star-history.com|github.com/L-Logix|img.shields.io'
         continue-on-error: true
 
       - name: Comment on broken links
