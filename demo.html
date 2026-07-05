@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Demo — Trivia Broadcast Engine</title>
+  <link rel="icon" href="public/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: #070b17;
+      --indigo: #818cf8;
+      --cyan: #22d3ee;
+      --slate: #94a3b8;
+      --frost: #e2e8f0;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--navy);
+      color: var(--frost);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::selection { background: rgba(129,140,248,0.25); color: #fff; }
+
+    #bg-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+    }
+    .bg-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 15% 30%, rgba(129,140,248,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 20%, rgba(34,211,238,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(148,163,184,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(7,11,23,0.3) 0%, rgba(7,11,23,1) 100%);
+    }
+    .grid-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(148,163,184,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 12px 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .navbar.scrolled {
+      background: rgba(7,11,23,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 rgba(148,163,184,0.05);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--frost);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo .accent { color: var(--indigo); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(148,163,184,0.5);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--frost); background: rgba(148,163,184,0.04); }
+    .nav-links a.active {
+      color: var(--indigo);
+      background: rgba(129,140,248,0.06);
+    }
+    .nav-toggle {
+      display: none;
+      background: none; border: none; color: var(--frost);
+      font-size: 1.5rem; cursor: pointer; padding: 4px;
+    }
+
+    .content { position: relative; z-index: 2; padding-top: 72px; }
+
+    .page-header {
+      text-align: center;
+      padding: 60px 24px 40px;
+    }
+    .page-header h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .page-header h1 .accent { color: var(--indigo); }
+    .page-header p {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      color: rgba(148,163,184,0.45);
+      max-width: 560px;
+      margin: 12px auto 0;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+    .page-header .bar {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--indigo), transparent);
+      margin: 16px auto 0;
+    }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .section-title h2 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.3rem, 2vw, 1.6rem);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .section-title h2 .accent { color: var(--indigo); }
+    .section-title .bar {
+      width: 40px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--indigo), transparent);
+      margin: 10px auto 0;
+    }
+
+    .demo-section {
+      max-width: 960px;
+    }
+    .demo-board-container {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .demo-badge {
+      position: absolute;
+      top: -10px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--indigo);
+      background: rgba(7,11,23,0.85);
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(129,140,248,0.15);
+      backdrop-filter: blur(8px);
+      animation: badgePulse 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes badgePulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .demo-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-top: 4px;
+    }
+    .demo-board .cat {
+      background: rgba(129,140,248,0.08);
+      border: 1px solid rgba(129,140,248,0.12);
+      border-radius: 6px;
+      padding: 14px 8px;
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.65rem, 1vw, 0.85rem);
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--frost);
+    }
+    .demo-board .cell {
+      aspect-ratio: 1.6 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(129,140,248,0.03);
+      border: 1px solid rgba(129,140,248,0.07);
+      border-radius: 6px;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.7rem, 1.1vw, 0.95rem);
+      font-weight: 500;
+      color: var(--indigo);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-board .cell::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      background: rgba(129,140,248,0.06);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    .demo-board .cell:hover::before {
+      width: 220px; height: 220px;
+    }
+    .demo-board .cell:hover {
+      border-color: rgba(129,140,248,0.25);
+      background: rgba(129,140,248,0.07);
+      box-shadow: 0 0 24px rgba(129,140,248,0.06);
+    }
+    .demo-board .cell.selected {
+      background: rgba(129,140,248,0.14);
+      border-color: var(--indigo);
+      box-shadow: 0 0 30px rgba(129,140,248,0.12);
+    }
+    .demo-board .cell.done {
+      background: rgba(148,163,184,0.02);
+      border-color: rgba(148,163,184,0.03);
+      color: rgba(148,163,184,0.1);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .demo-clue-area {
+      margin-top: 16px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 12px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: min-height 0.4s;
+    }
+    .demo-clue-area .clue-text {
+      font-size: clamp(0.95rem, 1.5vw, 1.25rem);
+      color: rgba(241,245,249,0.8);
+      text-align: center;
+      line-height: 1.6;
+      max-width: 90%;
+      font-weight: 300;
+      transition: opacity 0.3s;
+    }
+    .demo-clue-area .clue-answer {
+      margin-top: 14px;
+      font-size: clamp(0.8rem, 1.2vw, 1rem);
+      color: var(--cyan);
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.6s;
+      letter-spacing: 0.5px;
+    }
+    .demo-clue-area .clue-answer.visible { opacity: 1; }
+    .demo-clue-area .demo-status {
+      font-size: 0.7rem;
+      color: rgba(148,163,184,0.3);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+    .demo-clue-area .reset-btn {
+      margin-top: 16px;
+      padding: 10px 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(129,140,248,0.2);
+      background: rgba(129,140,248,0.08);
+      color: var(--indigo);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .demo-clue-area .reset-btn:hover {
+      background: rgba(129,140,248,0.15);
+      border-color: rgba(129,140,248,0.35);
+      box-shadow: 0 0 20px rgba(129,140,248,0.08);
+    }
+
+    .demo-timer {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      background: rgba(148,163,184,0.05);
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    .demo-timer .bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), var(--cyan));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .demo-scores {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 16px;
+      padding: 14px 24px;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 10px;
+    }
+    .demo-scores .player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+    .demo-scores .player .name {
+      color: rgba(148,163,184,0.5);
+      font-weight: 400;
+    }
+    .demo-scores .player .score {
+      color: var(--frost);
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+    }
+    .demo-scores .player .score.pos { color: var(--cyan); }
+    .demo-scores .player .score.neg { color: #f87171; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .steps .step {
+      text-align: center;
+      padding: 28px 20px;
+      border-radius: 12px;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .steps .step:hover {
+      border-color: rgba(129,140,248,0.12);
+      transform: translateY(-2px);
+    }
+    .steps .step .step-num {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: rgba(129,140,248,0.08);
+      border: 1px solid rgba(129,140,248,0.15);
+      color: var(--indigo);
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+    }
+    .steps .step h3 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--frost);
+      margin-bottom: 8px;
+    }
+    .steps .step p {
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: rgba(148,163,184,0.45);
+      font-weight: 300;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 60px auto 0;
+      padding: 40px 24px 28px;
+      border-top: 1px solid rgba(148,163,184,0.03);
+    }
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .footer-brand {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 400;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.2);
+    }
+    .footer-brand strong { color: rgba(148,163,184,0.3); }
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 0.72rem;
+      color: rgba(148,163,184,0.2);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--indigo); }
+    .footer-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .footer-tech span {
+      font-size: 0.6rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.18);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .footer-tech span em { color: rgba(129,140,248,0.2); font-style: normal; }
+    .footer-copy {
+      margin-top: 14px;
+      font-size: 0.62rem;
+      color: rgba(148,163,184,0.1);
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute; top: 56px; left: 0; right: 0;
+        flex-direction: column;
+        background: rgba(7,11,23,0.95);
+        backdrop-filter: blur(16px);
+        padding: 12px;
+        border-bottom: 1px solid rgba(148,163,184,0.05);
+      }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+      .section { padding: 24px 16px 40px; }
+      footer .footer-inner { flex-direction: column; text-align: center; }
+      .demo-board .cat { font-size: 0.55rem; padding: 10px 4px; }
+      .demo-board .cell { font-size: 0.55rem; }
+      .demo-clue-area { min-height: 140px; padding: 20px 16px; }
+      .demo-clue-area .clue-text { font-size: 0.8rem; }
+      .demo-scores { gap: 16px; flex-wrap: wrap; }
+      .steps { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .demo-board { gap: 3px; }
+      .demo-board .cat { font-size: 0.45rem; padding: 6px 2px; }
+      .demo-board .cell { font-size: 0.45rem; }
+      .demo-clue-area { min-height: 120px; padding: 16px 12px; }
+      .demo-clue-area .clue-text { font-size: 0.7rem; }
+      .demo-scores .player { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-overlay"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <div class="nav-links" id="navLinks">
+        <a href="/">Home</a>
+        <a href="/features.html">Features</a>
+        <a href="/demo.html" class="active">Live Demo</a>
+        <a href="/docs.html">Docs</a>
+        <a href="/about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="content">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1>Interactive <span class="accent">Demo</span></h1>
+      <div class="bar"></div>
+      <p>Play with a live simulation of the broadcast view. Click any clue to start a round and watch the game come to life.</p>
+    </div>
+
+    <!-- DEMO SECTION -->
+    <div class="section demo-section">
+      <div class="demo-board-container">
+        <div class="demo-badge">Live Demo &bull; Interactive</div>
+        <div class="demo-board" id="demo-board"></div>
+      </div>
+
+      <div class="demo-clue-area" id="demo-clue">
+        <div class="clue-text" id="demo-clue-text">Click any clue value to start the demo</div>
+        <div class="clue-answer" id="demo-clue-answer"></div>
+        <div class="demo-status" id="demo-status">Ready</div>
+      </div>
+
+      <div class="demo-timer"><div class="bar" id="demo-timer-bar"></div></div>
+
+      <div class="demo-scores" id="demo-scores">
+        <div class="player"><span class="name">Alice</span> <span class="score pos" id="score-a">$0</span></div>
+        <div class="player"><span class="name">Bob</span> <span class="score pos" id="score-b">$0</span></div>
+        <div class="player"><span class="name">Carol</span> <span class="score pos" id="score-c">$0</span></div>
+      </div>
+    </div>
+
+    <!-- INSTRUCTIONS -->
+    <div class="section">
+      <div class="section-title">
+        <h2>How the <span class="accent">Demo Works</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Click a Clue</h3>
+          <p>Select any clue value on the board. The trivia question appears in the display area below.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Read the Question</h3>
+          <p>Think of your answer while the timer starts running &mdash; just like a real game show.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Answer Revealed</h3>
+          <p>After a few seconds, the correct answer fades in. See if you got it right.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Player Buzzes In</h3>
+          <p>A simulated player buzzes in automatically. Scores update live as players gain or lose points.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <h3>Continue or Reset</h3>
+          <p>Click the next clue to keep playing. After all clues are used, a reset button lets you start fresh.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">TechnoThatch <strong>Software Solutions</strong></div>
+      <div class="footer-links">
+        <a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank">Docs</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank">Issues</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank">License</a>
+      </div>
+    </div>
+    <div class="footer-tech">
+      <span>Node.js <em>18+</em></span>
+      <span>Express</span>
+      <span>Socket.IO</span>
+      <span>Chart.js</span>
+      <span>GNU GPL v3</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 TechnoThatch &mdash; Trivia Broadcast Engine</div>
+  </footer>
+
+  <script>
+    // ===== Navbar scroll =====
+    (function() {
+      var nav = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      });
+    })();
+
+    // ===== Mobile nav toggle =====
+    (function() {
+      var btn = document.getElementById('navToggle');
+      var links = document.getElementById('navLinks');
+      if (btn) {
+        btn.addEventListener('click', function() {
+          links.classList.toggle('open');
+        });
+      }
+    })();
+
+    // ===== Particle background =====
+    (function() {
+      var canvas = document.getElementById('bg-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var W, H, particles = [];
+      var NUM = 70;
+      var COLORS = ['129,140,248', '34,211,238', '148,163,184', '241,245,249', '148,163,184'];
+
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function Particle() { this.reset(); }
+      Particle.prototype.reset = function() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = Math.random() * 2 + 0.3;
+        this.dx = (Math.random() - 0.5) * 0.2;
+        this.dy = (Math.random() - 0.5) * 0.2 - 0.05;
+        this.alpha = Math.random() * 0.35 + 0.05;
+        this.life = Math.random() * 400 + 200;
+        this.maxLife = this.life;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseSpeed = Math.random() * 0.02 + 0.005;
+      };
+      Particle.prototype.update = function() {
+        this.x += this.dx; this.y += this.dy; this.life--;
+        this.pulse += this.pulseSpeed;
+        if (this.life <= 0 || this.x < -20 || this.x > W + 20 || this.y < -20 || this.y > H + 20) this.reset();
+      };
+      Particle.prototype.draw = function() {
+        var lr = this.life / this.maxLife;
+        var pa = Math.sin(this.pulse) * 0.12;
+        var a = Math.max(0, Math.min(1, (this.alpha + pa) * lr));
+        var glow = this.r > 1.5 ? Math.min(5, this.r * 2.5) : 0;
+        if (glow > 0) {
+          var g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glow);
+          g.addColorStop(0, 'rgba(' + this.color + ',' + (a * 0.25) + ')');
+          g.addColorStop(1, 'rgba(' + this.color + ',0)');
+          ctx.beginPath(); ctx.arc(this.x, this.y, glow, 0, Math.PI * 2);
+          ctx.fillStyle = g; ctx.fill();
+        }
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + this.color + ',' + a + ')'; ctx.fill();
+      };
+
+      for (var i = 0; i < NUM; i++) particles.push(new Particle());
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(function(p) { p.update(); p.draw(); });
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 130) {
+              var a = (1 - dist / 130) * 0.035 * Math.min(particles[i].life / particles[i].maxLife, particles[j].life / particles[j].maxLife);
+              if (a > 0.001) {
+                ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = 'rgba(129,140,248,' + a + ')';
+                ctx.lineWidth = 0.35; ctx.stroke();
+              }
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // ===== Live Demo Board =====
+    (function() {
+      var CATEGORIES = ['World History', 'Science &amp; Nature', 'Pop Culture', 'Geography'];
+      var VALUES = [200, 400, 600, 800, 1000];
+      var ALL_CLUES = [
+        ['Built in 447 BC, this Athenian temple honors Athena.', 'The Parthenon'],
+        ['This planet has the shortest day at 9.9 hours.', 'Jupiter'],
+        ['This 1994 film won 6 Oscars including Best Picture.', 'Forrest Gump'],
+        ['This African country has the largest population.', 'Nigeria'],
+        ['This element has the chemical symbol Fe.', 'Iron'],
+        ['This war lasted from 1337 to 1453.', 'The Hundred Years\' War'],
+        ['This gas makes up 78% of Earth\'s atmosphere.', 'Nitrogen'],
+        ['This singer\'s 1982 album Thriller is the best-selling of all time.', 'Michael Jackson'],
+        ['This is the longest river in the world.', 'The Nile'],
+        ['This organ in the human body has four chambers.', 'The Heart'],
+        ['This ancient wonder was located in Alexandria, Egypt.', 'The Lighthouse of Alexandria'],
+        ['Light travels at approximately this many km/s.', '299,792 km/s'],
+        ['This TV series about dragons premiered in 2011.', 'Game of Thrones'],
+        ['This country has the most time zones.', 'France'],
+        ['This scientist developed the theory of general relativity.', 'Albert Einstein'],
+        ['The War of the Worlds broadcast caused panic in this year.', '1938'],
+        ['This is the chemical formula for water.', 'H2O'],
+        ['This video game console was released by Sony in 1994.', 'PlayStation'],
+        ['This mountain is the tallest in the world.', 'Mount Everest'],
+        ['This 1912 tragedy led to iceberg patrols.', 'The Titanic sinking'],
+        ['This Russian word means restructuring.', 'Perestroika'],
+        ['This acid is found in the stomach.', 'Hydrochloric acid'],
+        ['This actor played Iron Man in the MCU.', 'Robert Downey Jr.'],
+        ['This is the smallest country in the world.', 'Vatican City']
+      ];
+
+      var board = document.getElementById('demo-board');
+      var clueText = document.getElementById('demo-clue-text');
+      var clueAnswer = document.getElementById('demo-clue-answer');
+      var demoStatus = document.getElementById('demo-status');
+      var timerBar = document.getElementById('demo-timer-bar');
+      var scores = { a: 0, b: 0, c: 0 };
+      var scoreEls = {
+        a: document.getElementById('score-a'),
+        b: document.getElementById('score-b'),
+        c: document.getElementById('score-c')
+      };
+      var usedCells = [];
+      var clueIndex = 0;
+      var currentPlayer = 0;
+      var clueState = 'board';
+      var timerInterval = null;
+      var shuffledClues = [];
+      var completeTotal = 12;
+
+      function shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+        return arr;
+      }
+
+      function resetGame() {
+        usedCells = [];
+        scores = { a: 0, b: 0, c: 0 };
+        scoreEls.a.textContent = '$0';
+        scoreEls.a.className = 'score pos';
+        scoreEls.b.textContent = '$0';
+        scoreEls.b.className = 'score pos';
+        scoreEls.c.textContent = '$0';
+        scoreEls.c.className = 'score pos';
+        currentPlayer = 0;
+        clueState = 'board';
+        clueIndex = 0;
+        shuffledClues = shuffle(ALL_CLUES.slice());
+        clearTimeout(window._demoTimeout1);
+        clearTimeout(window._demoTimeout2);
+        clearTimeout(window._demoTimeout3);
+        stopTimer();
+        timerBar.style.width = '0%';
+        clueText.innerHTML = 'Click any clue value to start the demo';
+        clueAnswer.textContent = '';
+        clueAnswer.classList.remove('visible');
+        demoStatus.textContent = 'Ready';
+        var cells = board.querySelectorAll('.cell');
+        cells.forEach(function(c) { c.classList.remove('selected', 'done'); });
+      }
+
+      function buildBoard() {
+        board.innerHTML = '';
+        for (var c = 0; c < 4; c++) {
+          var cat = document.createElement('div');
+          cat.className = 'cat';
+          cat.innerHTML = CATEGORIES[c];
+          board.appendChild(cat);
+        }
+        for (var v = 0; v < 5; v++) {
+          for (var c = 0; c < 4; c++) {
+            var cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.cat = c;
+            cell.dataset.val = v;
+            cell.textContent = '$' + VALUES[v];
+            (function(ci, vi) {
+              cell.addEventListener('click', function() {
+                if (clueState !== 'board') return;
+                if (this.classList.contains('done')) return;
+                selectClue(ci, vi);
+              });
+            })(c, v);
+            board.appendChild(cell);
+          }
+        }
+      }
+
+      function selectClue(cat, val) {
+        var key = cat + '-' + val;
+        if (usedCells.indexOf(key) !== -1) return;
+        if (clueIndex >= completeTotal) {
+          showComplete();
+          return;
+        }
+        usedCells.push(key);
+        clueState = 'clue';
+
+        var cells = board.querySelectorAll('.cell');
+        cells.forEach(function(c) {
+          if (parseInt(c.dataset.cat) === cat && parseInt(c.dataset.val) === val) {
+            c.classList.add('selected');
+          }
+        });
+
+        var clue = shuffledClues[clueIndex];
+        clueIndex++;
+        clueText.innerHTML = '<em>' + clue[0] + '</em>';
+        clueAnswer.textContent = clue[1];
+        clueAnswer.classList.remove('visible');
+        demoStatus.textContent = 'Clue selected \u2022 Reading\u2026';
+        timerBar.style.width = '0%';
+
+        window._demoTimeout1 = setTimeout(function() {
+          if (clueState !== 'clue') return;
+          clueAnswer.classList.add('visible');
+          startTimer();
+          demoStatus.textContent = 'Answer shown \u2022 Timer running\u2026';
+        }, 2500);
+
+        window._demoTimeout2 = setTimeout(function() {
+          if (clueState !== 'clue') return;
+          var playerNames = ['Alice', 'Bob', 'Carol'];
+          var p = currentPlayer;
+          currentPlayer = (currentPlayer + 1) % 3;
+          var delta = VALUES[val];
+          var key2 = p === 0 ? 'a' : p === 1 ? 'b' : 'c';
+          if (Math.random() > 0.3) {
+            scores[key2] += delta;
+            scoreEls[key2].textContent = '$' + scores[key2];
+            scoreEls[key2].className = 'score pos';
+            demoStatus.textContent = playerNames[p] + ' answered correctly! +$' + delta;
+          } else {
+            scores[key2] -= delta;
+            scoreEls[key2].textContent = '$' + scores[key2];
+            scoreEls[key2].className = 'score neg';
+            demoStatus.textContent = playerNames[p] + ' was incorrect. -$' + delta;
+          }
+          stopTimer();
+          timerBar.style.width = '0%';
+          markDone();
+        }, 4500);
+      }
+
+      function markDone() {
+        var cells = board.querySelectorAll('.cell');
+        var found = false;
+        cells.forEach(function(c) {
+          if (c.classList.contains('selected')) {
+            c.classList.remove('selected');
+            c.classList.add('done');
+          }
+        });
+        clueState = 'board';
+
+        if (clueIndex >= completeTotal) {
+          window._demoTimeout3 = setTimeout(function() {
+            showComplete();
+          }, 800);
+          return;
+        }
+
+        window._demoTimeout3 = setTimeout(function() {
+          if (clueState !== 'board') return;
+          clueText.innerHTML = 'Click any clue value to continue watching';
+          clueAnswer.textContent = '';
+          clueAnswer.classList.remove('visible');
+          demoStatus.textContent = 'Ready';
+        }, 1200);
+      }
+
+      function showComplete() {
+        clueText.innerHTML = 'Demo Complete \u2014 all 12 clues shown!';
+        clueAnswer.textContent = '';
+        clueAnswer.classList.remove('visible');
+        demoStatus.textContent = 'Try again';
+        var btn = document.createElement('button');
+        btn.className = 'reset-btn';
+        btn.textContent = '\u21bb Reset Demo';
+        var existing = document.querySelector('.reset-btn');
+        if (existing) existing.remove();
+        var area = document.getElementById('demo-clue');
+        var status = document.getElementById('demo-status');
+        area.insertBefore(btn, status);
+        btn.addEventListener('click', function() { this.remove(); resetGame(); });
+      }
+
+      function startTimer() {
+        stopTimer();
+        var startTime = Date.now();
+        var duration = 12000;
+        timerBar.style.width = '0%';
+        timerInterval = setInterval(function() {
+          var elapsed = Date.now() - startTime;
+          var pct = Math.min(100, (elapsed / duration) * 100);
+          timerBar.style.width = pct + '%';
+        }, 50);
+      }
+
+      function stopTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+
+      shuffledClues = shuffle(ALL_CLUES.slice());
+      buildBoard();
+    })();
+  </script>
+</body>
+</html>

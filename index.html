@@ -63,13 +63,68 @@
 
     .content { position: relative; z-index: 2; }
 
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 14px 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .navbar.scrolled {
+      background: rgba(7,11,23,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 rgba(148,163,184,0.05);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--frost);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo .accent { color: var(--sky); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(148,163,184,0.5);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--frost); background: rgba(148,163,184,0.04); }
+    .nav-links a.active {
+      color: var(--sky);
+      background: rgba(56,189,248,0.06);
+    }
+    .nav-toggle {
+      display: none;
+      background: none; border: none; color: var(--frost);
+      font-size: 1.5rem; cursor: pointer; padding: 4px;
+    }
+
     /* ===== Hero ===== */
     .hero {
       min-height: 100vh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       text-align: center;
-      padding: 40px 24px;
+      padding: 80px 24px 40px;
       position: relative;
     }
 
@@ -89,12 +144,12 @@
     }
 
     .hero-logo {
-      margin-bottom: 32px;
-      animation: heroFadeIn 1s ease-out;
+      margin-bottom: 28px;
+      animation: heroFadeIn 0.8s ease-out;
     }
 
     .hero-logo svg {
-      height: 70px;
+      height: 65px;
       width: auto;
       filter: drop-shadow(0 0 30px rgba(56,189,248,0.15));
       transition: filter 0.5s;
@@ -107,16 +162,16 @@
     .hero h1 {
       font-family: 'Oswald', sans-serif;
       font-weight: 700;
-      font-size: clamp(2.6rem, 7vw, 5.5rem);
+      font-size: clamp(2.8rem, 8vw, 6rem);
       letter-spacing: 3px;
       text-transform: uppercase;
       line-height: 1.05;
-      margin-bottom: 8px;
-      animation: heroFadeIn 1.2s ease-out;
+      margin-bottom: 6px;
+      animation: heroFadeIn 1s ease-out;
     }
 
     .hero h1 .gradient {
-      background: linear-gradient(135deg, #f1f5f9 10%, var(--sky) 45%, var(--indigo) 75%, var(--cyan) 100%);
+      background: linear-gradient(135deg, #f1f5f9 10%, var(--sky) 40%, var(--indigo) 70%, var(--cyan) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -130,23 +185,23 @@
     }
 
     .hero .subtitle {
-      font-size: clamp(0.8rem, 1.3vw, 1rem);
+      font-size: clamp(0.75rem, 1.2vw, 0.95rem);
       font-weight: 400;
-      color: rgba(148,163,184,0.4);
+      color: rgba(148,163,184,0.35);
       letter-spacing: 8px;
       text-transform: uppercase;
       margin-bottom: 20px;
-      animation: heroFadeIn 1.4s ease-out;
+      animation: heroFadeIn 1.2s ease-out;
     }
 
     .hero .tagline {
-      font-size: clamp(0.95rem, 1.4vw, 1.15rem);
-      color: rgba(148,163,184,0.55);
+      font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+      color: rgba(148,163,184,0.5);
       max-width: 640px;
-      margin: 0 auto 32px;
+      margin: 0 auto 28px;
       line-height: 1.7;
       font-weight: 300;
-      animation: heroFadeIn 1.6s ease-out;
+      animation: heroFadeIn 1.4s ease-out;
     }
 
     .hero .tagline em {
@@ -159,7 +214,7 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 14px;
-      animation: heroFadeIn 1.8s ease-out;
+      animation: heroFadeIn 1.6s ease-out;
     }
 
     .hero-buttons a {
@@ -207,14 +262,13 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== Stats Bar ===== */
     .stats-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 8px;
       padding: 10px 20px;
-      animation: heroFadeIn 2s ease-out;
+      animation: heroFadeIn 1.8s ease-out;
     }
 
     .stats-bar .badge {
@@ -237,7 +291,6 @@
       border-radius: 50%;
       display: inline-block;
     }
-
     .stats-bar .badge .dot.cyan { background: var(--cyan); box-shadow: 0 0 6px rgba(34,211,238,0.4); }
     .stats-bar .badge .dot.sky { background: var(--sky); box-shadow: 0 0 6px rgba(56,189,248,0.4); }
     .stats-bar .badge .dot.indigo { background: var(--indigo); box-shadow: 0 0 6px rgba(129,140,248,0.4); }
@@ -283,11 +336,8 @@
       margin: 14px auto 0;
     }
 
-    /* ===== Live Demo (The Big Ad) ===== */
-    #demo-section {
-      padding-top: 20px;
-      padding-bottom: 80px;
-    }
+    /* ===== Live Demo ===== */
+    #demo-section { padding-top: 20px; padding-bottom: 80px; }
 
     .demo-container {
       position: relative;
@@ -305,10 +355,7 @@
       box-shadow: 0 30px 100px rgba(0,0,0,0.5), 0 0 80px rgba(56,189,248,0.05);
     }
 
-    .demo-inner {
-      padding: 20px;
-      position: relative;
-    }
+    .demo-inner { padding: 20px; position: relative; }
 
     .demo-badge {
       position: absolute;
@@ -469,18 +516,13 @@
       font-size: 0.75rem;
     }
 
-    .demo-scores .player .name {
-      color: rgba(148,163,184,0.4);
-      font-weight: 400;
-    }
-
+    .demo-scores .player .name { color: rgba(148,163,184,0.4); font-weight: 400; }
     .demo-scores .player .score {
       color: var(--frost);
       font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.85rem;
     }
-
     .demo-scores .player .score.pos { color: var(--cyan); }
     .demo-scores .player .score.neg { color: #f87171; }
 
@@ -502,7 +544,7 @@
       transition: width 0.1s linear;
     }
 
-    /* ===== Stats Counter ===== */
+    /* ===== Counter ===== */
     .counter-section {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -596,7 +638,7 @@
     .feature-card .icon.sky { background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.1); }
     .feature-card .icon.indigo { background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.1); }
     .feature-card .icon.cyan { background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.1); }
-    .feature-card .icon.white { background: rgba(241,245,249,0.05); border: 1px solid rgba(241,245,249,0.06); }
+    .feature-card .icon.frost { background: rgba(241,245,249,0.05); border: 1px solid rgba(241,245,249,0.06); }
 
     .feature-card h3 {
       font-family: 'Oswald', sans-serif;
@@ -654,7 +696,6 @@
       width: 10px; height: 10px;
       border-radius: 50%;
     }
-
     .cli-header .dot-group .r { background: #ef4444; }
     .cli-header .dot-group .y { background: #eab308; }
     .cli-header .dot-group .g { background: #22c55e; }
@@ -744,76 +785,65 @@
       color: rgba(148,163,184,0.3);
     }
 
-    .arrow-connector {
-      display: none;
-    }
-
     /* ===== Footer ===== */
     footer {
       max-width: 1200px;
-      margin: 0 auto;
-      padding: 60px 24px 32px;
+      margin: 60px auto 0;
+      padding: 40px 24px 28px;
       border-top: 1px solid rgba(148,163,184,0.03);
     }
 
-    footer .inner {
+    .footer-inner {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
     }
 
-    footer .brand {
+    .footer-brand {
       font-family: 'Oswald', sans-serif;
       font-weight: 400;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: rgba(148,163,184,0.2);
     }
+    .footer-brand strong { color: rgba(148,163,184,0.3); }
 
-    footer .brand strong { color: rgba(148,163,184,0.35); }
-
-    footer .links {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    footer .links a {
-      font-size: 0.75rem;
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 0.72rem;
       color: rgba(148,163,184,0.2);
       text-decoration: none;
       letter-spacing: 1px;
       transition: color 0.2s;
     }
+    .footer-links a:hover { color: var(--sky); }
 
-    footer .links a:hover { color: var(--sky); }
-
-    footer .tech {
+    .footer-tech {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 16px;
+      margin-top: 14px;
     }
 
-    footer .tech span {
-      font-size: 0.62rem;
-      padding: 4px 12px;
+    .footer-tech span {
+      font-size: 0.6rem;
+      padding: 3px 10px;
       border-radius: 4px;
       background: rgba(148,163,184,0.03);
       border: 1px solid rgba(148,163,184,0.04);
-      color: rgba(148,163,184,0.2);
+      color: rgba(148,163,184,0.18);
       font-family: 'JetBrains Mono', monospace;
     }
+    .footer-tech span em { color: rgba(56,189,248,0.2); font-style: normal; }
 
-    footer .tech span em { color: rgba(56,189,248,0.25); font-style: normal; }
-
-    footer .copy {
-      margin-top: 16px;
-      font-size: 0.65rem;
+    .footer-copy {
+      margin-top: 14px;
+      font-size: 0.62rem;
       color: rgba(148,163,184,0.1);
+      text-align: center;
     }
 
     /* ===== Scroll Reveal ===== */
@@ -835,7 +865,19 @@
 
     /* ===== Responsive ===== */
     @media (max-width: 768px) {
-      .hero { min-height: 90vh; padding: 24px 16px; }
+      .nav-links {
+        display: none;
+        position: absolute; top: 56px; left: 0; right: 0;
+        flex-direction: column;
+        background: rgba(7,11,23,0.95);
+        backdrop-filter: blur(16px);
+        padding: 12px;
+        border-bottom: 1px solid rgba(148,163,184,0.05);
+      }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+
+      .hero { min-height: 90vh; padding: 60px 16px 24px; }
       .hero h1 { font-size: clamp(2rem, 6vw, 2.8rem); }
       .hero-buttons a { padding: 12px 22px; font-size: 0.82rem; }
       .section { padding: 48px 16px; }
@@ -853,7 +895,7 @@
 
       .quickstart { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
-      footer .inner { flex-direction: column; text-align: center; }
+      footer .footer-inner { flex-direction: column; text-align: center; }
     }
 
     @media (max-width: 480px) {
@@ -878,12 +920,27 @@
   <div class="bg-overlay"></div>
   <div class="grid-overlay"></div>
 
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="active">Home</a>
+        <a href="/features.html">Features</a>
+        <a href="/demo.html">Live Demo</a>
+        <a href="/docs.html">Docs</a>
+        <a href="/about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
   <div class="content">
 
-    <!-- ===== HERO ===== -->
+    <!-- HERO -->
     <section class="hero" id="hero">
       <div class="hero-logo">
-        <svg viewBox="0 0 800 200" width="auto" height="70" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 800 200" width="auto" height="65" xmlns="http://www.w3.org/2000/svg">
           <text x="400" y="150" font-family="Oswald, Impact, sans-serif" font-size="100" font-weight="700" fill="#38bdf8" text-anchor="middle" letter-spacing="8">TRIVIA BOARD</text>
         </svg>
       </div>
@@ -896,28 +953,28 @@
       </p>
       <div class="hero-buttons">
         <a href="https://github.com/L-Logix/Trivia-Board" class="btn-primary" target="_blank">View on GitHub</a>
-        <a href="#demo" class="btn-secondary">See It in Action</a>
+        <a href="/demo.html" class="btn-secondary">See It in Action</a>
       </div>
       <div class="stats-bar">
         <span class="badge"><span class="dot sky"></span> <strong>Node.js</strong> 18+</span>
         <span class="badge"><span class="dot cyan"></span> <strong>Socket.IO</strong> Real-time</span>
         <span class="badge"><span class="dot indigo"></span> <strong>GNU GPL</strong> v3</span>
-        <span class="badge"><strong>Express</strong> Server</span>
+        <span class="badge"><strong>Express</strong></span>
         <span class="badge"><a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a></span>
       </div>
     </section>
 
-    <!-- ===== LIVE DEMO ===== -->
-    <section class="section" id="demo">
+    <!-- LIVE DEMO -->
+    <section class="section" id="demo-section">
       <div class="section-header reveal">
         <h2>See It <span class="accent">in Action</span></h2>
         <div class="bar"></div>
-        <p>This is a live simulation of the broadcast view. Watch as clues are selected, answers are revealed, and scores update in real time.</p>
+        <p>Click any clue to see the broadcast engine in action. Try the <a href="/demo.html" style="color:var(--sky);text-decoration:none;font-weight:500;">full-screen demo</a> for the complete experience.</p>
       </div>
 
-      <div class="demo-container reveal" id="demo-container">
+      <div class="demo-container reveal">
         <div class="demo-inner">
-          <div class="demo-badge">Live Demo &bull; Interactive</div>
+          <div class="demo-badge">Live Demo</div>
           <div class="demo-board" id="demo-board"></div>
           <div class="demo-clue-area" id="demo-clue">
             <div class="clue-text" id="demo-clue-text">Click any clue value to see it in action</div>
@@ -934,7 +991,7 @@
       </div>
     </section>
 
-    <!-- ===== STATISTICS ===== -->
+    <!-- STATISTICS -->
     <section class="section">
       <div class="section-header reveal">
         <h2>Built for <span class="accent">Scale</span></h2>
@@ -960,7 +1017,7 @@
       </div>
     </section>
 
-    <!-- ===== FEATURES ===== -->
+    <!-- FEATURES -->
     <section class="section">
       <div class="section-header reveal">
         <h2>Core <span class="accent">Capabilities</span></h2>
@@ -969,56 +1026,56 @@
       </div>
 
       <div class="features">
-        <article class="feature-card reveal reveal-delay-1" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-1">
           <div class="icon sky">&#9783;</div>
           <h3>Dual-Screen Hosting</h3>
           <p>Full-screen broadcast view for the audience on a TV or projector. Host dashboard, scoring helper, and board helper on your laptop. All synchronized in real time via Socket.IO.</p>
           <span class="tag">Real-time</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-2" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-2">
           <div class="icon cyan">&gt;_</div>
           <h3>Scriptable Setup</h3>
           <p>Configure everything from CLI flags: board size, values, players, labels, CSV import, media assets, and more. Refresh content without re-running the wizard.</p>
           <span class="tag">CLI</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-3" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-3">
           <div class="icon indigo">&#9835;</div>
           <h3>Custom Media Assets</h3>
           <p>Intro video/music, background tracks, bonus clue images, applause, times-up, and 10+ configurable sounds. All audio is config-gated so unconfigured assets silently no-op.</p>
           <span class="tag">Audio / Video</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-4" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-4">
           <div class="icon sky">&#9201;</div>
           <h3>Smart Timer System</h3>
           <p>Starts on DONE READING, pauses on INCORRECT for other players to buzz. Keyboard shortcuts for BUZZ/UNBUZZ. Token-guarded to prevent stale callbacks and duplicate starts.</p>
           <span class="tag">Gameplay</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-1" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-1">
           <div class="icon cyan">&#9733;</div>
           <h3>Bonus &amp; Championship</h3>
           <p>Daily Double bonus clues with image cover-flip and wager screen. Championship final with step-by-step name/show-answer/wager reveal and direct host scoring.</p>
           <span class="tag">Rounds</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-2" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-2">
           <div class="icon indigo">&#9784;</div>
           <h3>Post-Game Analytics</h3>
           <p>Detailed per-player and per-game charts with Chart.js. Correct/incorrect streaks, category breakdowns, value distribution, and printable reports.</p>
           <span class="tag">Statistics</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-3" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-3">
           <div class="icon sky">&#9776;</div>
           <h3>Sheets &amp; CSV Import</h3>
           <p>Paste a published Google Sheets URL or local CSV path. Supports both simple and grid formats. URL normalization handles edit links automatically.</p>
           <span class="tag">Import</span>
         </article>
 
-        <article class="feature-card reveal reveal-delay-4" data-tilt="true">
+        <article class="feature-card reveal reveal-delay-4">
           <div class="icon cyan">&#9998;</div>
           <h3>Practice Mode</h3>
           <p>Cycle all clues from Rounds 1, 2, and Final with back/next navigation, Show/Hide Answer toggle, and keyboard shortcuts for solo review.</p>
@@ -1027,7 +1084,7 @@
       </div>
     </section>
 
-    <!-- ===== CLI DEMO ===== -->
+    <!-- CLI DEMO -->
     <section class="section">
       <div class="section-header reveal">
         <h2>Zero Config <span class="accent">to Live</span></h2>
@@ -1060,7 +1117,7 @@
       </div>
     </section>
 
-    <!-- ===== QUICK START ===== -->
+    <!-- QUICK START -->
     <section class="section">
       <div class="section-header reveal">
         <h2>Get Started <span class="accent">Now</span></h2>
@@ -1090,38 +1147,53 @@
       </div>
     </section>
 
-    <!-- ===== FOOTER ===== -->
+    <!-- FOOTER -->
     <footer>
-      <div class="inner">
-        <div class="brand">TechnoThatch <strong>Software Solutions</strong></div>
-        <div class="links">
+      <div class="footer-inner">
+        <div class="footer-brand">TechnoThatch <strong>Software Solutions</strong></div>
+        <div class="footer-links">
           <a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a>
           <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank">Docs</a>
           <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank">Issues</a>
           <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank">License</a>
         </div>
       </div>
-      <div class="tech">
+      <div class="footer-tech">
         <span>Node.js <em>18+</em></span>
         <span>Express</span>
         <span>Socket.IO</span>
         <span>Chart.js</span>
         <span>GNU GPL v3</span>
       </div>
-      <div class="copy">&copy; 2025 TechnoThatch Software Solutions &mdash; Trivia Broadcast Engine. Released under GNU GPL v3.</div>
+      <div class="footer-copy">&copy; 2025 TechnoThatch Software Solutions &mdash; Trivia Broadcast Engine. Released under GNU GPL v3.</div>
     </footer>
 
   </div>
 
   <script>
-    // ============================================================
-    // 1. Enhanced Particle Background
-    // ============================================================
+    // ===== Navbar =====
+    (function() {
+      var nav = document.getElementById('navbar');
+      var toggle = document.getElementById('navToggle');
+      var links = document.getElementById('navLinks');
+
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      });
+
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          links.classList.toggle('open');
+        });
+      }
+    })();
+
+    // ===== Particle Background =====
     (function() {
       var canvas = document.getElementById('bg-canvas');
       var ctx = canvas.getContext('2d');
-      var W, H;
-      var particles = [];
+      var W, H, particles = [];
       var NUM = 80;
       var COLORS = ['56,189,248', '129,140,248', '34,211,238', '148,163,184', '241,245,249'];
 
@@ -1215,9 +1287,7 @@
       draw();
     })();
 
-    // ============================================================
-    // 2. Live Demo Board
-    // ============================================================
+    // ===== Live Demo Board =====
     (function() {
       var CATEGORIES = ['World History', 'Science &amp; Nature', 'Pop Culture', 'Geography'];
       var VALUES = [200, 400, 600, 800, 1000];
@@ -1246,7 +1316,6 @@
         ['This acid is found in the stomach.', 'Hydrochloric acid'],
         ['This actor played Iron Man in the MCU.', 'Robert Downey Jr.'],
         ['This is the smallest country in the world.', 'Vatican City'],
-        ['This animal is known as the "king of the jungle".', 'The Lion'],
       ];
 
       var board = document.getElementById('demo-board');
@@ -1262,8 +1331,6 @@
       };
       var selected = { cat: -1, val: -1 };
       var used = [];
-      var timerActive = false;
-      var timerWidth = 0;
       var timerInterval = null;
       var currentPlayer = 0;
       var clueState = 'board';
@@ -1280,14 +1347,12 @@
 
       function buildBoard() {
         board.innerHTML = '';
-
         for (var c = 0; c < 4; c++) {
           var cat = document.createElement('div');
           cat.className = 'cat';
           cat.innerHTML = CATEGORIES[c];
           board.appendChild(cat);
         }
-
         for (var v = 0; v < 5; v++) {
           for (var c = 0; c < 4; c++) {
             var cell = document.createElement('div');
@@ -1371,7 +1436,7 @@
 
         if (used.length >= 12) {
           setTimeout(function() {
-            clueText.innerHTML = 'All clues completed! <strong>Refresh</strong> to play again.';
+            clueText.innerHTML = 'All clues completed! Try the <a href="/demo.html" style="color:var(--sky);">full demo</a>.';
             clueAnswer.classList.remove('visible');
             clueAnswer.textContent = '';
             demoStatus.textContent = 'Demo complete';
@@ -1391,17 +1456,13 @@
 
       function startTimer() {
         stopTimer();
-        timerActive = true;
-        timerWidth = 0;
-        timerBar.style.width = '0%';
         var startTime = Date.now();
         var duration = 15000;
-
         timerInterval = setInterval(function() {
           var elapsed = Date.now() - startTime;
-          timerWidth = Math.min(100, (elapsed / duration) * 100);
-          timerBar.style.width = timerWidth + '%';
-          if (timerWidth >= 100) {
+          var w = Math.min(100, (elapsed / duration) * 100);
+          timerBar.style.width = w + '%';
+          if (w >= 100) {
             stopTimer();
             if (clueState === 'clue') {
               demoStatus.textContent = 'Time\u2019s up!';
@@ -1423,15 +1484,12 @@
           clearInterval(timerInterval);
           timerInterval = null;
         }
-        timerActive = false;
       }
 
       buildBoard();
     })();
 
-    // ============================================================
-    // 3. Scroll Reveal
-    // ============================================================
+    // ===== Scroll Reveal =====
     (function() {
       var observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
@@ -1446,9 +1504,7 @@
       });
     })();
 
-    // ============================================================
-    // 4. Counter Animation
-    // ============================================================
+    // ===== Counter Animation =====
     (function() {
       var counters = document.querySelectorAll('.counter-item .num');
       var counterObserver = new IntersectionObserver(function(entries) {
@@ -1458,7 +1514,6 @@
             var target = parseInt(el.dataset.target);
             var current = 0;
             var step = Math.max(1, Math.floor(target / 50));
-
             var interval = setInterval(function() {
               current += step;
               if (current >= target) {
@@ -1467,7 +1522,6 @@
               }
               el.textContent = current;
             }, 25);
-
             counterObserver.unobserve(el);
           }
         });
@@ -1475,19 +1529,6 @@
 
       counters.forEach(function(c) { counterObserver.observe(c); });
     })();
-
-    // ============================================================
-    // 5. Smooth scroll for anchor links
-    // ============================================================
-    document.querySelectorAll('a[href^="#"]').forEach(function(a) {
-      a.addEventListener('click', function(e) {
-        var target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
   </script>
 
 </body>

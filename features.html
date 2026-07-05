@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features — Trivia Broadcast Engine</title>
+  <link rel="icon" href="public/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET & DESIGN SYSTEM ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: #070b17;
+      --sky: #38bdf8;
+      --indigo: #818cf8;
+      --cyan: #22d3ee;
+      --slate: #94a3b8;
+      --frost: #e2e8f0;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--navy);
+      color: var(--frost);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::selection { background: rgba(56,189,248,0.25); color: #fff; }
+
+    /* ===== CANVAS BACKGROUND ===== */
+    #bg-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+    }
+    .bg-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 15% 30%, rgba(129,140,248,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 20%, rgba(56,189,248,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(34,211,238,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(7,11,23,0.3) 0%, rgba(7,11,23,1) 100%);
+    }
+    .grid-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(148,163,184,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 12px 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .navbar.scrolled {
+      background: rgba(7,11,23,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 rgba(148,163,184,0.05);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--frost);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo .accent { color: var(--sky); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(148,163,184,0.5);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--frost); background: rgba(148,163,184,0.04); }
+    .nav-links a.active {
+      color: var(--sky);
+      background: rgba(56,189,248,0.06);
+    }
+    .nav-toggle {
+      display: none;
+      background: none; border: none; color: var(--frost);
+      font-size: 1.5rem; cursor: pointer; padding: 4px;
+    }
+
+    /* ===== CONTENT ===== */
+    .content { position: relative; z-index: 2; padding-top: 72px; }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+      text-align: center;
+      padding: 60px 24px 40px;
+    }
+    .page-header h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .page-header h1 .accent { color: var(--sky); }
+    .page-header p {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      color: rgba(148,163,184,0.45);
+      max-width: 560px;
+      margin: 12px auto 0;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+    .page-header .bar {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 16px auto 0;
+    }
+
+    /* ===== SECTION ===== */
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .section-title h2 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.3rem, 2vw, 1.6rem);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .section-title h2 .accent { color: var(--sky); }
+    .section-title .bar {
+      width: 40px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 10px auto 0;
+    }
+
+    /* ===== FEATURE CARDS (EXPANDABLE) ===== */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+      gap: 20px;
+    }
+
+    .feat-card {
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+      transition: border-color 0.3s;
+      cursor: pointer;
+    }
+    .feat-card:hover { border-color: rgba(56,189,248,0.12); }
+
+    .feat-card .feat-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 24px;
+    }
+    .feat-card .feat-icon {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .feat-card .feat-icon.sky { background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.1); }
+    .feat-card .feat-icon.indigo { background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.1); }
+    .feat-card .feat-icon.cyan { background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.1); }
+    .feat-card .feat-icon.frost { background: rgba(241,245,249,0.05); border: 1px solid rgba(241,245,249,0.06); }
+
+    .feat-card .feat-body { flex: 1; }
+    .feat-card .feat-body h3 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--frost);
+      margin-bottom: 6px;
+    }
+    .feat-card .feat-body .summary {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: rgba(148,163,184,0.45);
+      font-weight: 300;
+    }
+    .feat-card .feat-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .feat-card .feat-tags span {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--sky);
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(56,189,248,0.06);
+      border: 1px solid rgba(56,189,248,0.07);
+    }
+
+    .feat-card .feat-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+      padding: 0 24px;
+      background: rgba(0,0,0,0.1);
+    }
+    .feat-card .feat-details.open {
+      max-height: 500px;
+      padding: 20px 24px;
+    }
+    .feat-card .feat-details p {
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: rgba(148,163,184,0.5);
+      margin-bottom: 10px;
+    }
+    .feat-card .feat-details ul {
+      list-style: none;
+      padding: 0;
+    }
+    .feat-card .feat-details ul li {
+      font-size: 0.8rem;
+      color: rgba(148,163,184,0.4);
+      padding: 4px 0 4px 16px;
+      position: relative;
+    }
+    .feat-card .feat-details ul li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: rgba(56,189,248,0.3);
+    }
+    .feat-card .expand-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      font-size: 0.7rem;
+      color: rgba(148,163,184,0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-top: 1px solid rgba(148,163,184,0.03);
+      transition: color 0.2s;
+    }
+    .feat-card:hover .expand-indicator { color: rgba(148,163,184,0.35); }
+
+    /* ===== COMPARISON TABLE ===== */
+    .comparison {
+      max-width: 800px;
+      margin: 40px auto 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,0.05);
+    }
+    .comparison table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .comparison th {
+      padding: 14px 18px;
+      text-align: left;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(148,163,184,0.03);
+      border-bottom: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.4);
+    }
+    .comparison th:last-child { color: var(--sky); }
+    .comparison td {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(148,163,184,0.03);
+      color: rgba(148,163,184,0.4);
+    }
+    .comparison td:last-child { color: var(--frost); }
+    .comparison tr:hover td { background: rgba(148,163,184,0.01); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      max-width: 1200px;
+      margin: 60px auto 0;
+      padding: 40px 24px 28px;
+      border-top: 1px solid rgba(148,163,184,0.03);
+    }
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .footer-brand {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 400;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.2);
+    }
+    .footer-brand strong { color: rgba(148,163,184,0.3); }
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 0.72rem;
+      color: rgba(148,163,184,0.2);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--sky); }
+    .footer-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .footer-tech span {
+      font-size: 0.6rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.18);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .footer-tech span em { color: rgba(56,189,248,0.2); font-style: normal; }
+    .footer-copy {
+      margin-top: 14px;
+      font-size: 0.62rem;
+      color: rgba(148,163,184,0.1);
+      text-align: center;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute; top: 56px; left: 0; right: 0;
+        flex-direction: column;
+        background: rgba(7,11,23,0.95);
+        backdrop-filter: blur(16px);
+        padding: 12px;
+        border-bottom: 1px solid rgba(148,163,184,0.05);
+      }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .section { padding: 24px 16px 40px; }
+      footer .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-overlay"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <div class="nav-links" id="navLinks">
+        <a href="/">Home</a>
+        <a href="/features.html" class="active">Features</a>
+        <a href="/demo.html">Live Demo</a>
+        <a href="/docs.html">Docs</a>
+        <a href="/about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="content">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1>Core <span class="accent">Features</span></h1>
+      <div class="bar"></div>
+      <p>Every feature built for a professional live trivia experience, from dual-screen hosting to post-game analytics.</p>
+    </div>
+
+    <!-- FEATURES GRID -->
+    <div class="section">
+      <div class="feature-grid">
+
+        <!-- Feature 1: Dual-Screen -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon sky">&#9783;</div>
+            <div class="feat-body">
+              <h3>Dual-Screen Hosting</h3>
+              <p class="summary">Full-screen broadcast view for your audience on a TV or projector, with a separate host dashboard on your laptop. All synchronized in real time via Socket.IO.</p>
+              <div class="feat-tags"><span>Real-time</span><span>WebSockets</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>The broadcast view shows the game board, clues, answers, scores, timer, and championship reveals — everything your audience needs to see. The host dashboard gives you complete control: select clues, manage scoring, control the timer, and orchestrate the game flow without ever touching the broadcast display.</p>
+            <ul>
+              <li>Separate views for broadcast, host, scoring helper, and board helper</li>
+              <li>All views sync in real time with zero configuration</li>
+              <li>Broadcast view includes visual effects (category reveals, timer bar, answer badges)</li>
+              <li>Host dashboard has controls for buzzer, scoring, and game flow</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 2: Scriptable Setup -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon cyan">&gt;_</div>
+            <div class="feat-body">
+              <h3>Scriptable Setup</h3>
+              <p class="summary">Configure everything from CLI flags: board size, values, players, labels, CSV import, media assets, and more. Refresh content without re-running the wizard.</p>
+              <div class="feat-tags"><span>CLI</span><span>Automation</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>The setup wizard guides you through creating a full game configuration. For power users, everything is accessible via command-line flags for repeatable, scriptable setups. Perfect for running regular trivia nights with the same configuration.</p>
+            <ul>
+              <li>Interactive CLI wizard with step-by-step prompts</li>
+              <li>All options available as command-line flags</li>
+              <li>Google Sheets and CSV import for clue data</li>
+              <li>Supports both simple and grid spreadsheet formats</li>
+              <li>URL normalization handles edit links automatically</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 3: Custom Media -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon indigo">&#9835;</div>
+            <div class="feat-body">
+              <h3>Custom Media Assets</h3>
+              <p class="summary">Intro video/music, background tracks, bonus clue images, applause, times-up, and 10+ configurable sounds. All audio is config-gated so unconfigured assets silently no-op.</p>
+              <div class="feat-tags"><span>Audio</span><span>Video</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>Make your trivia night feel like a real TV show with intro videos, background music that ducks during gameplay, and sound effects for correct answers, applause, and time pressure. Every audio asset is optional and gracefully degrades when not configured.</p>
+            <ul>
+              <li>Intro video with crossfade to game board</li>
+              <li>Background music with automatic ducking during gameplay</li>
+              <li>10+ configurable sound effects (correct, applause, timer, etc.)</li>
+              <li>Bonus clue images with full-screen reveal animation</li>
+              <li>Audio system uses HTML elements (no Web Audio API for effects)</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 4: Smart Timer -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon sky">&#9201;</div>
+            <div class="feat-body">
+              <h3>Smart Timer System</h3>
+              <p class="summary">Timer starts on DONE READING, pauses on INCORRECT for other players to buzz. Keyboard shortcuts for BUZZ/UNBUZZ. Token-guarded to prevent stale callbacks.</p>
+              <div class="feat-tags"><span>Gameplay</span><span>UX</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>The timer is the heart of the game flow. It starts when the host finishes reading a clue, pauses when a player is judged incorrect (giving others a chance to buzz in), and is fully controllable via keyboard shortcuts. The token-based system ensures no stale timeouts can fire after the timer has been reset.</p>
+            <ul>
+              <li>Timer starts on DONE READING (not on clue select)</li>
+              <li>Pauses automatically when INCORRECT is judged</li>
+              <li>BUZZ/UNBUZZ keyboard shortcuts (B/Space and U)</li>
+              <li>Token-based callback system prevents stale timer events</li>
+              <li>Fixed bottom bar visible across all game phases</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 5: Bonus & Championship -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon cyan">&#9733;</div>
+            <div class="feat-body">
+              <h3>Bonus &amp; Championship</h3>
+              <p class="summary">Daily Double bonus clues with image cover-flip and wager screen. Championship final with step-by-step name/show-answer/wager reveal and direct host scoring.</p>
+              <div class="feat-tags"><span>Rounds</span><span>Drama</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>Bonus clues add excitement with full-screen image reveals and wagering. The championship final round takes the drama further with a three-step reveal per player: show their name, ask them to hold up their answer, then reveal their wager amount.</p>
+            <ul>
+              <li>Daily Double bonus clues with image cover-flip animation</li>
+              <li>Wager submission screen with text input (accepts formatted numbers)</li>
+              <li>Championship round: 3-step reveal (name, show-answer, wager)</li>
+              <li>Host-judged scoring with CORRECT/INCORRECT buttons</li>
+              <li>Score automatically adjusts with wager amounts</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 6: Analytics -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon indigo">&#9784;</div>
+            <div class="feat-body">
+              <h3>Post-Game Analytics</h3>
+              <p class="summary">Detailed per-player and per-game charts with Chart.js. Correct/incorrect streaks, category breakdowns, value distribution, and printable reports.</p>
+              <div class="feat-tags"><span>Charts</span><span>Data</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>After the game ends, dive into the numbers. See which categories were hardest, which players dominated, and how scores evolved over time. The analytics page is built with Chart.js and offers both overview and detailed per-player views.</p>
+            <ul>
+              <li>Per-player correct/incorrect streaks and percentages</li>
+              <li>Category difficulty breakdowns</li>
+              <li>Score distribution across game phases</li>
+              <li>Printable game reports</li>
+              <li>Real-time stats update during gameplay</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 7: Import -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon sky">&#9776;</div>
+            <div class="feat-body">
+              <h3>Sheets &amp; CSV Import</h3>
+              <p class="summary">Paste a published Google Sheets URL or local CSV path. Supports both simple and grid formats. URL normalization handles edit links automatically.</p>
+              <div class="feat-tags"><span>Import</span><span>Data</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>Don't type your clues by hand — import them from Google Sheets or CSV files. The system supports two formats: simple (category, value, clue, answer) and grid (columns are categories, rows are values). Google Sheets URLs are normalized from edit links to publish links automatically.</p>
+            <ul>
+              <li>Google Sheets integration (paste the share URL)</li>
+              <li>CSV file import with automatic format detection</li>
+              <li>Supports simple and grid spreadsheet layouts</li>
+              <li>URL normalization (edit &rarr; publish links)</li>
+              <li>Validates data during import with clear error messages</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+        <!-- Feature 8: Practice Mode -->
+        <div class="feat-card">
+          <div class="feat-header">
+            <div class="feat-icon cyan">&#9998;</div>
+            <div class="feat-body">
+              <h3>Practice Mode</h3>
+              <p class="summary">Cycle all clues from Rounds 1, 2, and Final with back/next navigation, Show/Hide Answer toggle, and keyboard shortcuts for solo review.</p>
+              <div class="feat-tags"><span>Training</span><span>Solo</span></div>
+            </div>
+          </div>
+          <div class="feat-details">
+            <p>Perfect for studying or testing your setup. The practice mode at /practice lets you browse through all clues in your game data, toggle answers on and off, and navigate with keyboard shortcuts (arrow keys, space, 1/2/3 for round selection).</p>
+            <ul>
+              <li>Browse all clues from Rounds 1, 2, and Final</li>
+              <li>Back/Next navigation with keyboard shortcuts (left/right arrows)</li>
+              <li>Show/Hide Answer toggle (Space key)</li>
+              <li>Round selection (1/2/3 keys)</li>
+              <li>Ideal for reviewing content before a live game</li>
+            </ul>
+          </div>
+          <div class="expand-indicator">Click to expand &darr;</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COMPARISON -->
+    <div class="section">
+      <div class="section-title">
+        <h2>What You <span class="accent">Get</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="comparison">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Trivia Board</th>
+              <th>Basic Alternatives</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dual-screen real-time sync</td>
+              <td>Yes</td>
+              <td>Rarely</td>
+            </tr>
+            <tr>
+              <td>Custom media assets</td>
+              <td>10+ configurable</td>
+              <td>None or limited</td>
+            </tr>
+            <tr>
+              <td>Smart timer system</td>
+              <td>Token-guarded, pause/resume</td>
+              <td>Basic countdown</td>
+            </tr>
+            <tr>
+              <td>Bonus / championship rounds</td>
+              <td>Includes both</td>
+              <td>Often missing</td>
+            </tr>
+            <tr>
+              <td>Post-game analytics</td>
+              <td>Chart.js dashboards</td>
+              <td>None</td>
+            </tr>
+            <tr>
+              <td>CLI &amp; CSV import</td>
+              <td>Wizard + flags + sheets</td>
+              <td>Manual entry</td>
+            </tr>
+            <tr>
+              <td>Practice mode</td>
+              <td>Built-in</td>
+              <td>Rarely</td>
+            </tr>
+            <tr>
+              <td>Open source</td>
+              <td>GNU GPL v3</td>
+              <td>Often proprietary</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">TechnoThatch <strong>Software Solutions</strong></div>
+      <div class="footer-links">
+        <a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank">Docs</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank">Issues</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank">License</a>
+      </div>
+    </div>
+    <div class="footer-tech">
+      <span>Node.js <em>18+</em></span>
+      <span>Express</span>
+      <span>Socket.IO</span>
+      <span>Chart.js</span>
+      <span>GNU GPL v3</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 TechnoThatch &mdash; Trivia Broadcast Engine</div>
+  </footer>
+
+  <script>
+    // ===== Navbar scroll =====
+    (function() {
+      var nav = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      });
+    })();
+
+    // ===== Mobile nav toggle =====
+    (function() {
+      var btn = document.getElementById('navToggle');
+      var links = document.getElementById('navLinks');
+      if (btn) {
+        btn.addEventListener('click', function() {
+          links.classList.toggle('open');
+        });
+      }
+    })();
+
+    // ===== Expandable feature cards =====
+    (function() {
+      var cards = document.querySelectorAll('.feat-card');
+      cards.forEach(function(card) {
+        card.addEventListener('click', function() {
+          var details = this.querySelector('.feat-details');
+          var indicator = this.querySelector('.expand-indicator');
+          var isOpen = details.classList.contains('open');
+          cards.forEach(function(c) {
+            c.querySelector('.feat-details').classList.remove('open');
+            var ind = c.querySelector('.expand-indicator');
+            if (ind) ind.innerHTML = 'Click to expand &darr;';
+          });
+          if (!isOpen) {
+            details.classList.add('open');
+            if (indicator) indicator.innerHTML = 'Click to collapse &uarr;';
+          }
+        });
+      });
+    })();
+
+    // ===== Particle background =====
+    (function() {
+      var canvas = document.getElementById('bg-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var W, H, particles = [];
+      var NUM = 70;
+      var COLORS = ['56,189,248', '129,140,248', '34,211,238', '148,163,184', '241,245,249'];
+
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function Particle() { this.reset(); }
+      Particle.prototype.reset = function() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = Math.random() * 2 + 0.3;
+        this.dx = (Math.random() - 0.5) * 0.2;
+        this.dy = (Math.random() - 0.5) * 0.2 - 0.05;
+        this.alpha = Math.random() * 0.35 + 0.05;
+        this.life = Math.random() * 400 + 200;
+        this.maxLife = this.life;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseSpeed = Math.random() * 0.02 + 0.005;
+      };
+      Particle.prototype.update = function() {
+        this.x += this.dx; this.y += this.dy; this.life--;
+        this.pulse += this.pulseSpeed;
+        if (this.life <= 0 || this.x < -20 || this.x > W + 20 || this.y < -20 || this.y > H + 20) this.reset();
+      };
+      Particle.prototype.draw = function() {
+        var lr = this.life / this.maxLife;
+        var pa = Math.sin(this.pulse) * 0.12;
+        var a = Math.max(0, Math.min(1, (this.alpha + pa) * lr));
+        var glow = this.r > 1.5 ? Math.min(5, this.r * 2.5) : 0;
+        if (glow > 0) {
+          var g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glow);
+          g.addColorStop(0, 'rgba(' + this.color + ',' + (a * 0.25) + ')');
+          g.addColorStop(1, 'rgba(' + this.color + ',0)');
+          ctx.beginPath(); ctx.arc(this.x, this.y, glow, 0, Math.PI * 2);
+          ctx.fillStyle = g; ctx.fill();
+        }
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + this.color + ',' + a + ')'; ctx.fill();
+      };
+
+      for (var i = 0; i < NUM; i++) particles.push(new Particle());
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(function(p) { p.update(); p.draw(); });
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 130) {
+              var a = (1 - dist / 130) * 0.035 * Math.min(particles[i].life / particles[i].maxLife, particles[j].life / particles[j].maxLife);
+              if (a > 0.001) {
+                ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = 'rgba(56,189,248,' + a + ')';
+                ctx.lineWidth = 0.35; ctx.stroke();
+              }
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+</body>
+</html>

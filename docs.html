@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — Trivia Broadcast Engine</title>
+  <link rel="icon" href="public/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: #070b17;
+      --sky: #38bdf8;
+      --indigo: #818cf8;
+      --cyan: #22d3ee;
+      --slate: #94a3b8;
+      --frost: #e2e8f0;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--navy);
+      color: var(--frost);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::selection { background: rgba(56,189,248,0.25); color: #fff; }
+
+    #bg-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+    }
+    .bg-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 15% 30%, rgba(129,140,248,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 20%, rgba(56,189,248,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(34,211,238,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(7,11,23,0.3) 0%, rgba(7,11,23,1) 100%);
+    }
+    .grid-overlay {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(148,163,184,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 12px 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .navbar.scrolled {
+      background: rgba(7,11,23,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 rgba(148,163,184,0.05);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--frost);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo .accent { color: var(--sky); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(148,163,184,0.5);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--frost); background: rgba(148,163,184,0.04); }
+    .nav-links a.active {
+      color: var(--sky);
+      background: rgba(56,189,248,0.06);
+    }
+    .nav-toggle {
+      display: none;
+      background: none; border: none; color: var(--frost);
+      font-size: 1.5rem; cursor: pointer; padding: 4px;
+    }
+
+    .content { position: relative; z-index: 2; padding-top: 72px; }
+
+    .page-header {
+      text-align: center;
+      padding: 60px 24px 40px;
+    }
+    .page-header h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .page-header h1 .accent { color: var(--sky); }
+    .page-header p {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      color: rgba(148,163,184,0.45);
+      max-width: 560px;
+      margin: 12px auto 0;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+    .page-header .bar {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 16px auto 0;
+    }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .section-title h2 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.3rem, 2vw, 1.6rem);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .section-title h2 .accent { color: var(--sky); }
+    .section-title .bar {
+      width: 40px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 10px auto 0;
+    }
+
+    .docs-code {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.7rem, 0.8vw, 0.8rem);
+      color: rgba(148,163,184,0.6);
+      background: rgba(0,0,0,0.25);
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(148,163,184,0.04);
+      margin: 8px 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .doc-card {
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.3s;
+    }
+    .doc-card:hover { border-color: rgba(56,189,248,0.1); }
+    .doc-card h3 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--frost);
+      margin-bottom: 8px;
+    }
+    .doc-card h3 .accent { color: var(--sky); }
+    .doc-card p {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: rgba(148,163,184,0.45);
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+    .doc-card p:last-child { margin-bottom: 0; }
+    .doc-card .docs-code { margin: 6px 0; }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .step-card {
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      transition: border-color 0.3s;
+    }
+    .step-card:hover { border-color: rgba(56,189,248,0.1); }
+    .step-card .step-num {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.1rem;
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.1);
+      color: var(--sky);
+    }
+    .step-card .step-body { flex: 1; }
+    .step-card .step-body h3 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--frost);
+      margin-bottom: 6px;
+    }
+    .step-card .step-body p {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: rgba(148,163,184,0.4);
+      font-weight: 300;
+    }
+    .step-card .docs-code { margin: 6px 0 0; }
+
+    .ref-table {
+      max-width: 800px;
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,0.05);
+    }
+    .ref-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .ref-table th {
+      padding: 14px 18px;
+      text-align: left;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(148,163,184,0.03);
+      border-bottom: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.4);
+    }
+    .ref-table th:last-child { color: var(--sky); }
+    .ref-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(148,163,184,0.03);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: rgba(148,163,184,0.4);
+    }
+    .ref-table td:last-child {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      color: var(--frost);
+    }
+    .ref-table tr:hover td { background: rgba(148,163,184,0.01); }
+
+    .shortcut-table {
+      max-width: 650px;
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,0.05);
+    }
+    .shortcut-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .shortcut-table th {
+      padding: 14px 18px;
+      text-align: left;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(148,163,184,0.03);
+      border-bottom: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.4);
+    }
+    .shortcut-table th:last-child { color: var(--sky); }
+    .shortcut-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(148,163,184,0.03);
+      color: rgba(148,163,184,0.4);
+    }
+    .shortcut-table td:last-child { color: var(--frost); }
+    .shortcut-table tr:hover td { background: rgba(148,163,184,0.01); }
+    .shortcut-table .key {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(148,163,184,0.06);
+      border: 1px solid rgba(148,163,184,0.07);
+      color: var(--sky);
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 60px auto 0;
+      padding: 40px 24px 28px;
+      border-top: 1px solid rgba(148,163,184,0.03);
+    }
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .footer-brand {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 400;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.2);
+    }
+    .footer-brand strong { color: rgba(148,163,184,0.3); }
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 0.72rem;
+      color: rgba(148,163,184,0.2);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--sky); }
+    .footer-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .footer-tech span {
+      font-size: 0.6rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.18);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .footer-tech span em { color: rgba(56,189,248,0.2); font-style: normal; }
+    .footer-copy {
+      margin-top: 14px;
+      font-size: 0.62rem;
+      color: rgba(148,163,184,0.1);
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute; top: 56px; left: 0; right: 0;
+        flex-direction: column;
+        background: rgba(7,11,23,0.95);
+        backdrop-filter: blur(16px);
+        padding: 12px;
+        border-bottom: 1px solid rgba(148,163,184,0.05);
+      }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+      .doc-grid { grid-template-columns: 1fr; }
+      .section { padding: 24px 16px 40px; }
+      footer .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-overlay"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <div class="nav-links" id="navLinks">
+        <a href="/">Home</a>
+        <a href="/features.html">Features</a>
+        <a href="/demo.html">Live Demo</a>
+        <a href="/docs.html" class="active">Docs</a>
+        <a href="/about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="content">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1>Documentation <span class="accent">Guide</span></h1>
+      <div class="bar"></div>
+      <p>Everything you need to set up, configure, and run the Trivia Broadcast Engine for your next event, from first install to final score.</p>
+    </div>
+
+    <!-- QUICK START -->
+    <div class="section">
+      <div class="section-title">
+        <h2>Quick <span class="accent">Start</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="step-card" style="margin-bottom: 16px;">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Clone the Repository</h3>
+          <p>Clone the Trivia Board project from GitHub to your local machine.</p>
+          <span class="docs-code">git clone https://github.com/L-Logix/Trivia-Board.git</span>
+        </div>
+      </div>
+      <div class="step-card" style="margin-bottom: 16px;">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Install Dependencies</h3>
+          <p>Navigate into the project directory and install all required packages.</p>
+          <span class="docs-code">cd Trivia-Board && npm install</span>
+        </div>
+      </div>
+      <div class="step-card" style="margin-bottom: 16px;">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Run Setup Wizard</h3>
+          <p>Configure your game — board size, categories, players, and media. You can also import clues from a CSV file.</p>
+          <span class="docs-code">npm run setup</span>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Start the Server</h3>
+          <p>Launch the broadcast engine. The server starts on port 3333 by default.</p>
+          <span class="docs-code">npm start</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETUP OPTIONS -->
+    <div class="section">
+      <div class="section-title">
+        <h2>Setup <span class="accent">Options</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="doc-grid">
+        <div class="doc-card">
+          <h3>Interactive <span class="accent">Wizard</span></h3>
+          <p>Step-by-step prompts guide you through board size, category names, player names, values, and media settings. Perfect for first-time users.</p>
+          <span class="docs-code">npm run setup</span>
+        </div>
+        <div class="doc-card">
+          <h3>CSV <span class="accent">Import</span></h3>
+          <p>Bulk import your clue data from a CSV file. Supports both simple (category, value, clue, answer) and grid (categories as columns, values as rows) formats.</p>
+          <span class="docs-code">npm run setup -- --csv path/to/clues.csv</span>
+        </div>
+        <div class="doc-card">
+          <h3>Google <span class="accent">Sheets</span></h3>
+          <p>Import directly from a published Google Sheet. Paste the published URL and the system fetches and parses your clue data automatically.</p>
+          <span class="docs-code">npm run setup -- --sheet PUBLISHED_URL</span>
+        </div>
+        <div class="doc-card">
+          <h3>Quick <span class="accent">Mode</span></h3>
+          <p>Skip all interactive prompts and use sensible defaults. Ideal for testing or when you already have a configuration file in place.</p>
+          <span class="docs-code">npm run setup -- --quick</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- URL REFERENCE -->
+    <div class="section">
+      <div class="section-title">
+        <h2>URL <span class="accent">Reference</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="ref-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/broadcast</td>
+              <td>Full-screen audience view — the game board, clues, answers, scores, and timer for your TV or projector</td>
+            </tr>
+            <tr>
+              <td>/dashboard</td>
+              <td>Host control panel — select clues, manage scoring, control the timer, and orchestrate the game</td>
+            </tr>
+            <tr>
+              <td>/helper-scoring</td>
+              <td>Simplified scoring view — quick access to judge answers and adjust scores without the full dashboard</td>
+            </tr>
+            <tr>
+              <td>/helper-board</td>
+              <td>Simplified board view — read-only clue board for an assistant to follow along</td>
+            </tr>
+            <tr>
+              <td>/practice</td>
+              <td>Practice / clue review mode — browse all clues with back/next navigation and answer toggle</td>
+            </tr>
+            <tr>
+              <td>/editor</td>
+              <td>Game data editor — modify categories, clues, values, and players after initial setup</td>
+            </tr>
+            <tr>
+              <td>/stats</td>
+              <td>Post-game analytics — per-player stats, category breakdowns, score distribution, and printable reports</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MEDIA SETUP -->
+    <div class="section">
+      <div class="section-title">
+        <h2>Media <span class="accent">Setup</span></h2>
+        <div class="bar"></div>
+      </div>
+      <p style="text-align:center;font-size:0.85rem;color:rgba(148,163,184,0.4);margin-bottom:32px;font-weight:300;">
+        To add custom media assets, place your files in the correct directories, then run the setup wizard and enable them.
+      </p>
+      <div class="doc-grid">
+        <div class="doc-card">
+          <h3>Intro <span class="accent">Video</span></h3>
+          <p>Place your intro video file (MP4 recommended) in the public/video/ directory. The system will detect it and offer it during setup.</p>
+          <span class="docs-code">public/video/intro.mp4</span>
+        </div>
+        <div class="doc-card">
+          <h3>Sound <span class="accent">Effects</span></h3>
+          <p>Place audio files (MP3 or WAV) in the public/audio/ directory. The setup wizard lets you map them to specific game events.</p>
+          <span class="docs-code">public/audio/correct.mp3</span>
+        </div>
+        <div class="doc-card">
+          <h3>Background <span class="accent">Music</span></h3>
+          <p>Place background music tracks in the public/audio/ directory. Music automatically ducks during active gameplay.</p>
+          <span class="docs-code">public/audio/background.mp3</span>
+        </div>
+        <div class="doc-card">
+          <h3>Bonus <span class="accent">Images</span></h3>
+          <p>Place bonus clue images in the public/img/ directory. Refer to them by filename in your clue data for cover-flip reveals.</p>
+          <span class="docs-code">public/img/bonus-clue.png</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYBOARD SHORTCUTS -->
+    <div class="section">
+      <div class="section-title">
+        <h2>Keyboard <span class="accent">Shortcuts</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="shortcut-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="key">B</span> / <span class="key">Space</span></td>
+              <td>Buzz in (during clue phase)</td>
+            </tr>
+            <tr>
+              <td><span class="key">U</span></td>
+              <td>Unbuzz</td>
+            </tr>
+            <tr>
+              <td><span class="key">1</span> / <span class="key">2</span> / <span class="key">3</span></td>
+              <td>Round selection (practice mode)</td>
+            </tr>
+            <tr>
+              <td><span class="key">&larr;</span> / <span class="key">&rarr;</span></td>
+              <td>Navigate clues (practice mode)</td>
+            </tr>
+            <tr>
+              <td><span class="key">Space</span></td>
+              <td>Toggle answer (practice mode)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">TechnoThatch <strong>Software Solutions</strong></div>
+      <div class="footer-links">
+        <a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank">Docs</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank">Issues</a>
+        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank">License</a>
+      </div>
+    </div>
+    <div class="footer-tech">
+      <span>Node.js <em>18+</em></span>
+      <span>Express</span>
+      <span>Socket.IO</span>
+      <span>Chart.js</span>
+      <span>GNU GPL v3</span>
+    </div>
+    <div class="footer-copy">&copy; 2025 TechnoThatch &mdash; Trivia Broadcast Engine</div>
+  </footer>
+
+  <script>
+    (function() {
+      var nav = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      });
+    })();
+
+    (function() {
+      var btn = document.getElementById('navToggle');
+      var links = document.getElementById('navLinks');
+      if (btn) {
+        btn.addEventListener('click', function() {
+          links.classList.toggle('open');
+        });
+      }
+    })();
+
+    (function() {
+      var canvas = document.getElementById('bg-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var W, H, particles = [];
+      var NUM = 70;
+      var COLORS = ['56,189,248', '129,140,248', '34,211,238', '148,163,184', '241,245,249'];
+
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function Particle() { this.reset(); }
+      Particle.prototype.reset = function() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = Math.random() * 2 + 0.3;
+        this.dx = (Math.random() - 0.5) * 0.2;
+        this.dy = (Math.random() - 0.5) * 0.2 - 0.05;
+        this.alpha = Math.random() * 0.35 + 0.05;
+        this.life = Math.random() * 400 + 200;
+        this.maxLife = this.life;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseSpeed = Math.random() * 0.02 + 0.005;
+      };
+      Particle.prototype.update = function() {
+        this.x += this.dx; this.y += this.dy; this.life--;
+        this.pulse += this.pulseSpeed;
+        if (this.life <= 0 || this.x < -20 || this.x > W + 20 || this.y < -20 || this.y > H + 20) this.reset();
+      };
+      Particle.prototype.draw = function() {
+        var lr = this.life / this.maxLife;
+        var pa = Math.sin(this.pulse) * 0.12;
+        var a = Math.max(0, Math.min(1, (this.alpha + pa) * lr));
+        var glow = this.r > 1.5 ? Math.min(5, this.r * 2.5) : 0;
+        if (glow > 0) {
+          var g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glow);
+          g.addColorStop(0, 'rgba(' + this.color + ',' + (a * 0.25) + ')');
+          g.addColorStop(1, 'rgba(' + this.color + ',0)');
+          ctx.beginPath(); ctx.arc(this.x, this.y, glow, 0, Math.PI * 2);
+          ctx.fillStyle = g; ctx.fill();
+        }
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + this.color + ',' + a + ')'; ctx.fill();
+      };
+
+      for (var i = 0; i < NUM; i++) particles.push(new Particle());
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(function(p) { p.update(); p.draw(); });
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 130) {
+              var a = (1 - dist / 130) * 0.035 * Math.min(particles[i].life / particles[i].maxLife, particles[j].life / particles[j].maxLife);
+              if (a > 0.001) {
+                ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = 'rgba(56,189,248,' + a + ')';
+                ctx.lineWidth = 0.35; ctx.stroke();
+              }
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+</body>
+</html>
