@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia Broadcast Engine — TechnoThatch Software Solutions</title>
+  <link rel="icon" href="public/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Oswald:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #060ce9;
+      color: #fff;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== Animated Background ===== */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .bg-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(6,12,233,0) 0%, rgba(6,12,233,1) 70%),
+        radial-gradient(ellipse at 80% 20%, rgba(255,204,0,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(0,200,255,0.03) 0%, transparent 50%);
+    }
+    .grid-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ===== Layout ===== */
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      text-align: center;
+      padding: 60px 0 40px;
+      animation: fadeIn 1s ease-out;
+    }
+    .hero-logo {
+      display: inline-block;
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .hero-logo img {
+      height: 80px;
+      width: auto;
+      filter: drop-shadow(0 0 30px rgba(255,204,0,0.15));
+      transition: filter 0.4s;
+    }
+    .hero-logo:hover img {
+      filter: drop-shadow(0 0 50px rgba(255,204,0,0.3));
+    }
+    .hero-logo::after {
+      content: '';
+      position: absolute;
+      bottom: -8px; left: 50%;
+      transform: translateX(-50%);
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, #ffcc00, transparent);
+      border-radius: 1px;
+    }
+    .hero h1 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #fff 30%, #ffcc00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+      line-height: 1.1;
+    }
+    .hero .subtitle {
+      font-size: clamp(0.8rem, 1.5vw, 1.15rem);
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero .tagline {
+      font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+      color: rgba(255,255,255,0.65);
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+    .hero .tagline em {
+      color: #ffcc00;
+      font-style: normal;
+    }
+
+    /* ===== GitHub / Links Bar ===== */
+    .link-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 36px 0 20px;
+      animation: fadeIn 1.2s ease-out;
+    }
+    .link-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.25s ease;
+    }
+    .link-bar .btn-primary {
+      background: #ffcc00;
+      color: #060ce9;
+      box-shadow: 0 4px 20px rgba(255,204,0,0.25);
+    }
+    .link-bar .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,204,0,0.35);
+    }
+    .link-bar .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(8px);
+    }
+    .link-bar .btn-secondary:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+    }
+    .link-bar .btn-ghost {
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .link-bar .btn-ghost:hover {
+      color: rgba(255,255,255,0.85);
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.04);
+      transform: translateY(-2px);
+    }
+
+    /* ===== Info Badges ===== */
+    .info-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px 40px;
+      margin-bottom: 20px;
+      animation: fadeIn 1.4s ease-out;
+    }
+    .info-bar .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+    }
+    .info-bar .badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .info-bar .badge .dot.green { background: #00e676; box-shadow: 0 0 8px rgba(0,230,118,0.4); }
+    .info-bar .badge .dot.gold { background: #ffcc00; box-shadow: 0 0 8px rgba(255,204,0,0.4); }
+    .info-bar .badge strong { color: rgba(255,255,255,0.6); font-weight: 600; }
+    .info-bar .badge a {
+      color: rgba(255,255,255,0.35);
+      text-decoration: none;
+    }
+    .info-bar .badge a:hover { color: #ffcc00; }
+
+    /* ===== Section Title ===== */
+    .section-title {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeIn 1.6s ease-out;
+    }
+    .section-title h2 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+      position: relative;
+    }
+    .section-title h2 span { color: #ffcc00; }
+    .section-title h2::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,204,0,0.4), transparent);
+      margin: 12px auto 0;
+    }
+
+    /* ===== Feature Cards ===== */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 56px;
+      animation: fadeIn 1.8s ease-out;
+    }
+    .feature-card {
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 28px 24px;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      backdrop-filter: blur(4px);
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(255,204,0,0.03) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card:hover {
+      border-color: rgba(255,204,0,0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px rgba(255,204,0,0.03);
+    }
+    .feature-card .fc-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
+    .feature-card h3 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.45);
+      font-weight: 300;
+    }
+    .feature-card .fc-tag {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #ffcc00;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(255,204,0,0.08);
+      border: 1px solid rgba(255,204,0,0.12);
+    }
+
+    /* ===== Quick Start ===== */
+    .quickstart {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 40px 32px;
+      margin-bottom: 56px;
+      animation: fadeIn 2s ease-out;
+    }
+    .quickstart h3 {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 24px;
+    }
+    .quickstart h3 span { color: #ffcc00; }
+    .quickstart .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .quickstart .step {
+      text-align: center;
+      padding: 20px 16px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: border-color 0.3s;
+    }
+    .quickstart .step:hover { border-color: rgba(255,204,0,0.15); }
+    .quickstart .step .num {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(255,204,0,0.1);
+      border: 1px solid rgba(255,204,0,0.2);
+      color: #ffcc00;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    .quickstart .step code {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      background: rgba(0,0,0,0.2);
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+    .quickstart .step p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 6px;
+    }
+
+    /* ===== Star History ===== */
+    .star-history {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeIn 2.2s ease-out;
+    }
+    .star-history a {
+      display: inline-block;
+      max-width: 600px;
+      width: 100%;
+    }
+    .star-history img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      animation: fadeIn 2s ease-out;
+    }
+    footer .brand {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 400;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+    footer .brand strong { color: rgba(255,255,255,0.35); }
+    footer .stack {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    footer .stack span {
+      font-size: 0.7rem;
+      padding: 4px 12px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.25);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 400;
+    }
+    footer .stack span em { color: rgba(255,204,0,0.4); font-style: normal; }
+    footer .copy { margin-top: 12px; font-size: 0.72rem; color: rgba(255,255,255,0.12); }
+
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .feature-card:nth-child(1) { animation: fadeIn 1.8s ease-out both; }
+    .feature-card:nth-child(2) { animation: fadeIn 2.0s ease-out both; }
+    .feature-card:nth-child(3) { animation: fadeIn 2.2s ease-out both; }
+    .feature-card:nth-child(4) { animation: fadeIn 2.4s ease-out both; }
+    .feature-card:nth-child(5) { animation: fadeIn 2.6s ease-out both; }
+    .feature-card:nth-child(6) { animation: fadeIn 2.8s ease-out both; }
+    .feature-card:nth-child(7) { animation: fadeIn 3.0s ease-out both; }
+    .feature-card:nth-child(8) { animation: fadeIn 3.2s ease-out both; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .container { padding: 24px 16px 40px; }
+      .hero { padding: 40px 0 24px; }
+      .hero-logo img { height: 56px; }
+      .link-bar { gap: 8px; }
+      .link-bar a { padding: 10px 18px; font-size: 0.82rem; }
+      .features { grid-template-columns: 1fr; gap: 14px; }
+      .quickstart { padding: 24px 16px; }
+      .info-bar { gap: 10px 20px; }
+    }
+    @media (max-width: 480px) {
+      .link-bar a { flex: 1; justify-content: center; min-width: 140px; }
+      .quickstart .steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-overlay"></div>
+  <div class="grid-overlay"></div>
+
+  <div class="container">
+
+    <!-- Hero -->
+    <header class="hero">
+      <div class="hero-logo">
+        <img src="public/img/logo.svg" alt="Trivia Broadcast Engine" onerror="this.style.display='none'">
+      </div>
+      <h1>Trivia Broadcast<br>Engine</h1>
+      <div class="subtitle">TechnoThatch Software Solutions</div>
+      <p class="tagline">
+        Professional <em>dual-screen trivia hosting</em> &mdash; broadcast view for the audience,
+        host dashboard for you, real-time scoring, custom media, and a fully scriptable setup.
+      </p>
+    </header>
+
+    <!-- Primary links -->
+    <div class="link-bar">
+      <a href="https://github.com/L-Logix/Trivia-Board" target="_blank" class="btn-primary">
+        View on GitHub
+      </a>
+      <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank" class="btn-secondary">
+        Documentation
+      </a>
+      <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank" class="btn-ghost">
+        Issues
+      </a>
+      <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank" class="btn-ghost">
+        License
+      </a>
+    </div>
+
+    <!-- Badges -->
+    <div class="info-bar">
+      <span class="badge"><span class="dot gold"></span> <strong>Node.js</strong> 18+</span>
+      <span class="badge"><span class="dot green"></span> <strong>Socket.IO</strong> Real-time</span>
+      <span class="badge"><strong>Express</strong></span>
+      <span class="badge"><strong>v1.0.0</strong></span>
+      <span class="badge"><a href="https://github.com/L-Logix/Trivia-Board/stargazers" target="_blank">&#9733; GitHub</a></span>
+    </div>
+
+    <!-- Features -->
+    <div class="section-title">
+      <h2>Core <span>Capabilities</span></h2>
+    </div>
+
+    <section class="features">
+
+      <article class="feature-card">
+        <span class="fc-icon">&#9654;&#65039;</span>
+        <h3>Dual-Screen Hosting</h3>
+        <p>Full-screen broadcast view for the audience on a TV or projector. Host dashboard, scoring helper, and board helper on your laptop &mdash; all in sync via Socket.IO.</p>
+        <span class="fc-tag">Real-time</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#9881;&#65039;</span>
+        <h3>Scriptable Setup</h3>
+        <p>Configure everything from CLI flags: board size, values, players, labels, CSV sheets, media assets, and more. Refresh content without re-running the wizard.</p>
+        <span class="fc-tag">CLI</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#127916;</span>
+        <h3>Custom Media Assets</h3>
+        <p>Intro video/music, background music, bonus clue images, applause, times-up, and 10+ configurable sounds &mdash; all gated so unconfigured assets are silent no-ops.</p>
+        <span class="fc-tag">Audio / Video</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#9202;</span>
+        <h3>Smart Timer System</h3>
+        <p>Starts on DONE READING. Pauses on INCORRECT for other players to buzz. Keyboard shortcuts for BUZZ/UNBUZZ. Resume, pause, and token-guarded to prevent stale callbacks.</p>
+        <span class="fc-tag">Gameplay</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#127942;</span>
+        <h3>Bonus &amp; Championship</h3>
+        <p>Daily Double bonus clues with image cover-flip and wager screen. Championship final round with step-by-step name / show-answer / wager reveal and host scoring.</p>
+        <span class="fc-tag">Rounds</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#128200;</span>
+        <h3>Post-Game Analytics</h3>
+        <p>Detailed per-player and per-game charts built with Chart.js. Correct/incorrect streaks, category breakdowns, value distribution, and printable reports.</p>
+        <span class="fc-tag">Statistics</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#128218;</span>
+        <h3>Sheets &amp; CSV Import</h3>
+        <p>Paste a published Google Sheets URL or local CSV path. Supports simple and grid formats. URL normalization handles edit links automatically.</p>
+        <span class="fc-tag">Import</span>
+      </article>
+
+      <article class="feature-card">
+        <span class="fc-icon">&#128220;</span>
+        <h3>Practice Mode</h3>
+        <p>Cycle all clues from Rounds 1, 2, and Final with back/next navigation, Show/Hide Answer toggle, and keyboard shortcuts for solo review.</p>
+        <span class="fc-tag">Training</span>
+      </article>
+
+    </section>
+
+    <!-- Quick Start -->
+    <div class="quickstart">
+      <h3>Quick <span>Start</span></h3>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <code>git clone https://github.com/L-Logix/Trivia-Board.git</code>
+          <p>Clone the repository</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <code>cd Trivia-Board &amp;&amp; npm install</code>
+          <p>Install dependencies</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <code>npm run setup</code>
+          <p>Run the configuration wizard</p>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <code>npm start</code>
+          <p>Launch on <strong>port 3333</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Star History -->
+    <div class="star-history">
+      <a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date" target="_blank">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=L-Logix/Trivia-Board&type=Date&theme=dark" />
+          <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=L-Logix/Trivia-Board&type=Date" />
+          <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=L-Logix/Trivia-Board&type=Date" />
+        </a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="brand">TechnoThatch <strong>Software Solutions</strong></div>
+      <div class="stack">
+        <span>Node.js <em>18+</em></span>
+        <span>Express</span>
+        <span>Socket.IO</span>
+        <span>Chart.js</span>
+        <span>GNU GPL v3</span>
+      </div>
+      <div class="copy">&copy; 2025 TechnoThatch Software Solutions &mdash; Trivia Broadcast Engine</div>
+    </footer>
+
+  </div>
+
+  <script>
+    (function() {
+      var canvas = document.getElementById('bg-canvas');
+      var ctx = canvas.getContext('2d');
+      var W, H, particles = [];
+      var NUM = 60;
+
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function Particle() {
+        this.reset();
+      }
+      Particle.prototype.reset = function() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = Math.random() * 1.8 + 0.4;
+        this.dx = (Math.random() - 0.5) * 0.25;
+        this.dy = (Math.random() - 0.5) * 0.25 - 0.08;
+        this.alpha = Math.random() * 0.4 + 0.05;
+        this.life = Math.random() * 300 + 100;
+        this.maxLife = this.life;
+      };
+      Particle.prototype.update = function() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.life--;
+        if (this.life <= 0 || this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+      };
+      Particle.prototype.draw = function() {
+        var a = this.alpha * (this.life / this.maxLife);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,204,0,' + a + ')';
+        ctx.fill();
+      };
+
+      for (var i = 0; i < NUM; i++) particles.push(new Particle());
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (var i = 0; i < particles.length; i++) {
+          particles[i].update();
+          particles[i].draw();
+        }
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+              var a = (1 - dist / 150) * 0.06;
+              var aI = (particles[i].life / particles[i].maxLife);
+              var aJ = (particles[j].life / particles[j].maxLife);
+              a = a * Math.min(aI, aJ);
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = 'rgba(255,204,0,' + a + ')';
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+
+</body>
+</html>
