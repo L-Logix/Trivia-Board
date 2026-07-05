@@ -416,6 +416,14 @@ function stressSetupAssetFlag() {
 
   fs.writeFileSync(src, Buffer.from([0x49, 0x44, 0x33, 0x04, 0, 0, 0, 0, 0x7f]));
   fs.writeFileSync(genericSrc, Buffer.from([0x49, 0x44, 0x33, 0x05, 1, 1, 1, 1, 0x7e]));
+
+  // Ensure a minimal config exists so setup --update-content path doesn't fail
+  var createdConfig = false;
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(configPath, JSON.stringify({ assets: {} }));
+    createdConfig = true;
+  }
+
   try {
     execFileSync(process.execPath, [path.join(root, 'bin', 'trivia.js'), 'setup', '--video-music', src], {
       cwd: root,
@@ -443,6 +451,7 @@ function stressSetupAssetFlag() {
     assert(enabledConfig.assets && enabledConfig.assets.introAudio === true, 'enable-asset flag did not enable introAudio');
   } finally {
     if (configBackup) fs.writeFileSync(configPath, configBackup);
+    else if (createdConfig && fs.existsSync(configPath)) fs.unlinkSync(configPath);
     if (templateBackup) fs.writeFileSync(templatePath, templateBackup);
     if (audioBackup) fs.writeFileSync(dest, audioBackup);
     else if (fs.existsSync(dest)) fs.unlinkSync(dest);
@@ -456,6 +465,11 @@ function stressSetupConfigurationFlags() {
   const templatePath = path.join(root, 'trivia-template.csv');
   const configBackup = fs.existsSync(configPath) ? fs.readFileSync(configPath) : null;
   const templateBackup = fs.existsSync(templatePath) ? fs.readFileSync(templatePath) : null;
+  var createdConfig2 = false;
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(configPath, JSON.stringify({ assets: {} }));
+    createdConfig2 = true;
+  }
 
   try {
     execFileSync(process.execPath, [
@@ -502,6 +516,7 @@ function stressSetupConfigurationFlags() {
     assert(config.jeopardyStyle === false, 'jeopardy-style false flag failed');
   } finally {
     if (configBackup) fs.writeFileSync(configPath, configBackup);
+    else if (createdConfig2 && fs.existsSync(configPath)) fs.unlinkSync(configPath);
     if (templateBackup) fs.writeFileSync(templatePath, templateBackup);
   }
 }

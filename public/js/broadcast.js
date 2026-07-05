@@ -961,7 +961,7 @@ socket.on('championship-reveal-step', function(d) {
 // GPL notice — one-time popup per browser
 (function() {
   var notice = document.getElementById('gpl-notice');
-  if (!notice) return;
+  if (!notice || typeof localStorage === 'undefined') return;
   if (localStorage.getItem('triviaBoardGplAccepted')) return;
   notice.classList.remove('hidden');
   document.getElementById('gpl-accept').addEventListener('click', function() {
