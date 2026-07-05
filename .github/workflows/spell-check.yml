@@ -3,44 +3,23 @@ name: Spell Check
 on:
   pull_request:
     branches: [main]
+    paths: ['*.md', '**/*.md']
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  spellcheck:
+  codespell:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check spelling in changed markdown files
-        id: spell
-        run: |
-          FAILED=0
-          for f in $(git diff --name-only origin/main...HEAD -- '*.md'); do
-            if [ -f "$f" ]; then
-              MIS=$(git diff origin/main...HEAD -- "$f" | grep '^+[^+]' | grep -inP '\b(seperate|recieve|acheive|occured|priviledge|definately|accomodate|calender|concious|embarass|existance|guerilla|harrass|indispensible|neccessary|occassion|paralel|pavillion|posession|publically|questionaire|sacreligious|successfull|temperary|untill|wich|wierd|beggining|beleive|collectable|commitee|completly|congradulations|decaffinated|desparate|dissapoint|dissaster|enviroment|expresso|extreemly|febuary|flourescent|foriegn|fourty|freind|goverment|grammer|herad|hieght|illigitimate|inoculate|irrelevent|juristiction|knowlege|legitamate|liason|libary|lisence|maintainance|managment|mischeivous|mischievious|morgage|neice|ninty|noticable|nucular|nuisanse|occuring|offical|opthamologist|orginize|orthapedic|outhorize|parliment|particually|pasttime|peice|pention|percentaje|perscription|pertend|potatoe|practicioner|preceeding|prefered|preminent|presense|prevelant|probly|pronounciation|prostethetic|protain|protray|pursuade|realy|reciept|recomend|refered|regretably|rehersal|relevent|remaing|remembrence|restaraunt|restaurante|resteraunt|restuarant|resurect|retreive|rouge|sargent|scenerio|seige|signifigant|sincerly|sophmore|sorceror|soverign|specificaly|strentgh|striaght|strikely|stubborness|substancial|substract|suceed|sucess|sufferage|sugestion|supercede|suposed|suposedly|surley|suround|surveilance|surveillence|suspention|tatoo|teh|temperment|therfore|thier|threshhold|tolerence|tommorow|tounge|truely|unfortunatly|untill|usally|vaccume|vegatarian|vegitarian|vengence|verfication|vetaran|villian|warrent|wether|whitch|writen|wierd|withold|writting') || true)
-              if [ -n "$MIS" ]; then
-                echo "Spelling issues in $f:"
-                echo "$MIS"
-                FAILED=1
-              fi
-            fi
-          done
-          if [ "$FAILED" = "1" ]; then exit 1; fi
-        continue-on-error: true
-
-      - name: Comment on issues found
-        if: steps.spell.outcome == 'failure'
-        uses: actions/github-script@v7
+      - name: Run codespell
+        uses: codespell-project/actions-codespell@v2
         with:
-          script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: '## Spelling Issues\n\nPossible spelling mistakes were found in the changed files. Please review and fix them.'
-            });
+          skip: .git,node_modules,package-lock.json
+          ignore_words_list: alot,optin,optout,teh,ba,bu,ist,ons,ot,paralel,ro,ser,sur,ue
+          only_warn: 1
