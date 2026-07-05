@@ -65,7 +65,52 @@ Trivia Broadcast Engine runs a live-hosted trivia game on your local network. Th
 
 ## Star History
 
+<<<<<<< Updated upstream
 [![Star History Chart](https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left)](https://www.star-history.com/?repos=L-Logix%2Ftrivia-board&type=date&legend=top-left)
+=======
+<div align="center">
+
+<a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board" />
+   <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board" />
+ </picture>
+</a>
+
+### Standard Chart
+
+<a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&type=date&legend=top-left" />
+ </picture>
+</a>
+
+### Landscape with rank & weekly stats
+
+<a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&style=landscape1&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&style=landscape1" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&style=landscape1" />
+ </picture>
+</a>
+
+<p align="center">
+ <a href="https://www.star-history.com/#L-Logix/Trivia-Board">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board" />
+    <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board" />
+  </picture>
+ </a>
+</p>
+
+</div>
+
+>>>>>>> Stashed changes
 ## Quick Start
 
 Requires Node.js 18+.
