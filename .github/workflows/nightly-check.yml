@@ -63,6 +63,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bug'],
-              body: `## Nightly Check Failure\n\n**Failures:**\n- ${failures.join('\n- ')}\n\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+              labels: ['auto-fail'],
+              body: `## Nightly Check Failure\n\n**Failures:**\n- ${failures.join('\n- ')}\n\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n_This issue was automatically created. No action required._`
             });

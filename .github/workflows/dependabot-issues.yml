@@ -1,0 +1,45 @@
+name: Dependabot Issue
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  issue:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title;
+            const prUrl = pr.html_url;
+
+            const { data: issue } = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              labels: ['dependencies', 'auto-fail'],
+              body: [
+                '## Automated Dependency Update',
+                '',
+                'This issue tracks a dependency update proposed by Dependabot.',
+                '',
+                '**PR:** ' + prUrl,
+                '**Branch:** ' + pr.head.ref,
+                '',
+                '_No action required. This issue is linked to the Dependabot PR for tracking._'
+              ].join('\n')
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['has-issue']
+            });

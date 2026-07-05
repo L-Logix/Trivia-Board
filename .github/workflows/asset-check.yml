@@ -125,6 +125,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bug'],
-              body: '## Asset Check Failure\n\n- ' + issues.join('\n- ') + '\n\n**Commit:** ' + context.sha
+              labels: ['auto-fail'],
+              body: '## Asset Check Failure\n\n- ' + issues.join('\n- ') + '\n\n**Commit:** ' + context.sha + '\n\n_This issue was automatically created. No action required._'
             });

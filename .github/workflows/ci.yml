@@ -54,8 +54,8 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bug'],
-              body: `## CI Failure\n\n**Node.js:** ${{ matrix.node-version }}\n**Commit:** ${context.sha}\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nThe stress test suite failed.`
+              labels: ['auto-fail'],
+              body: `## CI Failure\n\n**Node.js:** ${{ matrix.node-version }}\n**Commit:** ${context.sha}\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nThe stress test suite failed.\n\n_This issue was automatically created by CI. No action required — investigate the run linked above if needed._`
             });
 
       - name: Fail the job if stress failed

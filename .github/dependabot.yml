@@ -11,3 +11,18 @@ updates:
     commit-message:
       prefix: chore
       prefix-development: chore
+    ignore:
+      # chalk 5+ is ESM-only — would break CommonJS require('chalk')
+      - dependency-name: chalk
+        update-types: ['version-update:semver-major']
+      # inquirer 9+ is ESM-only — would break CommonJS require('inquirer')
+      - dependency-name: inquirer
+        update-types: ['version-update:semver-major']
+    groups:
+      safe-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
