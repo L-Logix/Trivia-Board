@@ -275,7 +275,6 @@
       transform: translateY(-3px);
       box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px rgba(56,189,248,0.03);
     }
-    .feature-card .fc-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
     .feature-card h3 {
       font-family: 'Oswald', sans-serif;
       font-weight: 600;
@@ -371,24 +370,6 @@
       margin-top: 6px;
     }
 
-    /* ===== Star History ===== */
-    .star-history {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeIn 2.2s ease-out;
-    }
-    .star-history a {
-      display: inline-block;
-      max-width: 600px;
-      width: 100%;
-    }
-    .star-history img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      border: 1px solid rgba(148,163,184,0.06);
-    }
-
     /* ===== Footer ===== */
     footer {
       margin-top: auto;
@@ -467,9 +448,7 @@
 
     <!-- Hero -->
     <header class="hero">
-      <div class="hero-logo">
-        <img src="public/img/logo.svg" alt="Trivia Broadcast Engine" onerror="this.style.display='none'">
-      </div>
+
       <h1>Trivia Broadcast<br>Engine</h1>
       <div class="subtitle">TechnoThatch Software Solutions</div>
       <p class="tagline">
@@ -500,7 +479,7 @@
       <span class="badge"><span class="dot green"></span> <strong>Socket.IO</strong> Real-time</span>
       <span class="badge"><strong>Express</strong></span>
       <span class="badge"><strong>v1.0.0</strong></span>
-      <span class="badge"><a href="https://github.com/L-Logix/Trivia-Board/stargazers" target="_blank">&#9733; GitHub</a></span>
+      <span class="badge"><a href="https://github.com/L-Logix/Trivia-Board/stargazers" target="_blank">GitHub</a></span>
     </div>
 
     <!-- Features -->
@@ -511,56 +490,48 @@
     <section class="features">
 
       <article class="feature-card">
-        <span class="fc-icon">&#9654;&#65039;</span>
         <h3>Dual-Screen Hosting</h3>
         <p>Full-screen broadcast view for the audience on a TV or projector. Host dashboard, scoring helper, and board helper on your laptop &mdash; all in sync via Socket.IO.</p>
         <span class="fc-tag">Real-time</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#9881;&#65039;</span>
         <h3>Scriptable Setup</h3>
         <p>Configure everything from CLI flags: board size, values, players, labels, CSV sheets, media assets, and more. Refresh content without re-running the wizard.</p>
         <span class="fc-tag">CLI</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#127916;</span>
         <h3>Custom Media Assets</h3>
         <p>Intro video/music, background music, bonus clue images, applause, times-up, and 10+ configurable sounds &mdash; all gated so unconfigured assets are silent no-ops.</p>
         <span class="fc-tag">Audio / Video</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#9202;</span>
         <h3>Smart Timer System</h3>
         <p>Starts on DONE READING. Pauses on INCORRECT for other players to buzz. Keyboard shortcuts for BUZZ/UNBUZZ. Resume, pause, and token-guarded to prevent stale callbacks.</p>
         <span class="fc-tag">Gameplay</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#127942;</span>
         <h3>Bonus &amp; Championship</h3>
         <p>Daily Double bonus clues with image cover-flip and wager screen. Championship final round with step-by-step name / show-answer / wager reveal and host scoring.</p>
         <span class="fc-tag">Rounds</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#128200;</span>
         <h3>Post-Game Analytics</h3>
         <p>Detailed per-player and per-game charts built with Chart.js. Correct/incorrect streaks, category breakdowns, value distribution, and printable reports.</p>
         <span class="fc-tag">Statistics</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#128218;</span>
         <h3>Sheets &amp; CSV Import</h3>
         <p>Paste a published Google Sheets URL or local CSV path. Supports simple and grid formats. URL normalization handles edit links automatically.</p>
         <span class="fc-tag">Import</span>
       </article>
 
       <article class="feature-card">
-        <span class="fc-icon">&#128220;</span>
         <h3>Practice Mode</h3>
         <p>Cycle all clues from Rounds 1, 2, and Final with back/next navigation, Show/Hide Answer toggle, and keyboard shortcuts for solo review.</p>
         <span class="fc-tag">Training</span>
@@ -595,16 +566,7 @@
       </div>
     </div>
 
-    <!-- Star History -->
-    <div class="star-history">
-      <a href="https://star-history.com/#L-Logix/trivia-board&Date" target="_blank">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&theme=dark&legend=top-left" />
-          <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />
-          <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/trivia-board&type=date&legend=top-left" />
-        </picture>
-      </a>
-    </div>
+
 
     <!-- Footer -->
     <footer>

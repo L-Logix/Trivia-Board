@@ -1,0 +1,22 @@
+name: Greetings
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: >
+            Thanks for opening your first issue! Please make sure you've included
+            steps to reproduce and your environment details so we can help quickly.
+          pr-message: >
+            Thanks for your first pull request! One of the maintainers will review
+            it soon. In the meantime, please verify that `npm run stress` passes
+            and that you've tested with a live game.
