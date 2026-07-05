@@ -1,0 +1,35 @@
+name: Link Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['*.md', '**/*.md']
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check markdown links
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress '*.md' '**/*.md' --exclude 'localhost|star-history.com|github.com/L-Logix'
+        continue-on-error: true
+
+      - name: Comment on broken links
+        if: steps.lychee.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '## Broken Links\n\nThe link checker found broken or unreachable URLs in the markdown files. Please review and fix them.'
+            });
