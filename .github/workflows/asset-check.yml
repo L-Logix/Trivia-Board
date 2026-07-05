@@ -144,6 +144,6 @@ jobs:
                 '',
                 '---',
                 '',
-                '_This issue was automatically created by the Asset Check workflow._' — it exists for tracking and compliance purposes only._'
+                '_This issue was automatically created by the Asset Check workflow._'
               ].join('\n')
             });

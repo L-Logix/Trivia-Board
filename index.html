@@ -7,434 +7,910 @@
   <link rel="icon" href="public/img/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Oswald:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --navy: #070b17;
+      --sky: #38bdf8;
+      --indigo: #818cf8;
+      --cyan: #22d3ee;
+      --slate: #94a3b8;
+      --frost: #e2e8f0;
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      background: #070b17;
-      color: #e2e8f0;
+      background: var(--navy);
+      color: var(--frost);
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* ===== Animated Background ===== */
+    ::selection { background: rgba(56,189,248,0.25); color: #fff; }
+
     #bg-canvas {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100vw; height: 100vh;
       z-index: 0;
-      pointer-events: none;
     }
+
     .bg-overlay {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100vw; height: 100vh;
       z-index: 1;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 20% 50%, rgba(7,11,23,0) 0%, rgba(7,11,23,1) 70%),
-        radial-gradient(ellipse at 80% 20%, rgba(56,189,248,0.04) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(129,140,248,0.03) 0%, transparent 50%);
+        radial-gradient(ellipse at 15% 30%, rgba(129,140,248,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 20%, rgba(56,189,248,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(34,211,238,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(7,11,23,0.3) 0%, rgba(7,11,23,1) 100%);
     }
+
     .grid-overlay {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100vw; height: 100vh;
       z-index: 1;
       pointer-events: none;
       background-image:
-        linear-gradient(rgba(148,163,184,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148,163,184,0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
+        linear-gradient(rgba(148,163,184,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
     }
 
-    /* ===== Layout ===== */
-    .container {
-      position: relative;
-      z-index: 2;
+    .content { position: relative; z-index: 2; }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 14px 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .navbar.scrolled {
+      background: rgba(7,11,23,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 rgba(148,163,184,0.05);
+    }
+    .nav-inner {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 40px 24px 60px;
-      min-height: 100vh;
+      padding: 0 24px;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--frost);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo .accent { color: var(--sky); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: rgba(148,163,184,0.5);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--frost); background: rgba(148,163,184,0.04); }
+    .nav-links a.active {
+      color: var(--sky);
+      background: rgba(56,189,248,0.06);
+    }
+    .nav-toggle {
+      display: none;
+      background: none; border: none; color: var(--frost);
+      font-size: 1.5rem; cursor: pointer; padding: 4px;
     }
 
     /* ===== Hero ===== */
     .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       text-align: center;
-      padding: 60px 0 40px;
-      animation: fadeIn 1s ease-out;
-    }
-    .hero-logo {
-      display: inline-block;
+      padding: 80px 24px 40px;
       position: relative;
-      margin-bottom: 24px;
     }
-    .hero-logo img {
-      height: 80px;
-      width: auto;
-      filter: drop-shadow(0 0 30px rgba(56,189,248,0.12));
-      transition: filter 0.4s;
-    }
-    .hero-logo:hover img {
-      filter: drop-shadow(0 0 50px rgba(56,189,248,0.25));
-    }
-    .hero-logo::after {
+
+    .hero::after {
       content: '';
       position: absolute;
-      bottom: -8px; left: 50%;
+      bottom: 0; left: 50%;
       transform: translateX(-50%);
-      width: 60px; height: 2px;
-      background: linear-gradient(90deg, transparent, #38bdf8, transparent);
-      border-radius: 1px;
+      width: 1px; height: 80px;
+      background: linear-gradient(180deg, rgba(56,189,248,0.4), transparent);
+      animation: pulseLine 2.5s ease-in-out infinite;
     }
+
+    @keyframes pulseLine {
+      0%, 100% { opacity: 0.3; height: 60px; }
+      50% { opacity: 1; height: 100px; }
+    }
+
+    .hero-logo {
+      margin-bottom: 28px;
+      animation: heroFadeIn 0.8s ease-out;
+    }
+
+    .hero-logo svg {
+      height: 65px;
+      width: auto;
+      filter: drop-shadow(0 0 30px rgba(56,189,248,0.15));
+      transition: filter 0.5s;
+    }
+
+    .hero-logo:hover svg {
+      filter: drop-shadow(0 0 60px rgba(56,189,248,0.3));
+    }
+
     .hero h1 {
       font-family: 'Oswald', sans-serif;
       font-weight: 700;
-      font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+      font-size: clamp(2.8rem, 8vw, 6rem);
       letter-spacing: 3px;
       text-transform: uppercase;
-      background: linear-gradient(135deg, #f1f5f9 20%, #38bdf8 60%, #818cf8 100%);
+      line-height: 1.05;
+      margin-bottom: 6px;
+      animation: heroFadeIn 1s ease-out;
+    }
+
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, #f1f5f9 10%, var(--sky) 40%, var(--indigo) 70%, var(--cyan) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 12px;
-      line-height: 1.1;
+      background-size: 200% 200%;
+      animation: shimmer 4s ease-in-out infinite;
     }
+
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
     .hero .subtitle {
-      font-size: clamp(0.8rem, 1.5vw, 1.15rem);
-      font-weight: 300;
-      color: rgba(148,163,184,0.6);
-      letter-spacing: 6px;
+      font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+      font-weight: 400;
+      color: rgba(148,163,184,0.35);
+      letter-spacing: 8px;
       text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      animation: heroFadeIn 1.2s ease-out;
     }
+
     .hero .tagline {
-      font-size: clamp(0.9rem, 1.3vw, 1.05rem);
-      color: rgba(148,163,184,0.7);
-      max-width: 620px;
-      margin: 0 auto;
-      line-height: 1.6;
+      font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+      color: rgba(148,163,184,0.5);
+      max-width: 640px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
       font-weight: 300;
+      animation: heroFadeIn 1.4s ease-out;
     }
+
     .hero .tagline em {
-      color: #38bdf8;
+      color: var(--sky);
       font-style: normal;
     }
 
-    /* ===== GitHub / Links Bar ===== */
-    .link-bar {
+    .hero-buttons {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 12px;
-      margin: 36px 0 20px;
-      animation: fadeIn 1.2s ease-out;
+      gap: 14px;
+      animation: heroFadeIn 1.6s ease-out;
     }
-    .link-bar a {
+
+    .hero-buttons a {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 14px 28px;
-      border-radius: 8px;
+      gap: 10px;
+      padding: 16px 34px;
+      border-radius: 10px;
       font-family: 'Inter', sans-serif;
       font-size: 0.95rem;
       font-weight: 600;
       text-decoration: none;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.25s ease;
+      letter-spacing: 1.5px;
+      transition: all 0.3s ease;
+      cursor: pointer;
     }
-    .link-bar .btn-primary {
-      background: #38bdf8;
-      color: #070b17;
-      box-shadow: 0 4px 20px rgba(56,189,248,0.25);
+
+    .hero-buttons .btn-primary {
+      background: linear-gradient(135deg, var(--sky), var(--cyan));
+      color: var(--navy);
+      box-shadow: 0 4px 25px rgba(56,189,248,0.25);
     }
-    .link-bar .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(56,189,248,0.35);
+
+    .hero-buttons .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 40px rgba(56,189,248,0.35);
     }
-    .link-bar .btn-secondary {
+
+    .hero-buttons .btn-secondary {
       background: rgba(148,163,184,0.06);
-      color: rgba(241,245,249,0.85);
+      color: rgba(241,245,249,0.8);
       border: 1px solid rgba(148,163,184,0.12);
       backdrop-filter: blur(8px);
     }
-    .link-bar .btn-secondary:hover {
+
+    .hero-buttons .btn-secondary:hover {
       background: rgba(148,163,184,0.12);
       border-color: rgba(148,163,184,0.25);
-      transform: translateY(-2px);
-    }
-    .link-bar .btn-ghost {
-      background: transparent;
-      color: rgba(148,163,184,0.55);
-      border: 1px solid rgba(148,163,184,0.06);
-    }
-    .link-bar .btn-ghost:hover {
-      color: rgba(241,245,249,0.85);
-      border-color: rgba(148,163,184,0.2);
-      background: rgba(148,163,184,0.04);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
     }
 
-    /* ===== Info Badges ===== */
-    .info-bar {
+    @keyframes heroFadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .stats-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 20px 40px;
-      margin-bottom: 20px;
-      animation: fadeIn 1.4s ease-out;
+      gap: 8px;
+      padding: 10px 20px;
+      animation: heroFadeIn 1.8s ease-out;
     }
-    .info-bar .badge {
+
+    .stats-bar .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 500;
-      color: rgba(148,163,184,0.4);
+      color: rgba(148,163,184,0.35);
       letter-spacing: 1px;
       text-transform: uppercase;
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 20px;
       border: 1px solid rgba(148,163,184,0.06);
-      background: rgba(148,163,184,0.03);
+      background: rgba(148,163,184,0.02);
     }
-    .info-bar .badge .dot {
-      width: 6px; height: 6px;
+
+    .stats-bar .badge .dot {
+      width: 5px; height: 5px;
       border-radius: 50%;
       display: inline-block;
     }
-    .info-bar .badge .dot.green { background: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.4); }
-    .info-bar .badge .dot.sky { background: #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.4); }
-    .info-bar .badge strong { color: rgba(148,163,184,0.7); font-weight: 600; }
-    .info-bar .badge a {
-      color: rgba(148,163,184,0.4);
-      text-decoration: none;
-    }
-    .info-bar .badge a:hover { color: #38bdf8; }
+    .stats-bar .badge .dot.cyan { background: var(--cyan); box-shadow: 0 0 6px rgba(34,211,238,0.4); }
+    .stats-bar .badge .dot.sky { background: var(--sky); box-shadow: 0 0 6px rgba(56,189,248,0.4); }
+    .stats-bar .badge .dot.indigo { background: var(--indigo); box-shadow: 0 0 6px rgba(129,140,248,0.4); }
+    .stats-bar .badge strong { color: rgba(148,163,184,0.6); font-weight: 600; }
+    .stats-bar .badge a { color: rgba(148,163,184,0.3); text-decoration: none; }
+    .stats-bar .badge a:hover { color: var(--sky); }
 
-    /* ===== Section Title ===== */
-    .section-title {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeIn 1.6s ease-out;
+    /* ===== Section ===== */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
     }
-    .section-title h2 {
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-header h2 {
       font-family: 'Oswald', sans-serif;
       font-weight: 600;
-      font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: rgba(148,163,184,0.2);
-      position: relative;
-    }
-    .section-title h2 span { color: #38bdf8; }
-    .section-title h2::after {
-      content: '';
-      display: block;
-      width: 80px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.4), transparent);
-      margin: 12px auto 0;
     }
 
-    /* ===== Feature Cards ===== */
+    .section-header h2 .accent { color: var(--sky); }
+
+    .section-header p {
+      font-size: 0.95rem;
+      color: rgba(148,163,184,0.45);
+      margin-top: 10px;
+      font-weight: 300;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .section-header .bar {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 14px auto 0;
+    }
+
+    /* ===== Live Demo ===== */
+    #demo-section { padding-top: 20px; padding-bottom: 80px; }
+
+    .demo-container {
+      position: relative;
+      max-width: 860px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.08);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.4), 0 0 60px rgba(56,189,248,0.03);
+      transition: box-shadow 0.4s;
+    }
+
+    .demo-container:hover {
+      box-shadow: 0 30px 100px rgba(0,0,0,0.5), 0 0 80px rgba(56,189,248,0.05);
+    }
+
+    .demo-inner { padding: 20px; position: relative; }
+
+    .demo-badge {
+      position: absolute;
+      top: 12px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--sky);
+      background: rgba(7,11,23,0.8);
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(56,189,248,0.15);
+      backdrop-filter: blur(8px);
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .demo-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-top: 28px;
+    }
+
+    .demo-board .cat {
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.1);
+      border-radius: 4px;
+      padding: 10px 6px;
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--frost);
+    }
+
+    .demo-board .cell {
+      aspect-ratio: 1.8 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(56,189,248,0.04);
+      border: 1px solid rgba(56,189,248,0.06);
+      border-radius: 4px;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.6rem, 0.9vw, 0.85rem);
+      font-weight: 500;
+      color: var(--sky);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-board .cell::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      background: rgba(56,189,248,0.06);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .demo-board .cell:hover::before {
+      width: 200px; height: 200px;
+    }
+
+    .demo-board .cell:hover {
+      border-color: rgba(56,189,248,0.2);
+      background: rgba(56,189,248,0.07);
+    }
+
+    .demo-board .cell.selected {
+      background: rgba(56,189,248,0.12);
+      border-color: var(--sky);
+      box-shadow: 0 0 20px rgba(56,189,248,0.1);
+    }
+
+    .demo-board .cell.done {
+      background: rgba(148,163,184,0.02);
+      border-color: rgba(148,163,184,0.03);
+      color: rgba(148,163,184,0.1);
+      cursor: default;
+    }
+
+    .demo-clue-area {
+      margin-top: 12px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.04);
+      border-radius: 8px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: min-height 0.4s;
+    }
+
+    .demo-clue-area .clue-text {
+      font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+      color: rgba(241,245,249,0.7);
+      text-align: center;
+      line-height: 1.5;
+      max-width: 90%;
+      font-weight: 300;
+      transition: opacity 0.3s;
+    }
+
+    .demo-clue-area .clue-answer {
+      margin-top: 10px;
+      font-size: clamp(0.7rem, 1vw, 0.9rem);
+      color: var(--cyan);
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .demo-clue-area .clue-answer.visible { opacity: 1; }
+
+    .demo-clue-area .demo-status {
+      font-size: 0.7rem;
+      color: rgba(148,163,184,0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .demo-scores {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.04);
+      border-radius: 8px;
+    }
+
+    .demo-scores .player {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+    }
+
+    .demo-scores .player .name { color: rgba(148,163,184,0.4); font-weight: 400; }
+    .demo-scores .player .score {
+      color: var(--frost);
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+    .demo-scores .player .score.pos { color: var(--cyan); }
+    .demo-scores .player .score.neg { color: #f87171; }
+
+    .demo-timer {
+      position: relative;
+      width: 100%;
+      height: 3px;
+      background: rgba(148,163,184,0.05);
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .demo-timer .bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sky), var(--cyan));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ===== Counter ===== */
+    .counter-section {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .counter-item {
+      text-align: center;
+      padding: 28px 16px;
+      border-radius: 12px;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .counter-item:hover {
+      border-color: rgba(56,189,248,0.12);
+      transform: translateY(-2px);
+    }
+
+    .counter-item .num {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      line-height: 1;
+      background: linear-gradient(135deg, var(--sky), var(--indigo));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .counter-item .label {
+      font-size: 0.75rem;
+      color: rgba(148,163,184,0.35);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* ===== Features ===== */
     .features {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
-      margin-bottom: 56px;
-      animation: fadeIn 1.8s ease-out;
     }
+
     .feature-card {
       position: relative;
-      background: rgba(148,163,184,0.03);
-      border: 1px solid rgba(148,163,184,0.06);
-      border-radius: 12px;
-      padding: 28px 24px;
-      transition: all 0.3s ease;
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 14px;
+      padding: 32px 24px;
+      transition: all 0.4s cubic-bezier(0.33, 1, 0.68, 1);
       overflow: hidden;
-      backdrop-filter: blur(4px);
+      cursor: default;
+      transform-style: preserve-3d;
+      perspective: 800px;
     }
+
     .feature-card::before {
       content: '';
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: linear-gradient(135deg, rgba(56,189,248,0.04) 0%, transparent 50%);
+      background: linear-gradient(135deg, rgba(56,189,248,0.04) 0%, transparent 50%, rgba(129,140,248,0.02) 100%);
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.4s;
     }
+
     .feature-card:hover::before { opacity: 1; }
+
     .feature-card:hover {
-      border-color: rgba(56,189,248,0.2);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px rgba(56,189,248,0.03);
+      border-color: rgba(56,189,248,0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 30px rgba(56,189,248,0.03);
     }
+
+    .feature-card .icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+    }
+
+    .feature-card .icon.sky { background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.1); }
+    .feature-card .icon.indigo { background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.1); }
+    .feature-card .icon.cyan { background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.1); }
+    .feature-card .icon.frost { background: rgba(241,245,249,0.05); border: 1px solid rgba(241,245,249,0.06); }
+
     .feature-card h3 {
       font-family: 'Oswald', sans-serif;
       font-weight: 600;
       font-size: 1.15rem;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: #f1f5f9;
+      color: var(--frost);
       margin-bottom: 8px;
     }
+
     .feature-card p {
-      font-size: 0.88rem;
-      line-height: 1.6;
-      color: rgba(148,163,184,0.5);
+      font-size: 0.87rem;
+      line-height: 1.65;
+      color: rgba(148,163,184,0.45);
       font-weight: 300;
     }
-    .feature-card .fc-tag {
+
+    .feature-card .tag {
       display: inline-block;
       margin-top: 14px;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 600;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: #38bdf8;
+      color: var(--sky);
       padding: 3px 10px;
       border-radius: 4px;
-      background: rgba(56,189,248,0.08);
-      border: 1px solid rgba(56,189,248,0.12);
+      background: rgba(56,189,248,0.06);
+      border: 1px solid rgba(56,189,248,0.08);
     }
+
+    /* ===== CLI Terminal ===== */
+    .cli-section {
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 14px;
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cli-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid rgba(148,163,184,0.04);
+    }
+
+    .cli-header .dot-group { display: flex; gap: 6px; }
+
+    .cli-header .dot-group span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .cli-header .dot-group .r { background: #ef4444; }
+    .cli-header .dot-group .y { background: #eab308; }
+    .cli-header .dot-group .g { background: #22c55e; }
+
+    .cli-header .title {
+      font-size: 0.7rem;
+      color: rgba(148,163,184,0.25);
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: 8px;
+      letter-spacing: 1px;
+    }
+
+    .cli-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.7rem, 0.9vw, 0.8rem);
+      line-height: 1.8;
+      min-height: 200px;
+    }
+
+    .cli-body .line { white-space: pre-wrap; opacity: 0; animation: typeLine 0.05s forwards; }
+
+    .cli-body .prompt { color: var(--cyan); }
+    .cli-body .cmd { color: var(--frost); }
+    .cli-body .output { color: rgba(148,163,184,0.4); }
+    .cli-body .output.green { color: var(--cyan); }
+    .cli-body .cursor {
+      display: inline-block;
+      width: 8px; height: 1.1em;
+      background: var(--sky);
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
 
     /* ===== Quick Start ===== */
     .quickstart {
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.06);
-      border-radius: 12px;
-      padding: 40px 32px;
-      margin-bottom: 56px;
-      animation: fadeIn 2s ease-out;
-    }
-    .quickstart h3 {
-      font-family: 'Oswald', sans-serif;
-      font-weight: 600;
-      font-size: 1.3rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      text-align: center;
-      color: rgba(148,163,184,0.3);
-      margin-bottom: 24px;
-    }
-    .quickstart h3 span { color: #38bdf8; }
-    .quickstart .steps {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       max-width: 800px;
       margin: 0 auto;
     }
-    .quickstart .step {
+
+    .qs-step {
       text-align: center;
-      padding: 20px 16px;
-      border-radius: 8px;
-      background: rgba(148,163,184,0.03);
+      padding: 24px 14px;
+      border-radius: 12px;
+      background: rgba(148,163,184,0.02);
       border: 1px solid rgba(148,163,184,0.05);
-      transition: border-color 0.3s;
+      transition: all 0.3s;
     }
-    .quickstart .step:hover { border-color: rgba(56,189,248,0.15); }
-    .quickstart .step .num {
+
+    .qs-step:hover { border-color: rgba(56,189,248,0.12); transform: translateY(-2px); }
+
+    .qs-step .num {
       display: inline-flex;
       align-items: center; justify-content: center;
-      width: 32px; height: 32px;
+      width: 36px; height: 36px;
       border-radius: 50%;
-      background: rgba(56,189,248,0.1);
-      border: 1px solid rgba(56,189,248,0.2);
-      color: #38bdf8;
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.15);
+      color: var(--sky);
       font-family: 'Oswald', sans-serif;
       font-weight: 600;
       font-size: 0.9rem;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
-    .quickstart .step code {
+
+    .qs-step code {
       display: block;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      color: rgba(148,163,184,0.7);
-      background: rgba(0,0,0,0.3);
-      padding: 8px 12px;
+      font-size: clamp(0.6rem, 0.7vw, 0.75rem);
+      color: rgba(148,163,184,0.55);
+      background: rgba(0,0,0,0.25);
+      padding: 8px 10px;
       border-radius: 4px;
-      margin-top: 6px;
       word-break: break-all;
+      margin-bottom: 6px;
+      border: 1px solid rgba(148,163,184,0.04);
     }
-    .quickstart .step p {
-      font-size: 0.82rem;
-      color: rgba(148,163,184,0.4);
-      margin-top: 6px;
+
+    .qs-step p {
+      font-size: 0.75rem;
+      color: rgba(148,163,184,0.3);
     }
 
     /* ===== Footer ===== */
     footer {
-      margin-top: auto;
-      text-align: center;
-      padding-top: 40px;
-      border-top: 1px solid rgba(148,163,184,0.04);
-      animation: fadeIn 2s ease-out;
+      max-width: 1200px;
+      margin: 60px auto 0;
+      padding: 40px 24px 28px;
+      border-top: 1px solid rgba(148,163,184,0.03);
     }
-    footer .brand {
-      font-family: 'Oswald', sans-serif;
-      font-weight: 400;
-      font-size: 0.85rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(148,163,184,0.25);
-    }
-    footer .brand strong { color: rgba(148,163,184,0.4); }
-    footer .stack {
+
+    .footer-inner {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-brand {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 400;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.2);
+    }
+    .footer-brand strong { color: rgba(148,163,184,0.3); }
+
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-links a {
+      font-size: 0.72rem;
+      color: rgba(148,163,184,0.2);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--sky); }
+
+    .footer-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin-top: 14px;
     }
-    footer .stack span {
-      font-size: 0.7rem;
-      padding: 4px 12px;
-      border-radius: 4px;
-      background: rgba(148,163,184,0.04);
-      border: 1px solid rgba(148,163,184,0.06);
-      color: rgba(148,163,184,0.3);
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 400;
-    }
-    footer .stack span em { color: rgba(56,189,248,0.4); font-style: normal; }
-    footer .copy { margin-top: 12px; font-size: 0.72rem; color: rgba(148,163,184,0.15); }
 
-    /* ===== Animations ===== */
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(12px); }
-      100% { opacity: 1; transform: translateY(0); }
+    .footer-tech span {
+      font-size: 0.6rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: rgba(148,163,184,0.03);
+      border: 1px solid rgba(148,163,184,0.04);
+      color: rgba(148,163,184,0.18);
+      font-family: 'JetBrains Mono', monospace;
     }
-    .feature-card:nth-child(1) { animation: fadeIn 1.8s ease-out both; }
-    .feature-card:nth-child(2) { animation: fadeIn 2.0s ease-out both; }
-    .feature-card:nth-child(3) { animation: fadeIn 2.2s ease-out both; }
-    .feature-card:nth-child(4) { animation: fadeIn 2.4s ease-out both; }
-    .feature-card:nth-child(5) { animation: fadeIn 2.6s ease-out both; }
-    .feature-card:nth-child(6) { animation: fadeIn 2.8s ease-out both; }
-    .feature-card:nth-child(7) { animation: fadeIn 3.0s ease-out both; }
-    .feature-card:nth-child(8) { animation: fadeIn 3.2s ease-out both; }
+    .footer-tech span em { color: rgba(56,189,248,0.2); font-style: normal; }
+
+    .footer-copy {
+      margin-top: 14px;
+      font-size: 0.62rem;
+      color: rgba(148,163,184,0.1);
+      text-align: center;
+    }
+
+    /* ===== Scroll Reveal ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
 
     /* ===== Responsive ===== */
     @media (max-width: 768px) {
-      .container { padding: 24px 16px 40px; }
-      .hero { padding: 40px 0 24px; }
-      .hero-logo img { height: 56px; }
-      .link-bar { gap: 8px; }
-      .link-bar a { padding: 10px 18px; font-size: 0.82rem; }
+      .nav-links {
+        display: none;
+        position: absolute; top: 56px; left: 0; right: 0;
+        flex-direction: column;
+        background: rgba(7,11,23,0.95);
+        backdrop-filter: blur(16px);
+        padding: 12px;
+        border-bottom: 1px solid rgba(148,163,184,0.05);
+      }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+
+      .hero { min-height: 90vh; padding: 60px 16px 24px; }
+      .hero h1 { font-size: clamp(2rem, 6vw, 2.8rem); }
+      .hero-buttons a { padding: 12px 22px; font-size: 0.82rem; }
+      .section { padding: 48px 16px; }
+
+      .counter-section { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .counter-item { padding: 20px 12px; }
+
       .features { grid-template-columns: 1fr; gap: 14px; }
-      .quickstart { padding: 24px 16px; }
-      .info-bar { gap: 10px 20px; }
+      .feature-card { padding: 24px 18px; }
+
+      .demo-board .cat { font-size: 0.5rem; padding: 6px 4px; }
+      .demo-board .cell { font-size: 0.5rem; }
+      .demo-clue-area .clue-text { font-size: 0.75rem; }
+      .demo-scores { gap: 12px; flex-wrap: wrap; }
+
+      .quickstart { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+      footer .footer-inner { flex-direction: column; text-align: center; }
     }
+
     @media (max-width: 480px) {
-      .link-bar a { flex: 1; justify-content: center; min-width: 140px; }
-      .quickstart .steps { grid-template-columns: 1fr; }
+      .hero-buttons a { flex: 1; min-width: 180px; justify-content: center; }
+      .hero .subtitle { letter-spacing: 4px; }
+      .demo-board { gap: 2px; }
+      .demo-board .cat { font-size: 0.45rem; }
+      .demo-board .cell { font-size: 0.45rem; }
+      .counter-section { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .quickstart { grid-template-columns: 1fr; }
+      .stats-bar .badge { font-size: 0.6rem; }
+    }
+
+    @media (min-width: 769px) {
+      .quickstart { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
@@ -444,151 +920,282 @@
   <div class="bg-overlay"></div>
   <div class="grid-overlay"></div>
 
-  <div class="container">
-
-    <!-- Hero -->
-    <header class="hero">
-
-      <h1>Trivia Broadcast<br>Engine</h1>
-      <div class="subtitle">TechnoThatch Software Solutions</div>
-      <p class="tagline">
-        Professional <em>dual-screen trivia hosting</em> &mdash; broadcast view for the audience,
-        host dashboard for you, real-time scoring, custom media, and a fully scriptable setup.
-      </p>
-    </header>
-
-    <!-- Primary links -->
-    <div class="link-bar">
-      <a href="https://github.com/L-Logix/Trivia-Board" target="_blank" class="btn-primary">
-        View on GitHub
-      </a>
-      <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank" class="btn-secondary">
-        Documentation
-      </a>
-      <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank" class="btn-ghost">
-        Issues
-      </a>
-      <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank" class="btn-ghost">
-        License
-      </a>
-    </div>
-
-    <!-- Badges -->
-    <div class="info-bar">
-      <span class="badge"><span class="dot sky"></span> <strong>Node.js</strong> 18+</span>
-      <span class="badge"><span class="dot green"></span> <strong>Socket.IO</strong> Real-time</span>
-      <span class="badge"><strong>Express</strong></span>
-      <span class="badge"><strong>v1.0.0</strong></span>
-      <span class="badge"><a href="https://github.com/L-Logix/Trivia-Board/stargazers" target="_blank">GitHub</a></span>
-    </div>
-
-    <!-- Features -->
-    <div class="section-title">
-      <h2>Core <span>Capabilities</span></h2>
-    </div>
-
-    <section class="features">
-
-      <article class="feature-card">
-        <h3>Dual-Screen Hosting</h3>
-        <p>Full-screen broadcast view for the audience on a TV or projector. Host dashboard, scoring helper, and board helper on your laptop &mdash; all in sync via Socket.IO.</p>
-        <span class="fc-tag">Real-time</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Scriptable Setup</h3>
-        <p>Configure everything from CLI flags: board size, values, players, labels, CSV sheets, media assets, and more. Refresh content without re-running the wizard.</p>
-        <span class="fc-tag">CLI</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Custom Media Assets</h3>
-        <p>Intro video/music, background music, bonus clue images, applause, times-up, and 10+ configurable sounds &mdash; all gated so unconfigured assets are silent no-ops.</p>
-        <span class="fc-tag">Audio / Video</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Smart Timer System</h3>
-        <p>Starts on DONE READING. Pauses on INCORRECT for other players to buzz. Keyboard shortcuts for BUZZ/UNBUZZ. Resume, pause, and token-guarded to prevent stale callbacks.</p>
-        <span class="fc-tag">Gameplay</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Bonus &amp; Championship</h3>
-        <p>Daily Double bonus clues with image cover-flip and wager screen. Championship final round with step-by-step name / show-answer / wager reveal and host scoring.</p>
-        <span class="fc-tag">Rounds</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Post-Game Analytics</h3>
-        <p>Detailed per-player and per-game charts built with Chart.js. Correct/incorrect streaks, category breakdowns, value distribution, and printable reports.</p>
-        <span class="fc-tag">Statistics</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Sheets &amp; CSV Import</h3>
-        <p>Paste a published Google Sheets URL or local CSV path. Supports simple and grid formats. URL normalization handles edit links automatically.</p>
-        <span class="fc-tag">Import</span>
-      </article>
-
-      <article class="feature-card">
-        <h3>Practice Mode</h3>
-        <p>Cycle all clues from Rounds 1, 2, and Final with back/next navigation, Show/Hide Answer toggle, and keyboard shortcuts for solo review.</p>
-        <span class="fc-tag">Training</span>
-      </article>
-
-    </section>
-
-    <!-- Quick Start -->
-    <div class="quickstart">
-      <h3>Quick <span>Start</span></h3>
-      <div class="steps">
-        <div class="step">
-          <div class="num">1</div>
-          <code>git clone https://github.com/L-Logix/Trivia-Board.git</code>
-          <p>Clone the repository</p>
-        </div>
-        <div class="step">
-          <div class="num">2</div>
-          <code>cd Trivia-Board &amp;&amp; npm install</code>
-          <p>Install dependencies</p>
-        </div>
-        <div class="step">
-          <div class="num">3</div>
-          <code>npm run setup</code>
-          <p>Run the configuration wizard</p>
-        </div>
-        <div class="step">
-          <div class="num">4</div>
-          <code>npm start</code>
-          <p>Launch on <strong>port 3333</strong></p>
-        </div>
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="active">Home</a>
+        <a href="/features.html">Features</a>
+        <a href="/demo.html">Live Demo</a>
+        <a href="/docs.html">Docs</a>
+        <a href="/about.html">About</a>
       </div>
     </div>
+  </nav>
 
+  <div class="content">
 
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="hero-logo">
+        <svg viewBox="0 0 800 200" width="auto" height="65" xmlns="http://www.w3.org/2000/svg">
+          <text x="400" y="150" font-family="Oswald, Impact, sans-serif" font-size="100" font-weight="700" fill="#38bdf8" text-anchor="middle" letter-spacing="8">TRIVIA BOARD</text>
+        </svg>
+      </div>
+      <h1><span class="gradient">Broadcast Engine</span></h1>
+      <div class="subtitle">TechnoThatch Software Solutions</div>
+      <p class="tagline">
+        Professional <em>dual-screen trivia hosting</em> &mdash; full-screen broadcast for the audience,
+        host dashboard for you, real-time scoring, custom media assets, and a fully scriptable setup.
+        Everything you need to run a polished live trivia show.
+      </p>
+      <div class="hero-buttons">
+        <a href="https://github.com/L-Logix/Trivia-Board" class="btn-primary" target="_blank">View on GitHub</a>
+        <a href="/demo.html" class="btn-secondary">See It in Action</a>
+      </div>
+      <div class="stats-bar">
+        <span class="badge"><span class="dot sky"></span> <strong>Node.js</strong> 18+</span>
+        <span class="badge"><span class="dot cyan"></span> <strong>Socket.IO</strong> Real-time</span>
+        <span class="badge"><span class="dot indigo"></span> <strong>GNU GPL</strong> v3</span>
+        <span class="badge"><strong>Express</strong></span>
+        <span class="badge"><a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a></span>
+      </div>
+    </section>
 
-    <!-- Footer -->
+    <!-- LIVE DEMO -->
+    <section class="section" id="demo-section">
+      <div class="section-header reveal">
+        <h2>See It <span class="accent">in Action</span></h2>
+        <div class="bar"></div>
+        <p>Click any clue to see the broadcast engine in action. Try the <a href="/demo.html" style="color:var(--sky);text-decoration:none;font-weight:500;">full-screen demo</a> for the complete experience.</p>
+      </div>
+
+      <div class="demo-container reveal">
+        <div class="demo-inner">
+          <div class="demo-badge">Live Demo</div>
+          <div class="demo-board" id="demo-board"></div>
+          <div class="demo-clue-area" id="demo-clue">
+            <div class="clue-text" id="demo-clue-text">Click any clue value to see it in action</div>
+            <div class="clue-answer" id="demo-clue-answer"></div>
+            <div class="demo-status" id="demo-status">Ready</div>
+          </div>
+          <div class="demo-scores" id="demo-scores">
+            <div class="player"><span class="name">Alice</span> <span class="score pos" id="score-a">$0</span></div>
+            <div class="player"><span class="name">Bob</span> <span class="score pos" id="score-b">$0</span></div>
+            <div class="player"><span class="name">Carol</span> <span class="score pos" id="score-c">$0</span></div>
+          </div>
+          <div class="demo-timer"><div class="bar" id="demo-timer-bar"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATISTICS -->
+    <section class="section">
+      <div class="section-header reveal">
+        <h2>Built for <span class="accent">Scale</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="counter-section">
+        <div class="counter-item reveal reveal-delay-1">
+          <div class="num" data-target="327">0</div>
+          <div class="label">Clues Supported</div>
+        </div>
+        <div class="counter-item reveal reveal-delay-2">
+          <div class="num" data-target="19">0</div>
+          <div class="label">Game Rounds</div>
+        </div>
+        <div class="counter-item reveal reveal-delay-3">
+          <div class="num" data-target="8">0</div>
+          <div class="label">Core Features</div>
+        </div>
+        <div class="counter-item reveal reveal-delay-4">
+          <div class="num" data-target="6">0</div>
+          <div class="label">Player Slots</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section">
+      <div class="section-header reveal">
+        <h2>Core <span class="accent">Capabilities</span></h2>
+        <div class="bar"></div>
+        <p>Everything you need to host a professional trivia night</p>
+      </div>
+
+      <div class="features">
+        <article class="feature-card reveal reveal-delay-1">
+          <div class="icon sky">&#9783;</div>
+          <h3>Dual-Screen Hosting</h3>
+          <p>Full-screen broadcast view for the audience on a TV or projector. Host dashboard, scoring helper, and board helper on your laptop. All synchronized in real time via Socket.IO.</p>
+          <span class="tag">Real-time</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-2">
+          <div class="icon cyan">&gt;_</div>
+          <h3>Scriptable Setup</h3>
+          <p>Configure everything from CLI flags: board size, values, players, labels, CSV import, media assets, and more. Refresh content without re-running the wizard.</p>
+          <span class="tag">CLI</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-3">
+          <div class="icon indigo">&#9835;</div>
+          <h3>Custom Media Assets</h3>
+          <p>Intro video/music, background tracks, bonus clue images, applause, times-up, and 10+ configurable sounds. All audio is config-gated so unconfigured assets silently no-op.</p>
+          <span class="tag">Audio / Video</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-4">
+          <div class="icon sky">&#9201;</div>
+          <h3>Smart Timer System</h3>
+          <p>Starts on DONE READING, pauses on INCORRECT for other players to buzz. Keyboard shortcuts for BUZZ/UNBUZZ. Token-guarded to prevent stale callbacks and duplicate starts.</p>
+          <span class="tag">Gameplay</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-1">
+          <div class="icon cyan">&#9733;</div>
+          <h3>Bonus &amp; Championship</h3>
+          <p>Daily Double bonus clues with image cover-flip and wager screen. Championship final with step-by-step name/show-answer/wager reveal and direct host scoring.</p>
+          <span class="tag">Rounds</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-2">
+          <div class="icon indigo">&#9784;</div>
+          <h3>Post-Game Analytics</h3>
+          <p>Detailed per-player and per-game charts with Chart.js. Correct/incorrect streaks, category breakdowns, value distribution, and printable reports.</p>
+          <span class="tag">Statistics</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-3">
+          <div class="icon sky">&#9776;</div>
+          <h3>Sheets &amp; CSV Import</h3>
+          <p>Paste a published Google Sheets URL or local CSV path. Supports both simple and grid formats. URL normalization handles edit links automatically.</p>
+          <span class="tag">Import</span>
+        </article>
+
+        <article class="feature-card reveal reveal-delay-4">
+          <div class="icon cyan">&#9998;</div>
+          <h3>Practice Mode</h3>
+          <p>Cycle all clues from Rounds 1, 2, and Final with back/next navigation, Show/Hide Answer toggle, and keyboard shortcuts for solo review.</p>
+          <span class="tag">Training</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- CLI DEMO -->
+    <section class="section">
+      <div class="section-header reveal">
+        <h2>Zero Config <span class="accent">to Live</span></h2>
+        <div class="bar"></div>
+        <p>Three commands and you're hosting a game</p>
+      </div>
+
+      <div class="cli-section reveal">
+        <div class="cli-header">
+          <div class="dot-group">
+            <span class="r"></span><span class="y"></span><span class="g"></span>
+          </div>
+          <span class="title">terminal &mdash; trivia-server</span>
+        </div>
+        <div class="cli-body" id="cli-body">
+          <div class="line" style="animation-delay: 0.0s"><span class="prompt">$ </span><span class="cmd">git clone https://github.com/L-Logix/Trivia-Board.git</span></div>
+          <div class="line" style="animation-delay: 0.1s"><span class="output green">Cloning into 'Trivia-Board'...</span></div>
+          <div class="line" style="animation-delay: 0.2s"><span class="output green">Receiving objects: 100%</span></div>
+          <div class="line" style="animation-delay: 0.4s"><span class="prompt">$ </span><span class="cmd">cd Trivia-Board && npm install</span></div>
+          <div class="line" style="animation-delay: 0.6s"><span class="output">added 247 packages in 3.2s</span></div>
+          <div class="line" style="animation-delay: 0.8s"><span class="prompt">$ </span><span class="cmd">npm run setup</span></div>
+          <div class="line" style="animation-delay: 1.0s"><span class="output green">? Players: Alice, Bob, Carol</span></div>
+          <div class="line" style="animation-delay: 1.2s"><span class="output green">? Rounds: 3</span></div>
+          <div class="line" style="animation-delay: 1.4s"><span class="output green">? Categories: 6 per round</span></div>
+          <div class="line" style="animation-delay: 1.6s"><span class="output">Configuration saved.</span></div>
+          <div class="line" style="animation-delay: 1.8s"><span class="prompt">$ </span><span class="cmd">npm start</span></div>
+          <div class="line" style="animation-delay: 2.0s"><span class="output green">Server running on http://localhost:3333</span></div>
+          <div class="line" style="animation-delay: 2.2s"><span class="prompt">$ </span><span class="cmd"><span class="cursor"></span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICK START -->
+    <section class="section">
+      <div class="section-header reveal">
+        <h2>Get Started <span class="accent">Now</span></h2>
+        <div class="bar"></div>
+      </div>
+      <div class="quickstart">
+        <div class="qs-step reveal reveal-delay-1">
+          <div class="num">1</div>
+          <code>git clone ...</code>
+          <p>Clone the repository</p>
+        </div>
+        <div class="qs-step reveal reveal-delay-2">
+          <div class="num">2</div>
+          <code>npm install</code>
+          <p>Install dependencies</p>
+        </div>
+        <div class="qs-step reveal reveal-delay-3">
+          <div class="num">3</div>
+          <code>npm run setup</code>
+          <p>Configure your game</p>
+        </div>
+        <div class="qs-step reveal reveal-delay-4">
+          <div class="num">4</div>
+          <code>npm start</code>
+          <p>Launch on port 3333</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
     <footer>
-      <div class="brand">TechnoThatch <strong>Software Solutions</strong></div>
-      <div class="stack">
+      <div class="footer-inner">
+        <div class="footer-brand">TechnoThatch <strong>Software Solutions</strong></div>
+        <div class="footer-links">
+          <a href="https://github.com/L-Logix/Trivia-Board" target="_blank">GitHub</a>
+          <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank">Docs</a>
+          <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank">Issues</a>
+          <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank">License</a>
+        </div>
+      </div>
+      <div class="footer-tech">
         <span>Node.js <em>18+</em></span>
         <span>Express</span>
         <span>Socket.IO</span>
         <span>Chart.js</span>
         <span>GNU GPL v3</span>
       </div>
-      <div class="copy">&copy; 2025 TechnoThatch Software Solutions &mdash; Trivia Broadcast Engine</div>
+      <div class="footer-copy">&copy; 2025 TechnoThatch Software Solutions &mdash; Trivia Broadcast Engine. Released under GNU GPL v3.</div>
     </footer>
 
   </div>
 
   <script>
+    // ===== Navbar =====
+    (function() {
+      var nav = document.getElementById('navbar');
+      var toggle = document.getElementById('navToggle');
+      var links = document.getElementById('navLinks');
+
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      });
+
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          links.classList.toggle('open');
+        });
+      }
+    })();
+
+    // ===== Particle Background =====
     (function() {
       var canvas = document.getElementById('bg-canvas');
       var ctx = canvas.getContext('2d');
       var W, H, particles = [];
-      var NUM = 60;
+      var NUM = 80;
+      var COLORS = ['56,189,248', '129,140,248', '34,211,238', '148,163,184', '241,245,249'];
 
       function resize() {
         W = canvas.width = window.innerWidth;
@@ -597,30 +1204,49 @@
       window.addEventListener('resize', resize);
       resize();
 
-      function Particle() {
-        this.reset();
-      }
+      function Particle() { this.reset(); }
+
       Particle.prototype.reset = function() {
         this.x = Math.random() * W;
         this.y = Math.random() * H;
-        this.r = Math.random() * 1.8 + 0.4;
-        this.dx = (Math.random() - 0.5) * 0.25;
-        this.dy = (Math.random() - 0.5) * 0.25 - 0.08;
-        this.alpha = Math.random() * 0.35 + 0.04;
-        this.life = Math.random() * 300 + 100;
+        this.r = Math.random() * 2.2 + 0.3;
+        this.dx = (Math.random() - 0.5) * 0.2;
+        this.dy = (Math.random() - 0.5) * 0.2 - 0.05;
+        this.alpha = Math.random() * 0.4 + 0.06;
+        this.life = Math.random() * 400 + 200;
         this.maxLife = this.life;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseSpeed = Math.random() * 0.02 + 0.005;
       };
+
       Particle.prototype.update = function() {
         this.x += this.dx;
         this.y += this.dy;
         this.life--;
-        if (this.life <= 0 || this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+        this.pulse += this.pulseSpeed;
+        if (this.life <= 0 || this.x < -20 || this.x > W + 20 || this.y < -20 || this.y > H + 20) this.reset();
       };
+
       Particle.prototype.draw = function() {
-        var a = this.alpha * (this.life / this.maxLife);
+        var lifeRatio = this.life / this.maxLife;
+        var pulseAlpha = Math.sin(this.pulse) * 0.15;
+        var a = Math.max(0, Math.min(1, (this.alpha + pulseAlpha) * lifeRatio));
+        var glow = this.r > 1.5 ? Math.min(6, this.r * 3) : 0;
+
+        if (glow > 0) {
+          var grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glow);
+          grad.addColorStop(0, 'rgba(' + this.color + ',' + (a * 0.3) + ')');
+          grad.addColorStop(1, 'rgba(' + this.color + ',0)');
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, glow, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(56,189,248,' + a + ')';
+        ctx.fillStyle = 'rgba(' + this.color + ',' + a + ')';
         ctx.fill();
       };
 
@@ -628,32 +1254,280 @@
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
+
         for (var i = 0; i < particles.length; i++) {
           particles[i].update();
           particles[i].draw();
         }
+
         for (var i = 0; i < particles.length; i++) {
           for (var j = i + 1; j < particles.length; j++) {
             var dx = particles[i].x - particles[j].x;
             var dy = particles[i].y - particles[j].y;
             var dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 150) {
-              var a = (1 - dist / 150) * 0.05;
-              var aI = (particles[i].life / particles[i].maxLife);
-              var aJ = (particles[j].life / particles[j].maxLife);
-              a = a * Math.min(aI, aJ);
-              ctx.beginPath();
-              ctx.moveTo(particles[i].x, particles[i].y);
-              ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.strokeStyle = 'rgba(56,189,248,' + a + ')';
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
+            var maxDist = 140;
+            if (dist < maxDist) {
+              var lifeI = particles[i].life / particles[i].maxLife;
+              var lifeJ = particles[j].life / particles[j].maxLife;
+              var a = (1 - dist / maxDist) * 0.04 * Math.min(lifeI, lifeJ);
+              if (a > 0.001) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = 'rgba(56,189,248,' + a + ')';
+                ctx.lineWidth = 0.4;
+                ctx.stroke();
+              }
             }
           }
         }
+
         requestAnimationFrame(draw);
       }
       draw();
+    })();
+
+    // ===== Live Demo Board =====
+    (function() {
+      var CATEGORIES = ['World History', 'Science &amp; Nature', 'Pop Culture', 'Geography'];
+      var VALUES = [200, 400, 600, 800, 1000];
+      var CLUES = [
+        ['Built in 447 BC, this Athenian temple honors Athena.', 'The Parthenon'],
+        ['This planet has the shortest day at 9.9 hours.', 'Jupiter'],
+        ['This 1994 film won 6 Oscars including Best Picture.', 'Forrest Gump'],
+        ['This African country has the largest population.', 'Nigeria'],
+        ['This element has the chemical symbol "Fe".', 'Iron'],
+        ['This war lasted from 1337 to 1453.', 'The Hundred Years\' War'],
+        ['This gas makes up 78% of Earth\'s atmosphere.', 'Nitrogen'],
+        ['This singer\'s 1982 album "Thriller" is the best-selling of all time.', 'Michael Jackson'],
+        ['This is the longest river in the world.', 'The Nile'],
+        ['This organ in the human body has four chambers.', 'The Heart'],
+        ['This ancient wonder was located in Alexandria, Egypt.', 'The Lighthouse of Alexandria'],
+        ['Light travels at approximately this many km/s.', '299,792 km/s'],
+        ['This TV series about dragons premiered in 2011.', 'Game of Thrones'],
+        ['This country has the most time zones.', 'France'],
+        ['This scientist developed the theory of general relativity.', 'Albert Einstein'],
+        ['The "War of the Worlds" broadcast caused panic in this year.', '1938'],
+        ['This is the chemical formula for water.', 'H2O'],
+        ['This video game console was released by Sony in 1994.', 'PlayStation'],
+        ['This mountain is the tallest in the world.', 'Mount Everest'],
+        ['This 1912 tragedy led to iceberg patrols.', 'The Titanic sinking'],
+        ['This Russian word means "restructuring".', 'Perestroika'],
+        ['This acid is found in the stomach.', 'Hydrochloric acid'],
+        ['This actor played Iron Man in the MCU.', 'Robert Downey Jr.'],
+        ['This is the smallest country in the world.', 'Vatican City'],
+      ];
+
+      var board = document.getElementById('demo-board');
+      var clueText = document.getElementById('demo-clue-text');
+      var clueAnswer = document.getElementById('demo-clue-answer');
+      var demoStatus = document.getElementById('demo-status');
+      var timerBar = document.getElementById('demo-timer-bar');
+      var scores = { a: 0, b: 0, c: 0 };
+      var scoreEls = {
+        a: document.getElementById('score-a'),
+        b: document.getElementById('score-b'),
+        c: document.getElementById('score-c')
+      };
+      var selected = { cat: -1, val: -1 };
+      var used = [];
+      var timerInterval = null;
+      var currentPlayer = 0;
+      var clueState = 'board';
+
+      function shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+        return arr;
+      }
+
+      var shuffledClues = shuffle(CLUES.slice());
+
+      function buildBoard() {
+        board.innerHTML = '';
+        for (var c = 0; c < 4; c++) {
+          var cat = document.createElement('div');
+          cat.className = 'cat';
+          cat.innerHTML = CATEGORIES[c];
+          board.appendChild(cat);
+        }
+        for (var v = 0; v < 5; v++) {
+          for (var c = 0; c < 4; c++) {
+            var cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.cat = c;
+            cell.dataset.val = v;
+            cell.textContent = '$' + VALUES[v];
+            (function(ci, vi) {
+              cell.addEventListener('click', function() {
+                if (clueState !== 'board') return;
+                if (this.classList.contains('done')) return;
+                selectClue(ci, vi);
+              });
+            })(c, v);
+            board.appendChild(cell);
+          }
+        }
+      }
+
+      function selectClue(cat, val) {
+        var idx = cat * 5 + val;
+        if (used.indexOf(idx) !== -1) return;
+        used.push(idx);
+        selected = { cat: cat, val: val };
+        clueState = 'clue';
+
+        var cells = board.querySelectorAll('.cell');
+        cells.forEach(function(c) {
+          if (parseInt(c.dataset.cat) === cat && parseInt(c.dataset.val) === val) {
+            c.classList.add('selected');
+          }
+        });
+
+        var clueIdx = (cat * 5 + val) % shuffledClues.length;
+        var clue = shuffledClues[clueIdx];
+        clueText.innerHTML = '<em>' + clue[0] + '</em>';
+        clueAnswer.textContent = clue[1];
+        clueAnswer.classList.remove('visible');
+        demoStatus.textContent = 'Clue selected \u2022 Reading\u2026';
+
+        setTimeout(function() {
+          if (clueState !== 'clue') return;
+          clueAnswer.classList.add('visible');
+          startTimer();
+          demoStatus.textContent = 'Answer shown \u2022 Timer running\u2026';
+        }, 2000);
+
+        setTimeout(function() {
+          if (clueState !== 'clue') return;
+          var playerNames = ['Alice', 'Bob', 'Carol'];
+          var p = currentPlayer;
+          currentPlayer = (currentPlayer + 1) % 3;
+          var delta = VALUES[val];
+          var key = p === 0 ? 'a' : p === 1 ? 'b' : 'c';
+          if (Math.random() > 0.3) {
+            scores[key] += delta;
+            scoreEls[key].textContent = '$' + scores[key];
+            scoreEls[key].className = 'score pos';
+            demoStatus.textContent = playerNames[p] + ' answered correctly! +$' + delta;
+          } else {
+            scores[key] -= delta;
+            scoreEls[key].textContent = '$' + scores[key];
+            scoreEls[key].className = 'score neg';
+            demoStatus.textContent = playerNames[p] + ' was incorrect. -$' + delta;
+          }
+          stopTimer();
+          timerBar.style.width = '0%';
+          markDone();
+          clueState = 'board';
+        }, 4500);
+      }
+
+      function markDone() {
+        var cells = board.querySelectorAll('.cell');
+        cells.forEach(function(c) {
+          if (parseInt(c.dataset.cat) === selected.cat && parseInt(c.dataset.val) === selected.val) {
+            c.classList.remove('selected');
+            c.classList.add('done');
+          }
+        });
+
+        if (used.length >= 12) {
+          setTimeout(function() {
+            clueText.innerHTML = 'All clues completed! Try the <a href="/demo.html" style="color:var(--sky);">full demo</a>.';
+            clueAnswer.classList.remove('visible');
+            clueAnswer.textContent = '';
+            demoStatus.textContent = 'Demo complete';
+            timerBar.style.width = '0%';
+          }, 1000);
+          return;
+        }
+
+        setTimeout(function() {
+          if (clueState !== 'board') return;
+          clueText.innerHTML = 'Click any clue value to continue watching';
+          clueAnswer.textContent = '';
+          clueAnswer.classList.remove('visible');
+          demoStatus.textContent = 'Ready';
+        }, 1500);
+      }
+
+      function startTimer() {
+        stopTimer();
+        var startTime = Date.now();
+        var duration = 15000;
+        timerInterval = setInterval(function() {
+          var elapsed = Date.now() - startTime;
+          var w = Math.min(100, (elapsed / duration) * 100);
+          timerBar.style.width = w + '%';
+          if (w >= 100) {
+            stopTimer();
+            if (clueState === 'clue') {
+              demoStatus.textContent = 'Time\u2019s up!';
+              clueState = 'board';
+              setTimeout(function() {
+                markDone();
+                clueText.innerHTML = 'Click any clue value to continue watching';
+                clueAnswer.classList.remove('visible');
+                clueAnswer.textContent = '';
+                demoStatus.textContent = 'Ready';
+              }, 1000);
+            }
+          }
+        }, 50);
+      }
+
+      function stopTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+
+      buildBoard();
+    })();
+
+    // ===== Scroll Reveal =====
+    (function() {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.reveal').forEach(function(el) {
+        observer.observe(el);
+      });
+    })();
+
+    // ===== Counter Animation =====
+    (function() {
+      var counters = document.querySelectorAll('.counter-item .num');
+      var counterObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            var el = entry.target;
+            var target = parseInt(el.dataset.target);
+            var current = 0;
+            var step = Math.max(1, Math.floor(target / 50));
+            var interval = setInterval(function() {
+              current += step;
+              if (current >= target) {
+                current = target;
+                clearInterval(interval);
+              }
+              el.textContent = current;
+            }, 25);
+            counterObserver.unobserve(el);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      counters.forEach(function(c) { counterObserver.observe(c); });
     })();
   </script>
 
