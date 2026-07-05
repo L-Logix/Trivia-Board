@@ -1,0 +1,46 @@
+name: TODO Check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  todo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for TODO/FIXME/HACK in new code
+        id: check
+        run: |
+          FAILED=0
+          for f in $(git diff --name-only origin/main...HEAD -- '*.js' '*.css' '*.html'); do
+            if [ -f "$f" ]; then
+              MATCH=$(git diff origin/main...HEAD -- "$f" | grep '^+[^+]' | grep -nPi 'TODO|FIXME|HACK|XXX' || true)
+              if [ -n "$MATCH" ]; then
+                echo "Found markers in $f:"
+                echo "$MATCH"
+                FAILED=1
+              fi
+            fi
+          done
+            if [ "$FAILED" = "1" ]; then exit 1; fi
+        continue-on-error: true
+
+      - name: Comment on PR
+        if: steps.check.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '## TODO/FIXME/HACK Found\n\nOne or more `TODO`, `FIXME`, `HACK`, or `XXX` markers were found in the new code. Please resolve or convert them to proper issues before merging.'
+            });

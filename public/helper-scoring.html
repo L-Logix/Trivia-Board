@@ -235,7 +235,7 @@
     @keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
   </style>
   <script>
-    (function(){var n=document.getElementById('gpl-notice');if(!n)return;if(localStorage.getItem('triviaBoardGplAccepted'))return;n.classList.remove('hidden');document.getElementById('gpl-accept').addEventListener('click',function(){n.classList.add('hidden');try{localStorage.setItem('triviaBoardGplAccepted','1')}catch(e){}})})();
+    (function(){var n=document.getElementById('gpl-notice');if(!n||typeof localStorage==='undefined')return;if(localStorage.getItem('triviaBoardGplAccepted'))return;n.classList.remove('hidden');document.getElementById('gpl-accept').addEventListener('click',function(){n.classList.add('hidden');try{localStorage.setItem('triviaBoardGplAccepted','1')}catch(e){}})})();
   </script>
 </body>
 </html>

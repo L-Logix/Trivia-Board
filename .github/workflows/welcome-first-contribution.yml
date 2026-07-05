@@ -1,0 +1,26 @@
+name: Welcome First Contribution
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            Thanks for your first pull request! 
+
+            Before merging, please ensure:
+            - `npm run stress` passes locally
+            - You have tested with a live game (broadcast + dashboard)
+            - New code follows the project style (no inline comments)
+
+            A maintainer will review your changes shortly.
