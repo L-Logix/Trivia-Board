@@ -14,6 +14,8 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -125,7 +127,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bot-generated', 'no-public-action'],
+              labels: ['auto-fail', 'bot-generated'],
               body: [
                 '## Asset & Terminology Check Failure (Auto-generated)',
                 '',
@@ -142,6 +144,6 @@ jobs:
                 '',
                 '---',
                 '',
-                '_This issue was automatically created by the Asset Check workflow. Tagged `no-public-action` — it exists for tracking and compliance purposes only._'
+                '_This issue was automatically created by the Asset Check workflow._' — it exists for tracking and compliance purposes only._'
               ].join('\n')
             });

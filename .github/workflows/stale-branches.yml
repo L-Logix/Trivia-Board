@@ -1,0 +1,47 @@
+name: Stale Branches
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: branches } = await github.rest.repos.listBranches({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const now = new Date();
+            for (const branch of branches) {
+              if (branch.name === context.repo.default_branch) continue;
+
+              const { data: commit } = await github.rest.git.getCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: branch.commit.sha
+              });
+
+              const daysSince = (now - new Date(commit.author.date)) / (1000 * 60 * 60 * 24);
+              if (daysSince > 90) {
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: 'heads/' + branch.name
+                  });
+                  console.log('Deleted stale branch: ' + branch.name);
+                } catch (e) {
+                  console.log('Could not delete ' + branch.name + ': ' + e.message);
+                }
+              }
+            }

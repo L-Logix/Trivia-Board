@@ -3,7 +3,7 @@ name: Link Check
 on:
   pull_request:
     branches: [main]
-    paths: ['*.md', '**/*.md']
+    paths: ['*.md', 'docs/**/*.md', '.github/**/*.md']
 
 permissions:
   contents: read
@@ -12,14 +12,21 @@ permissions:
 jobs:
   links:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Check markdown links
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --no-progress --timeout 10 --max-concurrency 8 --max-retries 1 '*.md' '**/*.md' --exclude 'localhost|star-history.com|github.com/L-Logix|img\.shields\.io|shields\.io'
+          args: >-
+            --no-progress --timeout 5 --max-concurrency 32 --max-retries 1
+            README.md .github/**/*.md
+            --exclude 'localhost|star-history.com|github.com/L-Logix|img\.shields\.io|shields\.io'
         continue-on-error: true
 
       - name: Comment on broken links

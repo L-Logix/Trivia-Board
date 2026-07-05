@@ -11,6 +11,7 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +64,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail', 'bot-generated', 'no-public-action'],
+              labels: ['auto-fail', 'bot-generated'],
               body: [
                 '## Nightly Check Failure (Auto-generated)',
                 '',
@@ -85,6 +86,6 @@ jobs:
                 '',
                 '---',
                 '',
-                '_This issue was automatically created by the Nightly Check workflow. Tagged `no-public-action` — it exists for tracking purposes only._'
+                '_This issue was automatically created by the Nightly Check workflow._'
               ].join('\n')
             });
