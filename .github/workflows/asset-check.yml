@@ -125,6 +125,23 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail'],
-              body: '## Asset Check Failure\n\n- ' + issues.join('\n- ') + '\n\n**Commit:** ' + context.sha + '\n\n_This issue was automatically created. No action required._'
+              labels: ['auto-fail', 'bot-generated', 'no-public-action'],
+              body: [
+                '## Asset & Terminology Check Failure (Auto-generated)',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                '| Commit | [`' + context.sha.substring(0, 7) + '`](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/commit/' + context.sha + ') |',
+                '| Branch | `' + (context.ref || 'unknown').replace('refs/heads/', '') + '` |',
+                '',
+                '### Issues found',
+                '',
+                issues.map(function(i) { return '- ' + i; }).join('\n'),
+                '',
+                'This check prevents problematic content (Jeopardy terminology, large binaries, config.json, or media files outside expected directories) from reaching the main branch.',
+                '',
+                '---',
+                '',
+                '_This issue was automatically created by the Asset Check workflow. Tagged `no-public-action` — it exists for tracking and compliance purposes only._'
+              ].join('\n')
             });

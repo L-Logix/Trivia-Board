@@ -2,33 +2,54 @@
 name: Bug Report
 about: Report a bug to help improve the Trivia Broadcast Engine
 title: ''
-labels: bug
+labels: bug, needs triage
 assignees: ''
 ---
 
-**Describe the bug**
+## Summary
+
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+## Steps to Reproduce
 
-1. Start the server with `...`
-2. Open broadcast/dashboard at `...`
-3. Click on `...`
-4. See error
+Exact steps to reproduce the behavior:
 
-**Expected behavior**
-What you expected to happen instead.
+1. Start the server: `trivia start` (or `node bin/trivia.js start`)
+2. Open broadcast view at `http://localhost:3333/broadcast`
+3. Open dashboard at `http://localhost:3333/dashboard`
+4. Click on `...`
+5. Observe the error
 
-**Screenshots / Logs**
-If applicable, add screenshots, console errors, or server logs.
+## Expected Behavior
 
-**Environment (please complete):**
+What you expected to happen instead of what actually happened.
 
-- OS: [e.g. Windows, macOS, Linux]
-- Node.js version: [e.g. 18.x, 20.x]
-- Browser: [e.g. Chrome, Firefox]
-- Config: output of `trivia setup --print` or relevant config snippets
+## Actual Behavior
 
-**Additional context**
-Add any other context about the problem here.
+What actually happened. Include error messages, unexpected UI behavior, or incorrect scoring.
+
+## Screenshots / Recordings
+
+If applicable, add screenshots, screen recordings, or server console logs to help explain the problem.
+
+## Environment
+
+- **OS:** [e.g. Windows 11, macOS 15, Ubuntu 24.04]
+- **Node.js version:** [e.g. 18.20, 22.14 - run `node --version`]
+- **Browser (for UI issues):** [e.g. Chrome 130, Firefox 132]
+- **Install method:** [e.g. git clone + npm install, global npm install]
+- **Config:** Run `trivia setup --print` (if available) or attach your `config.json` (redact any personal paths)
+
+## Console Errors
+
+Paste any browser console errors or server terminal output:
+
+```
+...
+```
+
+## Additional Context
+
+- Does this happen every time or intermittently?
+- Does it only happen with a specific config (e.g. child-host mode, specific bonus clue count)?
+- Has it ever worked before? If so, what changed?

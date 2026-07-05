@@ -54,8 +54,29 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['auto-fail'],
-              body: `## CI Failure\n\n**Node.js:** ${{ matrix.node-version }}\n**Commit:** ${context.sha}\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nThe stress test suite failed.\n\n_This issue was automatically created by CI. No action required — investigate the run linked above if needed._`
+              labels: ['auto-fail', 'bot-generated', 'no-public-action', 'ci-failure'],
+              body: [
+                '## CI Failure (Auto-generated)',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                '| Node.js | ${{ matrix.node-version }} |',
+                '| Commit | [`' + context.sha.substring(0, 7) + '`](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/commit/' + context.sha + ') |',
+                '| Run | [Actions #' + context.runId + '](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId + ') |',
+                '| Branch | `' + (context.ref || 'unknown').replace('refs/heads/', '') + '` |',
+                '',
+                'The stress test suite failed on this commit.',
+                '',
+                '### Investigation steps',
+                '',
+                '1. Open the Actions run link above',
+                '2. Look at the failing Node.js version (${{ matrix.node-version }}) output',
+                '3. Check if the failure is consistent across all Node versions',
+                '',
+                '---',
+                '',
+                '_This issue was automatically created by the CI workflow. It is tagged `no-public-action` — it exists for tracking and investigation purposes only._'
+              ].join('\n')
             });
 
       - name: Fail the job if stress failed

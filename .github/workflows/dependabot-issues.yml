@@ -20,20 +20,38 @@ jobs:
             const title = pr.title;
             const prUrl = pr.html_url;
 
+            const depName = title.replace(/^chore:\s*/, '').split(/\s+/)[0];
             const { data: issue } = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
-              labels: ['dependencies', 'auto-fail'],
+              labels: ['dependencies', 'bot-generated', 'no-public-action', 'auto-fail'],
               body: [
-                '## Automated Dependency Update',
+                '## Dependency Update (Auto-generated)',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                '| Package | `' + depName + '` |',
+                '| PR | [' + prUrl + '](' + prUrl + ') |',
+                '| Branch | `' + pr.head.ref + '` |',
+                '| Author | Dependabot |',
                 '',
                 'This issue tracks a dependency update proposed by Dependabot.',
                 '',
-                '**PR:** ' + prUrl,
-                '**Branch:** ' + pr.head.ref,
+                '### Review checklist',
                 '',
-                '_No action required. This issue is linked to the Dependabot PR for tracking._'
+                '- [ ] Does the new version contain breaking changes?',
+                '- [ ] Does the project import this package via CommonJS (`require`) or ESM (`import`)?',
+                '- [ ] Have the stress tests passed on the PR?',
+                '',
+                '### Notes',
+                '',
+                '- If the package is ESM-only but imported via CommonJS, the PR should be closed and the package added to `dependabot.yml` `ignore` list.',
+                '- Major-version bumps for `chalk` and `inquirer` are already blocked in `dependabot.yml` for this reason.',
+                '',
+                '---',
+                '',
+                '_This issue was automatically created by the Dependabot Issue workflow. No public action required — it exists for tracking dependency updates._'
               ].join('\n')
             });
 
@@ -41,5 +59,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
-              labels: ['has-issue']
+              labels: ['dependencies', 'auto-fail']
             });
