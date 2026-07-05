@@ -384,22 +384,32 @@
     .demo-board {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
+      gap: 5px;
       margin-top: 28px;
     }
 
     .demo-board .cat {
-      background: rgba(56,189,248,0.08);
-      border: 1px solid rgba(56,189,248,0.1);
-      border-radius: 4px;
-      padding: 10px 6px;
+      background: linear-gradient(180deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.06) 100%);
+      border: 1px solid rgba(56,189,248,0.15);
+      border-radius: 6px;
+      padding: 12px 6px;
       text-align: center;
       font-family: 'Oswald', sans-serif;
       font-size: clamp(0.55rem, 0.9vw, 0.75rem);
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--frost);
+      text-shadow: 0 0 20px rgba(56,189,248,0.15);
+      position: relative;
+    }
+
+    .demo-board .cat::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), transparent);
     }
 
     .demo-board .cell {
@@ -407,104 +417,178 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(56,189,248,0.04);
-      border: 1px solid rgba(56,189,248,0.06);
-      border-radius: 4px;
+      background: linear-gradient(180deg, rgba(56,189,248,0.07) 0%, rgba(56,189,248,0.03) 100%);
+      border: 1px solid rgba(56,189,248,0.08);
+      border-radius: 6px;
       font-family: 'Oswald', sans-serif;
-      font-size: clamp(0.6rem, 0.9vw, 0.85rem);
-      font-weight: 500;
+      font-size: clamp(0.65rem, 1vw, 0.9rem);
+      font-weight: 600;
       color: var(--sky);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       position: relative;
       overflow: hidden;
+      text-shadow: 0 0 10px rgba(56,189,248,0.1);
     }
 
     .demo-board .cell::before {
       content: '';
       position: absolute;
-      top: 50%; left: 50%;
-      width: 0; height: 0;
-      background: rgba(56,189,248,0.06);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(180deg, rgba(56,189,248,0.05) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
-    .demo-board .cell:hover::before {
-      width: 200px; height: 200px;
-    }
+    .demo-board .cell:hover::before { opacity: 1; }
 
     .demo-board .cell:hover {
-      border-color: rgba(56,189,248,0.2);
-      background: rgba(56,189,248,0.07);
+      border-color: rgba(56,189,248,0.3);
+      background: linear-gradient(180deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.06) 100%);
+      transform: scale(1.04);
+      box-shadow: 0 0 25px rgba(56,189,248,0.12);
     }
 
     .demo-board .cell.selected {
-      background: rgba(56,189,248,0.12);
+      background: linear-gradient(180deg, rgba(56,189,248,0.18) 0%, rgba(56,189,248,0.08) 100%);
       border-color: var(--sky);
-      box-shadow: 0 0 20px rgba(56,189,248,0.1);
+      box-shadow: 0 0 30px rgba(56,189,248,0.2), inset 0 0 20px rgba(56,189,248,0.05);
+      transform: scale(1.02);
     }
 
     .demo-board .cell.done {
       background: rgba(148,163,184,0.02);
       border-color: rgba(148,163,184,0.03);
-      color: rgba(148,163,184,0.1);
+      color: rgba(148,163,184,0.08);
       cursor: default;
+      text-shadow: none;
+      transform: none;
+      box-shadow: none;
+    }
+    .demo-board .cell.done::before { opacity: 0; }
+
+    .demo-board .cell .value-glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .demo-board .cell:hover .value-glow {
+      width: 150px; height: 150px;
     }
 
     .demo-clue-area {
-      margin-top: 12px;
-      min-height: 140px;
+      margin-top: 14px;
+      min-height: 120px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.04);
-      border-radius: 8px;
-      padding: 20px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 10px;
+      padding: 24px 20px;
       position: relative;
       overflow: hidden;
-      transition: min-height 0.4s;
+      transition: min-height 0.4s, border-color 0.3s;
+    }
+
+    .demo-clue-area.active-clue {
+      border-color: rgba(56,189,248,0.12);
     }
 
     .demo-clue-area .clue-text {
-      font-size: clamp(0.85rem, 1.3vw, 1.1rem);
-      color: rgba(241,245,249,0.7);
+      font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+      color: rgba(241,245,249,0.8);
       text-align: center;
-      line-height: 1.5;
+      line-height: 1.6;
       max-width: 90%;
       font-weight: 300;
-      transition: opacity 0.3s;
+      transition: opacity 0.4s, transform 0.4s;
+    }
+
+    .demo-clue-area .clue-text.entering {
+      animation: clueTextIn 0.5s ease-out;
+    }
+
+    @keyframes clueTextIn {
+      0% { opacity: 0; transform: translateY(15px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .demo-clue-area .clue-answer-wrap {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s ease;
+    }
+
+    .demo-clue-area .clue-answer-wrap.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .demo-clue-area .clue-answer-badge {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--navy);
+      background: var(--cyan);
+      padding: 3px 8px;
+      border-radius: 3px;
+      line-height: 1;
     }
 
     .demo-clue-area .clue-answer {
-      margin-top: 10px;
-      font-size: clamp(0.7rem, 1vw, 0.9rem);
+      font-size: clamp(0.75rem, 1.05vw, 0.95rem);
       color: var(--cyan);
       font-weight: 500;
-      opacity: 0;
-      transition: opacity 0.5s;
+      text-shadow: 0 0 15px rgba(34,211,238,0.15);
     }
 
-    .demo-clue-area .clue-answer.visible { opacity: 1; }
-
     .demo-clue-area .demo-status {
-      font-size: 0.7rem;
-      color: rgba(148,163,184,0.25);
-      letter-spacing: 2px;
+      font-size: 0.65rem;
+      color: rgba(148,163,184,0.2);
+      letter-spacing: 2.5px;
       text-transform: uppercase;
-      margin-top: 8px;
+      margin-top: 10px;
+      transition: color 0.3s;
+    }
+
+    .demo-clue-area .demo-status.active { color: rgba(56,189,248,0.35); }
+    .demo-clue-area .demo-status.correct { color: var(--cyan); }
+    .demo-clue-area .demo-status.wrong { color: #f87171; }
+
+    .demo-clue-area .clue-hint {
+      font-size: 0.7rem;
+      color: rgba(148,163,184,0.15);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      animation: hintPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.4; }
     }
 
     .demo-scores {
       display: flex;
       justify-content: center;
-      gap: 24px;
-      margin-top: 12px;
-      padding: 8px 16px;
-      background: rgba(148,163,184,0.02);
+      gap: 16px;
+      margin-top: 14px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.15);
       border: 1px solid rgba(148,163,184,0.04);
       border-radius: 8px;
     }
@@ -512,36 +596,94 @@
     .demo-scores .player {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.75rem;
+      gap: 10px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      transition: background 0.3s;
+      position: relative;
     }
 
-    .demo-scores .player .name { color: rgba(148,163,184,0.4); font-weight: 400; }
+    .demo-scores .player.buzzed {
+      background: rgba(56,189,248,0.06);
+    }
+
+    .demo-scores .player .name {
+      font-size: 0.7rem;
+      color: rgba(148,163,184,0.35);
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
     .demo-scores .player .score {
-      color: var(--frost);
+      font-size: 0.85rem;
       font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
+      color: var(--frost);
+      transition: all 0.3s;
+      min-width: 50px;
+      text-align: right;
     }
+
+    .demo-scores .player .score.score-pop {
+      animation: scorePop 0.4s ease-out;
+    }
+
+    @keyframes scorePop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+
     .demo-scores .player .score.pos { color: var(--cyan); }
     .demo-scores .player .score.neg { color: #f87171; }
+    .demo-scores .player .score.flash-green { color: #4ade80; }
+    .demo-scores .player .score.flash-red { color: #fb7185; }
+
+    .demo-scores .player .indicator {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .demo-scores .player .indicator.correct {
+      background: var(--cyan);
+      box-shadow: 0 0 8px rgba(34,211,238,0.5);
+    }
+
+    .demo-scores .player .indicator.incorrect {
+      background: #f87171;
+      box-shadow: 0 0 8px rgba(248,113,113,0.5);
+    }
 
     .demo-timer {
       position: relative;
       width: 100%;
-      height: 3px;
-      background: rgba(148,163,184,0.05);
+      height: 4px;
+      background: rgba(148,163,184,0.04);
       border-radius: 2px;
-      margin-top: 8px;
+      margin-top: 10px;
       overflow: hidden;
     }
 
     .demo-timer .bar {
       height: 100%;
-      background: linear-gradient(90deg, var(--sky), var(--cyan));
+      background: linear-gradient(90deg, var(--sky), var(--cyan), var(--sky));
+      background-size: 200% 100%;
       border-radius: 2px;
       width: 0%;
       transition: width 0.1s linear;
+      position: relative;
+    }
+
+    .demo-timer .bar.running {
+      animation: timerShimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes timerShimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
 
     /* ===== Counter ===== */
@@ -888,10 +1030,13 @@
       .features { grid-template-columns: 1fr; gap: 14px; }
       .feature-card { padding: 24px 18px; }
 
-      .demo-board .cat { font-size: 0.5rem; padding: 6px 4px; }
+      .demo-board { gap: 3px; }
+      .demo-board .cat { font-size: 0.5rem; padding: 8px 4px; }
       .demo-board .cell { font-size: 0.5rem; }
       .demo-clue-area .clue-text { font-size: 0.75rem; }
-      .demo-scores { gap: 12px; flex-wrap: wrap; }
+      .demo-scores { gap: 8px; flex-wrap: wrap; }
+      .demo-scores .player { padding: 4px 8px; }
+      .demo-inner { padding: 14px; }
 
       .quickstart { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
@@ -902,8 +1047,10 @@
       .hero-buttons a { flex: 1; min-width: 180px; justify-content: center; }
       .hero .subtitle { letter-spacing: 4px; }
       .demo-board { gap: 2px; }
-      .demo-board .cat { font-size: 0.45rem; }
+      .demo-board .cat { font-size: 0.45rem; padding: 5px 3px; }
       .demo-board .cell { font-size: 0.45rem; }
+      .demo-inner { padding: 10px; }
+      .demo-scores .player .score { font-size: 0.7rem; min-width: 35px; }
       .counter-section { grid-template-columns: repeat(2, 1fr); gap: 8px; }
       .quickstart { grid-template-columns: 1fr; }
       .stats-bar .badge { font-size: 0.6rem; }
@@ -927,9 +1074,9 @@
       <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
       <div class="nav-links" id="navLinks">
         <a href="/" class="active">Home</a>
-        <a href="/features.html">Features</a>
-        <a href="/demo.html">Live Demo</a>
-        <a href="/docs.html">Docs</a>
+        <a href="/Trivia-Board/features.html">Features</a>
+        <a href="/Trivia-Board/demo.html">Live Demo</a>
+        <a href="/Trivia-Board/docs.html">Docs</a>
         <a href="/about.html">About</a>
       </div>
     </div>
@@ -953,7 +1100,7 @@
       </p>
       <div class="hero-buttons">
         <a href="https://github.com/L-Logix/Trivia-Board" class="btn-primary" target="_blank">View on GitHub</a>
-        <a href="/demo.html" class="btn-secondary">See It in Action</a>
+        <a href="/Trivia-Board/demo.html" class="btn-secondary">See It in Action</a>
       </div>
       <div class="stats-bar">
         <span class="badge"><span class="dot sky"></span> <strong>Node.js</strong> 18+</span>
@@ -969,7 +1116,7 @@
       <div class="section-header reveal">
         <h2>See It <span class="accent">in Action</span></h2>
         <div class="bar"></div>
-        <p>Click any clue to see the broadcast engine in action. Try the <a href="/demo.html" style="color:var(--sky);text-decoration:none;font-weight:500;">full-screen demo</a> for the complete experience.</p>
+        <p>Click any clue to see the broadcast engine in action. Try the <a href="/Trivia-Board/demo.html" style="color:var(--sky);text-decoration:none;font-weight:500;">full-screen demo</a> for the complete experience.</p>
       </div>
 
       <div class="demo-container reveal">
@@ -977,14 +1124,18 @@
           <div class="demo-badge">Live Demo</div>
           <div class="demo-board" id="demo-board"></div>
           <div class="demo-clue-area" id="demo-clue">
-            <div class="clue-text" id="demo-clue-text">Click any clue value to see it in action</div>
-            <div class="clue-answer" id="demo-clue-answer"></div>
+            <div class="clue-text" id="demo-clue-text">Click any clue value to see the broadcast engine in action</div>
+            <div class="clue-answer-wrap" id="clue-answer-wrap">
+              <span class="clue-answer-badge">ANSWER</span>
+              <span class="clue-answer" id="demo-clue-answer"></span>
+            </div>
             <div class="demo-status" id="demo-status">Ready</div>
+            <div class="clue-hint" id="demo-hint">Click a dollar value to start</div>
           </div>
           <div class="demo-scores" id="demo-scores">
-            <div class="player"><span class="name">Alice</span> <span class="score pos" id="score-a">$0</span></div>
-            <div class="player"><span class="name">Bob</span> <span class="score pos" id="score-b">$0</span></div>
-            <div class="player"><span class="name">Carol</span> <span class="score pos" id="score-c">$0</span></div>
+            <div class="player"><span class="indicator" id="ind-a"></span><span class="name">Alice</span> <span class="score pos" id="score-a">$0</span></div>
+            <div class="player"><span class="indicator" id="ind-b"></span><span class="name">Bob</span> <span class="score pos" id="score-b">$0</span></div>
+            <div class="player"><span class="indicator" id="ind-c"></span><span class="name">Carol</span> <span class="score pos" id="score-c">$0</span></div>
           </div>
           <div class="demo-timer"><div class="bar" id="demo-timer-bar"></div></div>
         </div>
@@ -1296,33 +1447,41 @@
         ['This planet has the shortest day at 9.9 hours.', 'Jupiter'],
         ['This 1994 film won 6 Oscars including Best Picture.', 'Forrest Gump'],
         ['This African country has the largest population.', 'Nigeria'],
-        ['This element has the chemical symbol "Fe".', 'Iron'],
+        ['This element has the chemical symbol Fe.', 'Iron'],
         ['This war lasted from 1337 to 1453.', 'The Hundred Years\' War'],
         ['This gas makes up 78% of Earth\'s atmosphere.', 'Nitrogen'],
-        ['This singer\'s 1982 album "Thriller" is the best-selling of all time.', 'Michael Jackson'],
+        ['This singer\'s 1982 album Thriller is the best-selling of all time.', 'Michael Jackson'],
         ['This is the longest river in the world.', 'The Nile'],
         ['This organ in the human body has four chambers.', 'The Heart'],
-        ['This ancient wonder was located in Alexandria, Egypt.', 'The Lighthouse of Alexandria'],
+        ['This ancient wonder was located in Alexandria Egypt.', 'The Lighthouse of Alexandria'],
         ['Light travels at approximately this many km/s.', '299,792 km/s'],
         ['This TV series about dragons premiered in 2011.', 'Game of Thrones'],
         ['This country has the most time zones.', 'France'],
         ['This scientist developed the theory of general relativity.', 'Albert Einstein'],
-        ['The "War of the Worlds" broadcast caused panic in this year.', '1938'],
+        ['The War of the Worlds broadcast caused panic in this year.', '1938'],
         ['This is the chemical formula for water.', 'H2O'],
         ['This video game console was released by Sony in 1994.', 'PlayStation'],
         ['This mountain is the tallest in the world.', 'Mount Everest'],
         ['This 1912 tragedy led to iceberg patrols.', 'The Titanic sinking'],
-        ['This Russian word means "restructuring".', 'Perestroika'],
+        ['This Russian word means restructuring.', 'Perestroika'],
         ['This acid is found in the stomach.', 'Hydrochloric acid'],
         ['This actor played Iron Man in the MCU.', 'Robert Downey Jr.'],
         ['This is the smallest country in the world.', 'Vatican City'],
       ];
 
       var board = document.getElementById('demo-board');
+      var clueWrap = document.getElementById('demo-clue');
       var clueText = document.getElementById('demo-clue-text');
+      var clueAnswerWrap = document.getElementById('clue-answer-wrap');
       var clueAnswer = document.getElementById('demo-clue-answer');
       var demoStatus = document.getElementById('demo-status');
+      var demoHint = document.getElementById('demo-hint');
       var timerBar = document.getElementById('demo-timer-bar');
+      var indicators = {
+        a: document.getElementById('ind-a'),
+        b: document.getElementById('ind-b'),
+        c: document.getElementById('ind-c')
+      };
       var scores = { a: 0, b: 0, c: 0 };
       var scoreEls = {
         a: document.getElementById('score-a'),
@@ -1334,6 +1493,7 @@
       var timerInterval = null;
       var currentPlayer = 0;
       var clueState = 'board';
+      var playerNames = ['Alice', 'Bob', 'Carol'];
 
       function shuffle(arr) {
         for (var i = arr.length - 1; i > 0; i--) {
@@ -1344,6 +1504,14 @@
       }
 
       var shuffledClues = shuffle(CLUES.slice());
+
+      function resetIndicators() {
+        for (var k in indicators) {
+          indicators[k].className = 'indicator';
+        }
+        var players = document.querySelectorAll('.demo-scores .player');
+        players.forEach(function(p) { p.classList.remove('buzzed'); });
+      }
 
       function buildBoard() {
         board.innerHTML = '';
@@ -1359,7 +1527,7 @@
             cell.className = 'cell';
             cell.dataset.cat = c;
             cell.dataset.val = v;
-            cell.textContent = '$' + VALUES[v];
+            cell.innerHTML = '<span class="value-glow"></span>$' + VALUES[v];
             (function(ci, vi) {
               cell.addEventListener('click', function() {
                 if (clueState !== 'board') return;
@@ -1370,6 +1538,24 @@
             board.appendChild(cell);
           }
         }
+        // Initial hint
+        demoHint.textContent = 'Click a dollar value to start';
+        demoStatus.textContent = 'Ready';
+        demoStatus.className = 'demo-status';
+      }
+
+      function clearClueArea() {
+        clueText.textContent = 'Click any clue value to continue watching';
+        clueText.className = 'clue-text';
+        clueAnswerWrap.classList.remove('visible');
+        clueAnswerWrap.style.opacity = '0';
+        clueAnswer.textContent = '';
+        clueWrap.classList.remove('active-clue');
+        demoHint.textContent = '';
+        demoStatus.textContent = 'Ready';
+        demoStatus.className = 'demo-status';
+        timerBar.style.width = '0%';
+        timerBar.className = 'bar';
       }
 
       function selectClue(cat, val) {
@@ -1378,7 +1564,9 @@
         used.push(idx);
         selected = { cat: cat, val: val };
         clueState = 'clue';
+        resetIndicators();
 
+        // Highlight selected cell
         var cells = board.querySelectorAll('.cell');
         cells.forEach(function(c) {
           if (parseInt(c.dataset.cat) === cat && parseInt(c.dataset.val) === val) {
@@ -1386,42 +1574,78 @@
           }
         });
 
+        // Show clue
+        clueWrap.classList.add('active-clue');
         var clueIdx = (cat * 5 + val) % shuffledClues.length;
-        var clue = shuffledClues[clueIdx];
-        clueText.innerHTML = '<em>' + clue[0] + '</em>';
-        clueAnswer.textContent = clue[1];
-        clueAnswer.classList.remove('visible');
-        demoStatus.textContent = 'Clue selected \u2022 Reading\u2026';
+        var cluePair = shuffledClues[clueIdx];
+        clueText.textContent = '';
+        clueAnswer.textContent = '';
+        clueAnswerWrap.classList.remove('visible');
 
+        // Animate clue text in
         setTimeout(function() {
           if (clueState !== 'clue') return;
-          clueAnswer.classList.add('visible');
+          clueText.textContent = cluePair[0];
+          clueText.className = 'clue-text entering';
+          demoStatus.textContent = 'Clue selected \u2022 Reading\u2026';
+          demoStatus.className = 'demo-status active';
+          demoHint.textContent = '';
+        }, 100);
+
+        // Reveal answer with ANSWER badge
+        setTimeout(function() {
+          if (clueState !== 'clue') return;
+          clueAnswer.textContent = cluePair[1];
+          clueAnswerWrap.classList.add('visible');
+          clueAnswerWrap.style.opacity = '1';
+          demoStatus.textContent = 'Answer revealed \u2022 Who can buzz in?';
+          demoStatus.className = 'demo-status active';
           startTimer();
-          demoStatus.textContent = 'Answer shown \u2022 Timer running\u2026';
-        }, 2000);
+        }, 2200);
 
+        // Simulate player buzz + scoring with animation
         setTimeout(function() {
           if (clueState !== 'clue') return;
-          var playerNames = ['Alice', 'Bob', 'Carol'];
           var p = currentPlayer;
           currentPlayer = (currentPlayer + 1) % 3;
           var delta = VALUES[val];
           var key = p === 0 ? 'a' : p === 1 ? 'b' : 'c';
-          if (Math.random() > 0.3) {
+          var pName = playerNames[p];
+          var isCorrect = Math.random() > 0.3;
+
+          // Highlight buzzing player
+          var playerEls = document.querySelectorAll('.demo-scores .player');
+          if (playerEls[p]) playerEls[p].classList.add('buzzed');
+
+          // Show indicator
+          if (isCorrect) {
+            indicators[key].className = 'indicator correct';
             scores[key] += delta;
             scoreEls[key].textContent = '$' + scores[key];
-            scoreEls[key].className = 'score pos';
-            demoStatus.textContent = playerNames[p] + ' answered correctly! +$' + delta;
+            scoreEls[key].className = 'score score-pop pos';
+            demoStatus.textContent = pName + ' answered correctly! +$' + delta;
+            demoStatus.className = 'demo-status correct';
           } else {
+            indicators[key].className = 'indicator incorrect';
             scores[key] -= delta;
             scoreEls[key].textContent = '$' + scores[key];
-            scoreEls[key].className = 'score neg';
-            demoStatus.textContent = playerNames[p] + ' was incorrect. -$' + delta;
+            scoreEls[key].className = 'score score-pop neg';
+            demoStatus.textContent = pName + ' was incorrect. -$' + delta;
+            demoStatus.className = 'demo-status wrong';
           }
+
           stopTimer();
-          timerBar.style.width = '0%';
-          markDone();
-          clueState = 'board';
+          timerBar.className = 'bar';
+
+          // Reset indicator after delay
+          setTimeout(function() {
+            if (playerEls[p]) playerEls[p].classList.remove('buzzed');
+          }, 800);
+
+          setTimeout(function() {
+            markDone();
+            clueState = 'board';
+          }, 1200);
         }, 4500);
       }
 
@@ -1433,46 +1657,51 @@
             c.classList.add('done');
           }
         });
+        resetIndicators();
 
         if (used.length >= 12) {
-          setTimeout(function() {
-            clueText.innerHTML = 'All clues completed! Try the <a href="/demo.html" style="color:var(--sky);">full demo</a>.';
-            clueAnswer.classList.remove('visible');
-            clueAnswer.textContent = '';
-            demoStatus.textContent = 'Demo complete';
-            timerBar.style.width = '0%';
-          }, 1000);
+          clueText.innerHTML = 'All 12 clues played! Try the <a href="/Trivia-Board/demo.html" style="color:var(--sky);">full-screen demo</a> for more.';
+          clueText.className = 'clue-text';
+          clueAnswerWrap.classList.remove('visible');
+          clueAnswerWrap.style.opacity = '0';
+          clueAnswer.textContent = '';
+          demoStatus.textContent = 'Demo complete';
+          demoStatus.className = 'demo-status';
+          demoHint.textContent = 'Refresh the page to play again';
+          timerBar.style.width = '0%';
+          timerBar.className = 'bar';
+          clueWrap.classList.remove('active-clue');
           return;
         }
 
         setTimeout(function() {
-          if (clueState !== 'board') return;
-          clueText.innerHTML = 'Click any clue value to continue watching';
-          clueAnswer.textContent = '';
-          clueAnswer.classList.remove('visible');
-          demoStatus.textContent = 'Ready';
-        }, 1500);
+          clearClueArea();
+          demoHint.textContent = 'Click another dollar value';
+          clueWrap.classList.remove('active-clue');
+        }, 800);
       }
 
       function startTimer() {
         stopTimer();
         var startTime = Date.now();
-        var duration = 15000;
+        var duration = 12000;
+        timerBar.className = 'bar running';
         timerInterval = setInterval(function() {
           var elapsed = Date.now() - startTime;
           var w = Math.min(100, (elapsed / duration) * 100);
           timerBar.style.width = w + '%';
           if (w >= 100) {
             stopTimer();
+            timerBar.className = 'bar';
             if (clueState === 'clue') {
               demoStatus.textContent = 'Time\u2019s up!';
+              demoStatus.className = 'demo-status wrong';
               clueState = 'board';
               setTimeout(function() {
                 markDone();
-                clueText.innerHTML = 'Click any clue value to continue watching';
-                clueAnswer.classList.remove('visible');
-                clueAnswer.textContent = '';
-                demoStatus.textContent = 'Ready';
+                clearClueArea();
+                demoHint.textContent = 'Click another dollar value';
+                clueWrap.classList.remove('active-clue');
               }, 1000);
             }
           }
