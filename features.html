@@ -893,11 +893,31 @@
       }
       draw();
     })();
+  </script>
 
-    // ===== Data Collection Popup =====
+  <div id="gpl-notice">
+    <div class="modal">
+      <h2>Data Collection Notice</h2>
+      <p><strong>Trivia Broadcast Engine</strong> collects anonymous usage statistics to help improve the software.</p>
+      <p>What is collected:</p>
+      <ul>
+        <li>Total in-game points earned and lost</li>
+        <li>Games played, completed, and average scores</li>
+        <li>Aggregate correct/incorrect answer counts</li>
+        <li>Streaks, buzzes, times-ups, and bonus clue stats</li>
+        <li>CLI and data import counts</li>
+      </ul>
+      <p><strong>No personal data is collected.</strong> No category names, clues, answers, player names, IP addresses, or any identifiable information is ever recorded or transmitted.</p>
+      <p>These counters are stored locally and served from your trivia server. No data is sent to external services.</p>
+      <button class="btn-accept" id="gpl-accept">I Understand</button>
+    </div>
+  </div>
+
+  <script>
     (function() {
       var popup = document.getElementById('gpl-notice');
       var btn = document.getElementById('gpl-accept');
+      if (!popup || !btn) return;
       var key = 'triviaBoardStatsConsent';
       var accepted = false;
       try { accepted = localStorage.getItem(key) === '1'; } catch(e) {}
@@ -908,24 +928,6 @@
       });
     })();
   </script>
-
-  <div id="gpl-notice">
-    <div class="modal">
-      <h2>Data Collection Notice</h2>
-      <p><strong>Trivia Broadcast Engine</strong> collects anonymous usage statistics to help improve the software.</p>
-      <p>What is collected:</p>
-      <ul>
-        <li>How many times each CLI command runs</li>
-        <li>How many games are started, completed, won</li>
-        <li>Aggregate counts of correct/incorrect answers</li>
-        <li>Feature usage counts (bonus clues, double rounds, etc.)</li>
-        <li>Setup mode and preset preferences</li>
-      </ul>
-      <p><strong>No personal data is collected.</strong> No category names, clues, answers, player names, IP addresses, or any identifiable information is ever recorded or transmitted.</p>
-      <p>These counters are stored locally and served from your trivia server. No data is sent to external services.</p>
-      <button class="btn-accept" id="gpl-accept">I Understand</button>
-    </div>
-  </div>
 
 </body>
 </html>

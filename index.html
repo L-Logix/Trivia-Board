@@ -343,73 +343,52 @@
       position: relative;
       max-width: 860px;
       margin: 0 auto;
-      border-radius: 16px;
+      border-radius: 8px;
       overflow: hidden;
-      background: rgba(148,163,184,0.03);
-      border: 1px solid rgba(148,163,184,0.08);
-      box-shadow: 0 20px 80px rgba(0,0,0,0.4), 0 0 60px rgba(56,189,248,0.03);
-      transition: box-shadow 0.4s;
+      background: #060ce9;
+      border: 2px solid rgba(255,204,0,.12);
+      box-shadow: 0 20px 80px rgba(0,0,0,0.4);
     }
 
-    .demo-container:hover {
-      box-shadow: 0 30px 100px rgba(0,0,0,0.5), 0 0 80px rgba(56,189,248,0.05);
-    }
-
-    .demo-inner { padding: 20px; position: relative; }
+    .demo-inner { padding: 16px; position: relative; }
 
     .demo-badge {
       position: absolute;
-      top: 12px; left: 50%;
+      top: -10px; left: 50%;
       transform: translateX(-50%);
       z-index: 10;
       font-family: 'Oswald', sans-serif;
-      font-size: 0.65rem;
+      font-size: 0.55rem;
       font-weight: 600;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--sky);
-      background: rgba(7,11,23,0.8);
-      padding: 5px 16px;
+      color: #ffcc00;
+      background: #060ce9;
+      padding: 4px 16px;
       border-radius: 20px;
-      border: 1px solid rgba(56,189,248,0.15);
-      backdrop-filter: blur(8px);
-      animation: badgePulse 2s ease-in-out infinite;
-    }
-
-    @keyframes badgePulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+      border: 1px solid rgba(255,204,0,.2);
+      pointer-events: none;
     }
 
     .demo-board {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
-      margin-top: 28px;
+      gap: 2px;
+      margin-top: 24px;
     }
 
     .demo-board .cat {
-      background: linear-gradient(180deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.06) 100%);
-      border: 1px solid rgba(56,189,248,0.15);
-      border-radius: 6px;
+      background: #1a2a8a;
+      border: 2px solid rgba(255,255,255,.08);
       padding: 12px 6px;
       text-align: center;
       font-family: 'Oswald', sans-serif;
-      font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+      font-size: clamp(0.5rem, 0.85vw, 0.7rem);
       font-weight: 600;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      color: var(--frost);
-      text-shadow: 0 0 20px rgba(56,189,248,0.15);
-      position: relative;
-    }
-
-    .demo-board .cat::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 10%; right: 10%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), transparent);
+      color: #fff;
+      text-shadow: 1px 2px 4px rgba(0,0,0,.5);
     }
 
     .demo-board .cell {
@@ -417,111 +396,70 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(180deg, rgba(56,189,248,0.07) 0%, rgba(56,189,248,0.03) 100%);
-      border: 1px solid rgba(56,189,248,0.08);
-      border-radius: 6px;
+      background: #1a2a8a;
+      border: 2px solid rgba(255,255,255,.06);
       font-family: 'Oswald', sans-serif;
-      font-size: clamp(0.65rem, 1vw, 0.9rem);
-      font-weight: 600;
-      color: var(--sky);
+      font-size: clamp(0.6rem, 1vw, 0.85rem);
+      font-weight: 700;
+      color: #ffcc00;
+      text-shadow: 2px 2px 4px rgba(0,0,0,.5), 0 0 20px rgba(255,204,0,.06);
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
-      text-shadow: 0 0 10px rgba(56,189,248,0.1);
     }
-
-    .demo-board .cell::before {
+    .demo-board .cell::after {
       content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(180deg, rgba(56,189,248,0.05) 0%, transparent 50%);
-      opacity: 0;
-      transition: opacity 0.3s;
+      position: absolute; top:0; left:0; right:0; bottom:0;
+      background: linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 25%);
+      pointer-events:none;
     }
-
-    .demo-board .cell:hover::before { opacity: 1; }
-
-    .demo-board .cell:hover {
-      border-color: rgba(56,189,248,0.3);
-      background: linear-gradient(180deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.06) 100%);
-      transform: scale(1.04);
-      box-shadow: 0 0 25px rgba(56,189,248,0.12);
-    }
-
     .demo-board .cell.selected {
-      background: linear-gradient(180deg, rgba(56,189,248,0.18) 0%, rgba(56,189,248,0.08) 100%);
-      border-color: var(--sky);
-      box-shadow: 0 0 30px rgba(56,189,248,0.2), inset 0 0 20px rgba(56,189,248,0.05);
-      transform: scale(1.02);
+      background: #2236a0;
+      border-color: #ffcc00;
+      box-shadow: 0 0 20px rgba(255,204,0,.15), inset 0 0 15px rgba(255,204,0,.05);
     }
-
     .demo-board .cell.done {
-      background: rgba(148,163,184,0.02);
-      border-color: rgba(148,163,184,0.03);
-      color: rgba(148,163,184,0.08);
-      cursor: default;
+      background: rgba(0,0,0,.35);
+      border-color: rgba(255,255,255,.02);
+      color: transparent;
       text-shadow: none;
-      transform: none;
-      box-shadow: none;
+      cursor: default;
+      pointer-events: none;
     }
-    .demo-board .cell.done::before { opacity: 0; }
-
-    .demo-board .cell .value-glow {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 0; height: 0;
-      background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-
-    .demo-board .cell:hover .value-glow {
-      width: 150px; height: 150px;
-    }
+    .demo-board .cell.done::after { display: none; }
 
     .demo-clue-area {
-      margin-top: 14px;
-      min-height: 120px;
+      margin-top: 12px;
+      min-height: 100px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.2);
-      border: 1px solid rgba(148,163,184,0.06);
-      border-radius: 10px;
-      padding: 24px 20px;
-      position: relative;
-      overflow: hidden;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 6px;
+      padding: 20px 16px;
       transition: min-height 0.4s, border-color 0.3s;
     }
-
-    .demo-clue-area.active-clue {
-      border-color: rgba(56,189,248,0.12);
-    }
-
     .demo-clue-area .clue-text {
-      font-size: clamp(0.9rem, 1.4vw, 1.15rem);
-      color: rgba(241,245,249,0.8);
+      font-size: clamp(0.8rem, 1.3vw, 1rem);
+      color: #fff;
       text-align: center;
       line-height: 1.6;
       max-width: 90%;
-      font-weight: 300;
-      transition: opacity 0.4s, transform 0.4s;
+      font-weight: 400;
+      text-shadow: 1px 1px 3px rgba(0,0,0,.3);
     }
-
     .demo-clue-area .clue-text.entering {
       animation: clueTextIn 0.5s ease-out;
     }
-
     @keyframes clueTextIn {
       0% { opacity: 0; transform: translateY(15px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-
     .demo-clue-area .clue-answer-wrap {
-      margin-top: 14px;
+      margin-top: 12px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -529,161 +467,105 @@
       transform: translateY(10px);
       transition: all 0.5s ease;
     }
-
     .demo-clue-area .clue-answer-wrap.visible {
       opacity: 1;
       transform: translateY(0);
     }
-
     .demo-clue-area .clue-answer-badge {
       font-family: 'Oswald', sans-serif;
-      font-size: 0.55rem;
+      font-size: 0.5rem;
       font-weight: 600;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--navy);
-      background: var(--cyan);
+      color: #060ce9;
+      background: #ffcc00;
       padding: 3px 8px;
-      border-radius: 3px;
+      border-radius: 2px;
       line-height: 1;
     }
-
     .demo-clue-area .clue-answer {
-      font-size: clamp(0.75rem, 1.05vw, 0.95rem);
-      color: var(--cyan);
+      font-size: clamp(0.7rem, 1vw, 0.85rem);
+      color: #ffcc00;
       font-weight: 500;
-      text-shadow: 0 0 15px rgba(34,211,238,0.15);
+      text-shadow: 0 0 15px rgba(255,204,0,.15);
     }
-
     .demo-clue-area .demo-status {
-      font-size: 0.65rem;
-      color: rgba(148,163,184,0.2);
-      letter-spacing: 2.5px;
+      font-size: 0.6rem;
+      color: rgba(255,255,255,.2);
+      letter-spacing: 2px;
       text-transform: uppercase;
-      margin-top: 10px;
-      transition: color 0.3s;
+      margin-top: 8px;
     }
-
-    .demo-clue-area .demo-status.active { color: rgba(56,189,248,0.35); }
-    .demo-clue-area .demo-status.correct { color: var(--cyan); }
+    .demo-clue-area .demo-status.active { color: rgba(255,204,0,.35); }
+    .demo-clue-area .demo-status.correct { color: #4ade80; }
     .demo-clue-area .demo-status.wrong { color: #f87171; }
-
     .demo-clue-area .clue-hint {
-      font-size: 0.7rem;
-      color: rgba(148,163,184,0.15);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,.12);
       letter-spacing: 3px;
       text-transform: uppercase;
       margin-top: 4px;
-      animation: hintPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes hintPulse {
-      0%, 100% { opacity: 0.15; }
-      50% { opacity: 0.4; }
     }
 
     .demo-scores {
       display: flex;
       justify-content: center;
-      gap: 16px;
-      margin-top: 14px;
-      padding: 10px 16px;
-      background: rgba(0,0,0,0.15);
-      border: 1px solid rgba(148,163,184,0.04);
-      border-radius: 8px;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,.04);
+      border-radius: 6px;
     }
-
     .demo-scores .player {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 4px 12px;
-      border-radius: 6px;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 4px;
       transition: background 0.3s;
-      position: relative;
     }
-
-    .demo-scores .player.buzzed {
-      background: rgba(56,189,248,0.06);
-    }
-
     .demo-scores .player .name {
-      font-size: 0.7rem;
-      color: rgba(148,163,184,0.35);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,.3);
       font-weight: 500;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
-
     .demo-scores .player .score {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
-      color: var(--frost);
-      transition: all 0.3s;
-      min-width: 50px;
+      color: #fff;
+      min-width: 45px;
       text-align: right;
+      transition: all 0.3s;
     }
-
     .demo-scores .player .score.score-pop {
       animation: scorePop 0.4s ease-out;
     }
-
     @keyframes scorePop {
       0% { transform: scale(1); }
       40% { transform: scale(1.25); }
       100% { transform: scale(1); }
     }
-
-    .demo-scores .player .score.pos { color: var(--cyan); }
+    .demo-scores .player .score.pos { color: #4ade80; }
     .demo-scores .player .score.neg { color: #f87171; }
-    .demo-scores .player .score.flash-green { color: #4ade80; }
-    .demo-scores .player .score.flash-red { color: #fb7185; }
-
-    .demo-scores .player .indicator {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: transparent;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-
-    .demo-scores .player .indicator.correct {
-      background: var(--cyan);
-      box-shadow: 0 0 8px rgba(34,211,238,0.5);
-    }
-
-    .demo-scores .player .indicator.incorrect {
-      background: #f87171;
-      box-shadow: 0 0 8px rgba(248,113,113,0.5);
-    }
 
     .demo-timer {
       position: relative;
       width: 100%;
       height: 4px;
-      background: rgba(148,163,184,0.04);
-      border-radius: 2px;
+      background: rgba(255,204,0,.06);
       margin-top: 10px;
       overflow: hidden;
     }
-
     .demo-timer .bar {
       height: 100%;
-      background: linear-gradient(90deg, var(--sky), var(--cyan), var(--sky));
-      background-size: 200% 100%;
-      border-radius: 2px;
+      background: #ffcc00;
       width: 0%;
       transition: width 0.1s linear;
       position: relative;
-    }
-
-    .demo-timer .bar.running {
-      animation: timerShimmer 1.5s ease-in-out infinite;
-    }
-
-    @keyframes timerShimmer {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
     }
 
     /* ===== Counter ===== */
@@ -873,6 +755,10 @@
       animation: blink 1s step-end infinite;
     }
 
+    @keyframes typeLine {
+      0% { opacity: 0; transform: translateX(-8px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
     @keyframes blink { 50% { opacity: 0; } }
 
     /* ===== Quick Start ===== */
@@ -1241,8 +1127,8 @@
           <text x="400" y="150" font-family="Oswald, Impact, sans-serif" font-size="100" font-weight="700" fill="#38bdf8" text-anchor="middle" letter-spacing="8">TRIVIA BOARD</text>
         </svg>
       </div>
-      <h1><span class="gradient">Broadcast Engine</span></h1>
-      <div class="subtitle">TechnoThatch Software Solutions</div>
+      <h1><span class="gradient">Zero Config to Live</span></h1>
+      <div class="subtitle">TechnoThatch Trivia Broadcast Engine</div>
       <p class="tagline">
         Professional <em>dual-screen trivia hosting</em> &mdash; full-screen broadcast for the audience,
         host dashboard for you, real-time scoring, custom media assets, and a fully scriptable setup.
@@ -1427,7 +1313,7 @@
       <div class="quickstart">
         <div class="qs-step reveal reveal-delay-1">
           <div class="num">1</div>
-          <code>git clone ...</code>
+          <code>git clone https://github.com/L-Logix/Trivia-Board.git</code>
           <p>Clone the repository</p>
         </div>
         <div class="qs-step reveal reveal-delay-2">
@@ -1456,33 +1342,30 @@
         <p style="font-size:0.72rem;color:rgba(148,163,184,0.2);margin-top:6px;">Aggregate anonymous counters &mdash; no personal data collected</p>
       </div>
       <div class="stat-grid" id="statGrid">
-        <div class="stat-card"><span class="val loading" id="stat-setupRuns">&mdash;</span><span class="lbl">Setup Runs<em class="grp">CLI</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-startRuns">&mdash;</span><span class="lbl">Start Runs<em class="grp">CLI</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-showWRuns">&mdash;</span><span class="lbl">Show Warranty<em class="grp">CLI</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-showCRuns">&mdash;</span><span class="lbl">Show Conditions<em class="grp">CLI</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-modeTypical">&mdash;</span><span class="lbl">Typical Mode<em class="grp">Setup</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-modeCustom">&mdash;</span><span class="lbl">Custom Mode<em class="grp">Setup</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-modeExisting">&mdash;</span><span class="lbl">Edit Existing<em class="grp">Setup</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-csvImports">&mdash;</span><span class="lbl">CSV Imports<em class="grp">Data</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-sheetImports">&mdash;</span><span class="lbl">Sheet Imports<em class="grp">Data</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-updateContent">&mdash;</span><span class="lbl">Content Updates<em class="grp">Data</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-templateGenerated">&mdash;</span><span class="lbl">Templates<em class="grp">Data</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-fileBasedSetup">&mdash;</span><span class="lbl">Flag Setup<em class="grp">Data</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-traditionalPreset">&mdash;</span><span class="lbl">Traditional<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-modernPreset">&mdash;</span><span class="lbl">Modern<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-customValuesSet">&mdash;</span><span class="lbl">Custom Values<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-doubleRoundEnabled">&mdash;</span><span class="lbl">Double Round<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-childHostEnabled">&mdash;</span><span class="lbl">Kid Mode<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-timerChanged">&mdash;</span><span class="lbl">Timer Changed<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-bonusCluesEnabled">&mdash;</span><span class="lbl">Bonus Enabled<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-jeopardyStyle">&mdash;</span><span class="lbl">Jeopardy Style<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-championshipEnabled">&mdash;</span><span class="lbl">Championship<em class="grp">Config</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-gamesStarted">&mdash;</span><span class="lbl">Games Started<em class="grp">Gameplay</em></span></div>
-        <div class="stat-card"><span class="val loading" id="stat-gamesCompleted">&mdash;</span><span class="lbl">Games Won<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-totalPointsEarned">&mdash;</span><span class="lbl">Money Earned<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-totalPointsLost">&mdash;</span><span class="lbl">Money Lost<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-gamesPlayed">&mdash;</span><span class="lbl">Games Played<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-gamesCompleted">&mdash;</span><span class="lbl">Completed<em class="grp">Gameplay</em></span></div>
         <div class="stat-card"><span class="val loading" id="stat-correctAnswers">&mdash;</span><span class="lbl">Correct<em class="grp">Gameplay</em></span></div>
         <div class="stat-card"><span class="val loading" id="stat-incorrectAnswers">&mdash;</span><span class="lbl">Incorrect<em class="grp">Gameplay</em></span></div>
         <div class="stat-card"><span class="val loading" id="stat-bonusCluesHit">&mdash;</span><span class="lbl">Bonus Clues<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-totalWagers">&mdash;</span><span class="lbl">Wagered<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-championshipRounds">&mdash;</span><span class="lbl">Championships<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-cluesRevealed">&mdash;</span><span class="lbl">Clues Revealed<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-biggestWin">&mdash;</span><span class="lbl">Biggest Win<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-biggestLoss">&mdash;</span><span class="lbl">Biggest Loss<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-averageScore">&mdash;</span><span class="lbl">Avg Score<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-bestStreak">&mdash;</span><span class="lbl">Best Streak<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-categoriesRevealed">&mdash;</span><span class="lbl">Categories<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-timerExpired">&mdash;</span><span class="lbl">Times Up<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-buzzesRegistered">&mdash;</span><span class="lbl">Buzzes<em class="grp">Gameplay</em></span></div>
         <div class="stat-card"><span class="val loading" id="stat-totalPlayers">&mdash;</span><span class="lbl">Total Players<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-setupRuns">&mdash;</span><span class="lbl">Setup Runs<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-startRuns">&mdash;</span><span class="lbl">Server Starts<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-showWRuns">&mdash;</span><span class="lbl">Show Warranty<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-showCRuns">&mdash;</span><span class="lbl">Show Conditions<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-csvImports">&mdash;</span><span class="lbl">CSV Imports<em class="grp">Data</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-sheetImports">&mdash;</span><span class="lbl">Sheet Imports<em class="grp">Data</em></span></div>
       </div>
       <div class="stats-notice" id="statsNotice"><span class="dot live"></span> Connecting to server for live stats&hellip;</div>
     </section>
@@ -1508,6 +1391,24 @@
       <div class="footer-copy">&copy; 2025 TechnoThatch Software Solutions &mdash; Trivia Broadcast Engine. Released under GNU GPL v3.</div>
     </footer>
 
+  </div>
+
+  <div id="gpl-notice">
+    <div class="modal">
+      <h2>Data Collection Notice</h2>
+      <p><strong>Trivia Broadcast Engine</strong> collects anonymous usage statistics to help improve the software.</p>
+      <p>What is collected:</p>
+      <ul>
+        <li>Total in-game points earned and lost</li>
+        <li>Games played, completed, and average scores</li>
+        <li>Aggregate correct/incorrect answer counts</li>
+        <li>Streaks, buzzes, times-ups, and bonus clue stats</li>
+        <li>CLI and data import counts</li>
+      </ul>
+      <p><strong>No personal data is collected.</strong> No category names, clues, answers, player names, IP addresses, or any identifiable information is ever recorded or transmitted.</p>
+      <p>These counters are stored locally and served from your trivia server. No data is sent to external services.</p>
+      <button class="btn-accept" id="gpl-accept">I Understand</button>
+    </div>
   </div>
 
   <script>
@@ -1952,6 +1853,7 @@
     (function() {
       var popup = document.getElementById('gpl-notice');
       var btn = document.getElementById('gpl-accept');
+      if (!popup || !btn) return;
       var key = 'triviaBoardStatsConsent';
       var accepted = false;
       try { accepted = localStorage.getItem(key) === '1'; } catch(e) {}
@@ -1964,70 +1866,76 @@
       });
     })();
 
-    // ===== Live Stats Fetcher =====
+    // ===== Stats Fetcher (live API or static JSON) =====
     (function() {
-      var statKeys = ['setupRuns','startRuns','showWRuns','showCRuns','modeTypical','modeCustom','modeExisting','csvImports','sheetImports','updateContent','templateGenerated','fileBasedSetup','traditionalPreset','modernPreset','customValuesSet','doubleRoundEnabled','childHostEnabled','timerChanged','bonusCluesEnabled','jeopardyStyle','championshipEnabled','gamesStarted','gamesCompleted','correctAnswers','incorrectAnswers','bonusCluesHit','totalPlayers'];
+      var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      var statKeys = ['totalPointsEarned','totalPointsLost','gamesPlayed','gamesCompleted','correctAnswers','incorrectAnswers','bonusCluesHit','totalWagers','championshipRounds','cluesRevealed','biggestWin','biggestLoss','averageScore','bestStreak','categoriesRevealed','timerExpired','buzzesRegistered','totalPlayers','setupRuns','startRuns','showWRuns','showCRuns','csvImports','sheetImports'];
       var notice = document.getElementById('statsNotice');
       var accepted = false;
       try { accepted = localStorage.getItem('triviaBoardStatsConsent') === '1'; } catch(e) {}
-      if (!accepted) { notice.innerHTML = 'Accept data collection notice above to enable live stats.'; return; }
+      if (!accepted) {
+        notice.innerHTML = 'Accept data collection notice above to enable stats.';
+        return;
+      }
+
+      statKeys.forEach(function(k) {
+        var el = document.getElementById('stat-' + k);
+        if (el) { el.textContent = '0'; el.className = 'val'; }
+      });
+
+      var url;
+      if (isLocal) {
+        url = 'http://' + location.hostname + ':3333/api/usage-stats';
+      } else {
+        var base = location.pathname.replace(/\/[^/]*$/, '');
+        url = base + '/usage-stats.json';
+      }
+
+      function applyStats(stats, live) {
+        var any = false;
+        statKeys.forEach(function(k) {
+          var el = document.getElementById('stat-' + k);
+          if (!el) return;
+          var v = typeof stats[k] === 'number' ? stats[k] : 0;
+          el.textContent = v > 0 ? v : '0';
+          el.className = 'val' + (live ? ' live' : '');
+          if (v > 0) any = true;
+        });
+        if (live && any) notice.innerHTML = '<span class="dot live"></span> Live from trivia server';
+        else if (live) notice.innerHTML = '<span class="dot live"></span> Connected &mdash; waiting for activity';
+        else if (any) notice.innerHTML = 'Published stats from ' + new Date().toLocaleDateString();
+        else notice.innerHTML = 'No stats published yet';
+      }
 
       function fetchStats() {
-        var url = 'http://' + (location.hostname || 'localhost') + ':3333/api/usage-stats';
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.timeout = 4000;
         xhr.onload = function() {
           if (xhr.status === 200) {
             try {
-              var resp = JSON.parse(xhr.responseText);
-              var stats = resp.stats || {};
-              var anyLive = false;
-              statKeys.forEach(function(k) {
-                var el = document.getElementById('stat-' + k);
-                if (!el) return;
-                var v = typeof stats[k] === 'number' ? stats[k] : 0;
-                el.textContent = v > 0 ? v : '0';
-                el.className = 'val live';
-                if (v > 0) anyLive = true;
-              });
-              if (anyLive) {
-                notice.innerHTML = '<span class="dot live"></span> Live from trivia server';
-              } else {
-                notice.innerHTML = '<span class="dot live"></span> Connected &mdash; waiting for activity';
-              }
+              var raw = JSON.parse(xhr.responseText);
+              var stats = raw.stats || raw;
+              applyStats(stats, isLocal);
             } catch(e) { notice.textContent = 'Could not parse stats'; }
           } else {
-            notice.innerHTML = 'Start the trivia server to see live stats';
+            notice.innerHTML = isLocal ? 'Start the trivia server to see live stats' : 'Stats file not found &mdash; run <code>trivia api test</code> to generate';
           }
         };
-        xhr.onerror = function() { notice.innerHTML = 'Start the trivia server to see live stats'; };
-        xhr.ontimeout = function() { notice.innerHTML = 'Start the trivia server to see live stats'; };
+        xhr.onerror = function() {
+          notice.innerHTML = isLocal ? 'Start the trivia server to see live stats' : 'Could not load stats file';
+        };
+        xhr.ontimeout = function() {
+          notice.innerHTML = isLocal ? 'Trivia server not responding' : 'Could not load stats file';
+        };
         xhr.send();
       }
 
       fetchStats();
-      setInterval(fetchStats, 30000);
+      if (isLocal) setInterval(fetchStats, 30000);
     })();
-  </script>
 
-  <div id="gpl-notice">
-    <div class="modal">
-      <h2>Data Collection Notice</h2>
-      <p><strong>Trivia Broadcast Engine</strong> collects anonymous usage statistics to help improve the software.</p>
-      <p>What is collected:</p>
-      <ul>
-        <li>How many times each CLI command runs</li>
-        <li>How many games are started, completed, won</li>
-        <li>Aggregate counts of correct/incorrect answers</li>
-        <li>Feature usage counts (bonus clues, double rounds, etc.)</li>
-        <li>Setup mode and preset preferences</li>
-      </ul>
-      <p><strong>No personal data is collected.</strong> No category names, clues, answers, player names, IP addresses, or any identifiable information is ever recorded or transmitted.</p>
-      <p>These counters are stored locally and served from your trivia server. No data is sent to external services.</p>
-      <button class="btn-accept" id="gpl-accept">I Understand</button>
-    </div>
-  </div>
+</script>
 
 </body>
 </html>

@@ -40,6 +40,7 @@ function setup(ioInstance, config) {
     });
 
     socket.on('reveal-category', (data) => {
+      stats.increment('categoriesRevealed');
       var idx = data.index;
       allCategoriesRevealed[idx] = true;
       io.emit('category-reveal-cover', { index: idx, allRevealed: Object.keys(allCategoriesRevealed).length >= gameState.config.columns });
@@ -50,6 +51,15 @@ function setup(ioInstance, config) {
     });
 
     socket.on('populate-board', () => {
+      if (gameState.board) {
+        var total = 0;
+        for (var c = 0; c < gameState.board.length; c++) {
+          for (var r = 0; r < gameState.board[c].length; r++) {
+            if (gameState.board[c][r] && gameState.board[c][r].value) total += gameState.board[c][r].value;
+          }
+        }
+        stats.increment('moneyOnBoard', total);
+      }
       io.emit('board-populated', {});
     });
 
@@ -68,9 +78,10 @@ function setup(ioInstance, config) {
 
       if (!gameHasStarted) {
         gameHasStarted = true;
-        stats.increment('gamesStarted');
+        stats.increment('gamesPlayed');
       }
 
+      stats.increment('cluesRevealed');
       gameState.recordClueShown(col, row, cell.isBonusClue);
 
       io.emit('clue-opened', {
@@ -98,6 +109,7 @@ function setup(ioInstance, config) {
       gameState.setBonusClueWager(playerIndex, wager);
       gameState.confirmBonusClue();
       gameState.recordBonusClueAttempt(playerIndex);
+      stats.increment('totalWagers', wager);
       const cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
       if (cell) {
         stats.increment('bonusCluesHit');
@@ -120,6 +132,7 @@ function setup(ioInstance, config) {
     });
 
     socket.on('player-buzz', (data) => {
+      stats.increment('buzzesRegistered');
       const wasRunning = gameState.timer.running;
       if (wasRunning) gameState.stopTimer();
       io.emit('buzz-result', {
@@ -141,7 +154,7 @@ function setup(ioInstance, config) {
       if (!gameState.currentClue || gameState.phase !== 'clue') return;
       if (gameState.timer.running || gameState.timer.paused) return;
       gameState.startTimer(
-        () => { gameState.recordTimesUp(); io.emit('times-up'); },
+        () => { stats.increment('timerExpired'); gameState.recordTimesUp(); io.emit('times-up'); },
         (remaining) => { io.emit('timer-tick', { remaining, running: true }); }
       );
     });
@@ -159,6 +172,7 @@ function setup(ioInstance, config) {
         var bonusDelta = gameState.bonusClueWager;
         if (gameState.currentClue) gameState.currentClue.answered = true;
         gameState.adjustScore(pi, bonusDelta);
+        stats.addPointsEarned(bonusDelta);
         gameState.bonusCluePlayerIndex = null;
         gameState.bonusClueWager = 0;
         io.emit('score-updated', {
@@ -169,7 +183,7 @@ function setup(ioInstance, config) {
       } else if (pi !== undefined && pi !== null && gameState.currentClue) {
         gameState.currentClue.answered = true;
         var cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
-        if (cell) gameState.adjustScore(pi, cell.value);
+        if (cell) { gameState.adjustScore(pi, cell.value); stats.addPointsEarned(cell.value); }
         io.emit('score-updated', {
           players: gameState.players.map(p => ({ ...p })),
           playerIndex: pi,
@@ -193,6 +207,7 @@ function setup(ioInstance, config) {
         var bonusDelta = -gameState.bonusClueWager;
         if (gameState.currentClue) gameState.currentClue.answered = true;
         gameState.adjustScore(pi, bonusDelta);
+        stats.addPointsLost(gameState.bonusClueWager);
         gameState.bonusCluePlayerIndex = null;
         gameState.bonusClueWager = 0;
         io.emit('score-updated', {
@@ -211,7 +226,7 @@ function setup(ioInstance, config) {
         if (gameState.currentClue.incorrectPlayers.indexOf(pi) !== -1) return;
         gameState.currentClue.incorrectPlayers.push(pi);
         var cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
-        if (cell) gameState.adjustScore(pi, -cell.value);
+        if (cell) { gameState.adjustScore(pi, -cell.value); stats.addPointsLost(cell.value); }
         const shouldPause = gameState.timer.running;
         if (shouldPause) gameState.pauseTimer();
         if (cell) gameState.recordClueAnswered(gameState.currentClue.col, gameState.currentClue.row, false, pi, cell.isBonusClue);
@@ -311,6 +326,7 @@ function setup(ioInstance, config) {
 
     socket.on('advance-round2', () => {
       gameState.advanceToRound2();
+      stats.increment('totalRounds');
       allCategoriesRevealed = {};
       var r2Cats = gameState.config.categoriesR2 || gameState.config.categories;
       io.emit('round2-started', {
@@ -324,6 +340,7 @@ function setup(ioInstance, config) {
 
     socket.on('advance-championship', () => {
       gameState.advanceToChampionship();
+      stats.increment('championshipRounds');
       const q = gameState.getCurrentChampionshipQuestion();
       io.emit('championship-started', {
         phase: 'championship',
@@ -454,7 +471,9 @@ function setup(ioInstance, config) {
     });
 
     socket.on('show-winner', () => {
-      stats.increment('gamesCompleted');
+      var scores = gameState.players.map(function(p) { return p.score || 0; });
+      var total = scores.reduce(function(a, b) { return a + b; }, 0);
+      stats.gameCompleted(total);
       io.emit('show-winner', {
         players: gameState.players.map(p => ({ ...p }))
       });
