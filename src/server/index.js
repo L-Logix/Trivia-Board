@@ -5,6 +5,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const socketHandlers = require('./socket-handlers');
+const stats = require('../lib/stats');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -61,6 +62,11 @@ function start(port, config, callback) {
       doubleValues: config.doubleValues,
       championshipQuestions: config.championshipQuestions
     });
+  });
+
+  app.get('/api/usage-stats', (req, res) => {
+    var data = stats.getAll();
+    res.json({ stats: data, collected: true, notice: 'Anonymous usage statistics. No personal data collected.' });
   });
 
   app.get('/api/stats', (req, res) => {

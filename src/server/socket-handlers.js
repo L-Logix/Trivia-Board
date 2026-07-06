@@ -1,8 +1,10 @@
 const GameState = require('./game-state');
+const stats = require('../lib/stats');
 
 let gameState = null;
 let io = null;
 let allCategoriesRevealed = {};
+var gameHasStarted = false;
 
 function parseNonNegativeAmount(value) {
   const n = parseInt(String(value || '0').replace(/[^\d-]/g, ''), 10);
@@ -64,6 +66,11 @@ function setup(ioInstance, config) {
       const cell = gameState.selectClue(col, row);
       if (!cell) return;
 
+      if (!gameHasStarted) {
+        gameHasStarted = true;
+        stats.increment('gamesStarted');
+      }
+
       gameState.recordClueShown(col, row, cell.isBonusClue);
 
       io.emit('clue-opened', {
@@ -93,6 +100,7 @@ function setup(ioInstance, config) {
       gameState.recordBonusClueAttempt(playerIndex);
       const cell = gameState.getCell(gameState.currentClue.col, gameState.currentClue.row);
       if (cell) {
+        stats.increment('bonusCluesHit');
         io.emit('bonus-clue-shown', {
           clue: cell.clue,
           value: cell.value,
@@ -144,6 +152,7 @@ function setup(ioInstance, config) {
 
     socket.on('answer-correct', (data) => {
       if (gameState.currentClue && gameState.currentClue.answered) return;
+      stats.increment('correctAnswers');
       var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
       if (gameState.bonusCluePlayerIndex !== null) {
         pi = gameState.bonusCluePlayerIndex;
@@ -177,6 +186,7 @@ function setup(ioInstance, config) {
 
     socket.on('answer-incorrect', (data) => {
       if (gameState.currentClue && gameState.currentClue.answered) return;
+      stats.increment('incorrectAnswers');
       var pi = data && data.playerIndex !== undefined ? data.playerIndex : gameState.bonusCluePlayerIndex;
       if (gameState.bonusCluePlayerIndex !== null) {
         pi = gameState.bonusCluePlayerIndex;
@@ -444,6 +454,7 @@ function setup(ioInstance, config) {
     });
 
     socket.on('show-winner', () => {
+      stats.increment('gamesCompleted');
       io.emit('show-winner', {
         players: gameState.players.map(p => ({ ...p }))
       });
@@ -460,6 +471,7 @@ function setup(ioInstance, config) {
     socket.on('reset-game', () => {
       gameState.reset();
       allCategoriesRevealed = {};
+      gameHasStarted = false;
       io.emit('game-reset', gameState.serialize());
     });
 

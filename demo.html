@@ -560,6 +560,18 @@
       text-align: center;
     }
 
+    #gpl-notice { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(7,11,23,0.92); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+    #gpl-notice.open { display:flex; }
+    #gpl-notice .modal { max-width:480px; width:90%; background:#0c1020; border:1px solid rgba(148,163,184,0.08); border-radius:16px; padding:32px 28px; }
+    #gpl-notice .modal h2 { font-family:'Oswald',sans-serif; font-size:1.1rem; letter-spacing:2px; text-transform:uppercase; color:var(--indigo); margin-bottom:16px; }
+    #gpl-notice .modal p { font-size:0.78rem; line-height:1.7; color:rgba(148,163,184,0.4); margin-bottom:12px; }
+    #gpl-notice .modal p strong { color:rgba(148,163,184,0.6); }
+    #gpl-notice .modal ul { list-style:none; padding:0; margin:0 0 20px; }
+    #gpl-notice .modal ul li { font-size:0.72rem; color:rgba(148,163,184,0.3); padding:4px 0; padding-left:20px; position:relative; }
+    #gpl-notice .modal ul li::before { content:''; position:absolute; left:4px; top:10px; width:4px; height:4px; border-radius:50%; background:rgba(148,163,184,0.15); }
+    #gpl-notice .modal .btn-accept { display:block; width:100%; padding:12px; border-radius:8px; border:1px solid rgba(129,140,248,0.2); background:rgba(129,140,248,0.08); color:var(--indigo); font-family:'Oswald',sans-serif; font-size:0.85rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; }
+    #gpl-notice .modal .btn-accept:hover { background:rgba(129,140,248,0.15); border-color:rgba(129,140,248,0.35); }
+
     @media (max-width: 768px) {
       .nav-links {
         display: none;
@@ -599,14 +611,14 @@
   <!-- NAV -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <a href="/Trivia-Board/" class="nav-logo">Trivia <span class="accent">Board</span></a>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
       <div class="nav-links" id="navLinks">
-        <a href="/">Home</a>
-        <a href="/features.html">Features</a>
-        <a href="/demo.html" class="active">Live Demo</a>
-        <a href="/docs.html">Docs</a>
-        <a href="/about.html">About</a>
+        <a href="/Trivia-Board/">Home</a>
+        <a href="/Trivia-Board/features.html">Features</a>
+        <a href="/Trivia-Board/demo.html" class="active">Live Demo</a>
+        <a href="/Trivia-Board/docs.html">Docs</a>
+        <a href="/Trivia-Board/about.html">About</a>
       </div>
     </div>
   </nav>
@@ -1117,6 +1129,27 @@
       shuffledClues = shuffle(ALL_CLUES.slice());
       buildBoard();
     })();
+
+    (function(){var p=document.getElementById('gpl-notice'),b=document.getElementById('gpl-accept'),k='triviaBoardStatsConsent',a=false;try{a=localStorage.getItem(k)==='1'}catch(e){}if(!a)p.classList.add('open');b.addEventListener('click',function(){try{localStorage.setItem(k,'1')}catch(e){}p.classList.remove('open')});})();
   </script>
+
+  <div id="gpl-notice">
+    <div class="modal">
+      <h2>Data Collection Notice</h2>
+      <p><strong>Trivia Broadcast Engine</strong> collects anonymous usage statistics to help improve the software.</p>
+      <p>What is collected:</p>
+      <ul>
+        <li>How many times each CLI command runs</li>
+        <li>How many games are started, completed, won</li>
+        <li>Aggregate counts of correct/incorrect answers</li>
+        <li>Feature usage counts (bonus clues, double rounds, etc.)</li>
+        <li>Setup mode and preset preferences</li>
+      </ul>
+      <p><strong>No personal data is collected.</strong> No category names, clues, answers, player names, IP addresses, or any identifiable information is ever recorded or transmitted.</p>
+      <p>These counters are stored locally and served from your trivia server. No data is sent to external services.</p>
+      <button class="btn-accept" id="gpl-accept">I Understand</button>
+    </div>
+  </div>
+
 </body>
 </html>

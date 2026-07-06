@@ -1,4 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
-  <rect width="800" height="400" fill="#070b17"/>
-  <text x="400" y="200" font-family="Oswald, Impact, sans-serif" font-size="90" font-weight="700" fill="#38bdf8" text-anchor="middle" letter-spacing="6">WELCOME</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" fill="#070b17"/>
+  <rect x="4" y="4" width="56" height="56" rx="6" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.3"/>
+  <rect x="14" y="12" width="36" height="30" rx="3" fill="none" stroke="#818cf8" stroke-width="2"/>
+  <line x1="14" y1="22" x2="50" y2="22" stroke="#818cf8" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="22" cy="34" r="2.5" fill="#22d3ee"/>
+  <circle cx="32" cy="34" r="2.5" fill="#22d3ee"/>
+  <circle cx="42" cy="34" r="2.5" fill="#22d3ee"/>
+  <rect x="20" y="42" width="24" height="2" rx="1" fill="#38bdf8" opacity="0.6"/>
+  <rect x="24" y="46" width="16" height="2" rx="1" fill="#38bdf8" opacity="0.4"/>
+  <rect x="28" y="50" width="8" height="2" rx="1" fill="#38bdf8" opacity="0.2"/>
+  <circle cx="32" cy="51" r="10" fill="none" stroke="#22d3ee" stroke-width="0.8" opacity="0.15"/>
+  <circle cx="32" cy="51" r="14" fill="none" stroke="#22d3ee" stroke-width="0.5" opacity="0.08"/>
 </svg>
