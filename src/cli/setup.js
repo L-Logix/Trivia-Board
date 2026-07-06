@@ -5,6 +5,7 @@ const http = require('http');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 const { parse } = require('csv-parse/sync');
+const stats = require('../lib/stats');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const CONFIG_PATH = path.join(ROOT, 'config.json');
@@ -703,6 +704,7 @@ async function readCsvSource(input, label) {
   const src = String(input).trim();
   const converted = convertSheetUrl(src);
   if (/^https?:\/\//i.test(converted)) {
+    stats.increment('sheetImports');
     console.log(chalk.cyan('  \u2192 Fetching ' + label + ' from URL...'));
     return fetchUrl(converted);
   }
@@ -940,6 +942,8 @@ function shouldRefreshSavedSources(options) {
 }
 
 async function runContentOnlyUpdate(options) {
+  stats.increment('updateContent');
+
   console.log(chalk.cyan('\n  Trivia Setup Update'));
   console.log(chalk.cyan('  ========================================\n'));
 
@@ -966,6 +970,7 @@ async function runContentOnlyUpdate(options) {
     config.answers = board.answers;
     updateSavedSource(config, 'round1', round1Source, options.saveSources);
     changed = true;
+    stats.increment('csvImports');
     console.log(chalk.green('  \u2713 Loaded Round 1 content'));
   } else {
     console.log(chalk.gray('  - Kept existing Round 1 content (no --round1 or saved source)'));
@@ -1011,6 +1016,14 @@ async function runContentOnlyUpdate(options) {
 
   const templateCsv = generateTemplate(config);
   fs.writeFileSync(TEMPLATE_PATH, templateCsv);
+  if (config.doubleRound) stats.increment('doubleRoundEnabled');
+  if (config.childHost) stats.increment('childHostEnabled');
+  if (config.jeopardyStyle) stats.increment('jeopardyStyle');
+  if (config.bonusCluesRound1 > 0 || config.bonusCluesRound2 > 0) stats.increment('bonusCluesEnabled');
+  if (config.championshipQuestions || config.championshipClue) stats.increment('championshipEnabled');
+  if (config.timerSeconds !== undefined && config.timerSeconds !== 5) stats.increment('timerChanged');
+  if (config.players && config.players.length > 0) stats.increment('totalPlayers', config.players.length);
+
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 
   console.log('');
@@ -1116,6 +1129,10 @@ async function main() {
     }
   ]);
 
+  if (mode === 'typical') stats.increment('modeTypical');
+  else if (mode === 'custom') stats.increment('modeCustom');
+  else if (mode === 'existing') stats.increment('modeExisting');
+
   let config = {};
   let isExisting = false;
 
@@ -1183,9 +1200,11 @@ async function main() {
     if (vp === 'traditional') {
       config.baseValues = [100, 200, 300, 400, 500];
       config.doubleValues = [200, 400, 600, 800, 1000];
+      stats.increment('traditionalPreset');
     } else {
       config.baseValues = [200, 400, 600, 800, 1000];
       config.doubleValues = [400, 800, 1200, 1600, 2000];
+      stats.increment('modernPreset');
     }
   } else {
     const dfl = isExisting ? config : {};
@@ -1208,8 +1227,9 @@ async function main() {
             ], default: isTrad ? 'traditional' : 'modern'
           }
         ]);
-        if (vp === 'traditional') { presetValues = [100,200,300,400,500]; presetDouble = [200,400,600,800,1000]; }
-        else if (vp === 'modern') { presetValues = [200,400,600,800,1000]; presetDouble = [400,800,1200,1600,2000]; }
+        if (vp === 'traditional') { presetValues = [100,200,300,400,500]; presetDouble = [200,400,600,800,1000]; stats.increment('traditionalPreset'); }
+        else if (vp === 'modern') { presetValues = [200,400,600,800,1000]; presetDouble = [400,800,1200,1600,2000]; stats.increment('modernPreset'); }
+        else if (vp === 'custom') { stats.increment('customValuesSet'); }
       }
     } else if (!isExisting) {
       console.log(chalk.cyan('\n  Value Preset:'));
@@ -1223,8 +1243,9 @@ async function main() {
           ], default: 'modern'
         }
       ]);
-      if (vp === 'traditional') { presetValues = [100,200,300,400,500]; presetDouble = [200,400,600,800,1000]; }
-      else if (vp === 'modern') { presetValues = [200,400,600,800,1000]; presetDouble = [400,800,1200,1600,2000]; }
+      if (vp === 'traditional') { presetValues = [100,200,300,400,500]; presetDouble = [200,400,600,800,1000]; stats.increment('traditionalPreset'); }
+      else if (vp === 'modern') { presetValues = [200,400,600,800,1000]; presetDouble = [400,800,1200,1600,2000]; stats.increment('modernPreset'); }
+      else if (vp === 'custom') { stats.increment('customValuesSet'); }
     }
     const answers = await inquirer.prompt([
       {
@@ -1380,6 +1401,7 @@ async function main() {
 
   // Generate template CSV
   const templateCsv = generateTemplate(config);
+  stats.increment('templateGenerated');
   fs.writeFileSync(TEMPLATE_PATH, templateCsv);
   console.log(chalk.cyan('  \u2192 Generated template: ') + chalk.bold('trivia-template.csv'));
   console.log(chalk.cyan('    Open it as a guide for formatting your Google Sheet.\n'));
@@ -1437,6 +1459,7 @@ async function main() {
         categories = board.categories;
         clues = board.clues;
         answers = board.answers;
+        stats.increment('csvImports');
         console.log(chalk.green('  \u2713 Loaded ' + config.columns + ' categories x ' + config.rows + ' rows'));
       } catch (e) {
         console.log(chalk.red('  \u2717 CSV parse error: ' + e.message));
@@ -1799,6 +1822,14 @@ async function main() {
   } else {
     config.childHost = false;
   }
+
+  if (config.doubleRound) stats.increment('doubleRoundEnabled');
+  if (config.childHost) stats.increment('childHostEnabled');
+  if (config.jeopardyStyle) stats.increment('jeopardyStyle');
+  if (config.bonusCluesRound1 > 0 || config.bonusCluesRound2 > 0) stats.increment('bonusCluesEnabled');
+  if (config.championshipQuestions || config.championshipClue) stats.increment('championshipEnabled');
+  if (config.timerSeconds !== undefined && config.timerSeconds !== 5) stats.increment('timerChanged');
+  if (config.players && config.players.length > 0) stats.increment('totalPlayers', config.players.length);
 
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   console.log('');

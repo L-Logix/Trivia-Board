@@ -927,6 +927,156 @@
       color: rgba(148,163,184,0.3);
     }
 
+    /* ===== Usage Stats ===== */
+    .usage-stats {
+      max-width: 1000px;
+      margin: 0 auto 60px;
+      padding: 0 24px;
+    }
+    .usage-stats .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .usage-stats .stat-card {
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.05);
+      border-radius: 8px;
+      padding: 14px 12px;
+      text-align: center;
+      transition: border-color 0.3s;
+    }
+    .usage-stats .stat-card:hover {
+      border-color: rgba(129,140,248,0.12);
+    }
+    .usage-stats .stat-card .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--indigo);
+      display: block;
+    }
+    .usage-stats .stat-card .lbl {
+      font-size: 0.58rem;
+      color: rgba(148,163,184,0.25);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+      display: block;
+    }
+    .usage-stats .stat-card .lbl .grp {
+      display: block;
+      margin-top: 2px;
+      color: rgba(148,163,184,0.12);
+      font-size: 0.5rem;
+      letter-spacing: 2px;
+    }
+    .usage-stats .stat-card .dot {
+      display: inline-block;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .usage-stats .stat-card .dot.cyan { background: var(--cyan); }
+    .usage-stats .stat-card .dot.sky { background: #38bdf8; }
+    .usage-stats .stat-card .dot.indigo { background: var(--indigo); }
+    .usage-stats .stat-card .dot.live {
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34,197,94,0.5);
+      animation: livePulse 1.5s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    .usage-stats .stat-card .val.live { color: #22c55e; }
+    .usage-stats .stat-card .val.loading { color: rgba(148,163,184,0.15); }
+    .usage-stats .stats-notice {
+      text-align: center;
+      font-size: 0.65rem;
+      color: rgba(148,163,184,0.12);
+      margin-top: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* ===== Data Collection Popup ===== */
+    #gpl-notice {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(7,11,23,0.92);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+    }
+    #gpl-notice.open { display: flex; }
+    #gpl-notice .modal {
+      max-width: 480px;
+      width: 90%;
+      background: #0c1020;
+      border: 1px solid rgba(148,163,184,0.08);
+      border-radius: 16px;
+      padding: 32px 28px;
+    }
+    #gpl-notice .modal h2 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--indigo);
+      margin-bottom: 16px;
+    }
+    #gpl-notice .modal p {
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: rgba(148,163,184,0.4);
+      margin-bottom: 12px;
+    }
+    #gpl-notice .modal p strong { color: rgba(148,163,184,0.6); }
+    #gpl-notice .modal ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+    }
+    #gpl-notice .modal ul li {
+      font-size: 0.72rem;
+      color: rgba(148,163,184,0.3);
+      padding: 4px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    #gpl-notice .modal ul li::before {
+      content: '';
+      position: absolute;
+      left: 4px; top: 10px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: rgba(148,163,184,0.15);
+    }
+    #gpl-notice .modal .btn-accept {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(129,140,248,0.2);
+      background: rgba(129,140,248,0.08);
+      color: var(--indigo);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    #gpl-notice .modal .btn-accept:hover {
+      background: rgba(129,140,248,0.15);
+      border-color: rgba(129,140,248,0.35);
+    }
+
     /* ===== Footer ===== */
     footer {
       max-width: 1200px;
@@ -1070,14 +1220,14 @@
   <!-- NAV -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">Trivia <span class="accent">Board</span></a>
+      <a href="/Trivia-Board/" class="nav-logo">Trivia <span class="accent">Board</span></a>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
       <div class="nav-links" id="navLinks">
-        <a href="/" class="active">Home</a>
+        <a href="/Trivia-Board/" class="active">Home</a>
         <a href="/Trivia-Board/features.html">Features</a>
         <a href="/Trivia-Board/demo.html">Live Demo</a>
         <a href="/Trivia-Board/docs.html">Docs</a>
-        <a href="/about.html">About</a>
+        <a href="/Trivia-Board/about.html">About</a>
       </div>
     </div>
   </nav>
@@ -1296,6 +1446,45 @@
           <p>Launch on port 3333</p>
         </div>
       </div>
+    </section>
+
+    <!-- USAGE STATS -->
+    <section class="usage-stats" id="usageStats">
+      <div class="section-header reveal">
+        <h2>Live Usage <span class="accent">Stats</span></h2>
+        <div class="bar"></div>
+        <p style="font-size:0.72rem;color:rgba(148,163,184,0.2);margin-top:6px;">Aggregate anonymous counters &mdash; no personal data collected</p>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card"><span class="val loading" id="stat-setupRuns">&mdash;</span><span class="lbl">Setup Runs<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-startRuns">&mdash;</span><span class="lbl">Start Runs<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-showWRuns">&mdash;</span><span class="lbl">Show Warranty<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-showCRuns">&mdash;</span><span class="lbl">Show Conditions<em class="grp">CLI</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-modeTypical">&mdash;</span><span class="lbl">Typical Mode<em class="grp">Setup</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-modeCustom">&mdash;</span><span class="lbl">Custom Mode<em class="grp">Setup</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-modeExisting">&mdash;</span><span class="lbl">Edit Existing<em class="grp">Setup</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-csvImports">&mdash;</span><span class="lbl">CSV Imports<em class="grp">Data</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-sheetImports">&mdash;</span><span class="lbl">Sheet Imports<em class="grp">Data</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-updateContent">&mdash;</span><span class="lbl">Content Updates<em class="grp">Data</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-templateGenerated">&mdash;</span><span class="lbl">Templates<em class="grp">Data</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-fileBasedSetup">&mdash;</span><span class="lbl">Flag Setup<em class="grp">Data</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-traditionalPreset">&mdash;</span><span class="lbl">Traditional<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-modernPreset">&mdash;</span><span class="lbl">Modern<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-customValuesSet">&mdash;</span><span class="lbl">Custom Values<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-doubleRoundEnabled">&mdash;</span><span class="lbl">Double Round<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-childHostEnabled">&mdash;</span><span class="lbl">Kid Mode<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-timerChanged">&mdash;</span><span class="lbl">Timer Changed<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-bonusCluesEnabled">&mdash;</span><span class="lbl">Bonus Enabled<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-jeopardyStyle">&mdash;</span><span class="lbl">Jeopardy Style<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-championshipEnabled">&mdash;</span><span class="lbl">Championship<em class="grp">Config</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-gamesStarted">&mdash;</span><span class="lbl">Games Started<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-gamesCompleted">&mdash;</span><span class="lbl">Games Won<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-correctAnswers">&mdash;</span><span class="lbl">Correct<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-incorrectAnswers">&mdash;</span><span class="lbl">Incorrect<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-bonusCluesHit">&mdash;</span><span class="lbl">Bonus Clues<em class="grp">Gameplay</em></span></div>
+        <div class="stat-card"><span class="val loading" id="stat-totalPlayers">&mdash;</span><span class="lbl">Total Players<em class="grp">Gameplay</em></span></div>
+      </div>
+      <div class="stats-notice" id="statsNotice"><span class="dot live"></span> Connecting to server for live stats&hellip;</div>
     </section>
 
     <!-- FOOTER -->
@@ -1758,7 +1947,87 @@
 
       counters.forEach(function(c) { counterObserver.observe(c); });
     })();
+
+    // ===== Data Collection Popup =====
+    (function() {
+      var popup = document.getElementById('gpl-notice');
+      var btn = document.getElementById('gpl-accept');
+      var key = 'triviaBoardStatsConsent';
+      var accepted = false;
+      try { accepted = localStorage.getItem(key) === '1'; } catch(e) {}
+      if (!accepted) {
+        popup.classList.add('open');
+      }
+      btn.addEventListener('click', function() {
+        try { localStorage.setItem(key, '1'); } catch(e) {}
+        popup.classList.remove('open');
+      });
+    })();
+
+    // ===== Live Stats Fetcher =====
+    (function() {
+      var statKeys = ['setupRuns','startRuns','showWRuns','showCRuns','modeTypical','modeCustom','modeExisting','csvImports','sheetImports','updateContent','templateGenerated','fileBasedSetup','traditionalPreset','modernPreset','customValuesSet','doubleRoundEnabled','childHostEnabled','timerChanged','bonusCluesEnabled','jeopardyStyle','championshipEnabled','gamesStarted','gamesCompleted','correctAnswers','incorrectAnswers','bonusCluesHit','totalPlayers'];
+      var notice = document.getElementById('statsNotice');
+      var accepted = false;
+      try { accepted = localStorage.getItem('triviaBoardStatsConsent') === '1'; } catch(e) {}
+      if (!accepted) { notice.innerHTML = 'Accept data collection notice above to enable live stats.'; return; }
+
+      function fetchStats() {
+        var url = 'http://' + (location.hostname || 'localhost') + ':3333/api/usage-stats';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.timeout = 4000;
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            try {
+              var resp = JSON.parse(xhr.responseText);
+              var stats = resp.stats || {};
+              var anyLive = false;
+              statKeys.forEach(function(k) {
+                var el = document.getElementById('stat-' + k);
+                if (!el) return;
+                var v = typeof stats[k] === 'number' ? stats[k] : 0;
+                el.textContent = v > 0 ? v : '0';
+                el.className = 'val live';
+                if (v > 0) anyLive = true;
+              });
+              if (anyLive) {
+                notice.innerHTML = '<span class="dot live"></span> Live from trivia server';
+              } else {
+                notice.innerHTML = '<span class="dot live"></span> Connected &mdash; waiting for activity';
+              }
+            } catch(e) { notice.textContent = 'Could not parse stats'; }
+          } else {
+            notice.innerHTML = 'Start the trivia server to see live stats';
+          }
+        };
+        xhr.onerror = function() { notice.innerHTML = 'Start the trivia server to see live stats'; };
+        xhr.ontimeout = function() { notice.innerHTML = 'Start the trivia server to see live stats'; };
+        xhr.send();
+      }
+
+      fetchStats();
+      setInterval(fetchStats, 30000);
+    })();
   </script>
+
+  <div id="gpl-notice">
+    <div class="modal">
+      <h2>Data Collection Notice</h2>
+      <p><strong>Trivia Broadcast Engine</strong> collects anonymous usage statistics to help improve the software.</p>
+      <p>What is collected:</p>
+      <ul>
+        <li>How many times each CLI command runs</li>
+        <li>How many games are started, completed, won</li>
+        <li>Aggregate counts of correct/incorrect answers</li>
+        <li>Feature usage counts (bonus clues, double rounds, etc.)</li>
+        <li>Setup mode and preset preferences</li>
+      </ul>
+      <p><strong>No personal data is collected.</strong> No category names, clues, answers, player names, IP addresses, or any identifiable information is ever recorded or transmitted.</p>
+      <p>These counters are stored locally and served from your trivia server. No data is sent to external services.</p>
+      <button class="btn-accept" id="gpl-accept">I Understand</button>
+    </div>
+  </div>
 
 </body>
 </html>

@@ -3,6 +3,7 @@
 var subcommand = process.argv[2];
 var subarg = process.argv[3];
 var pkg = require('../package.json');
+var stats = require('../src/lib/stats');
 
 var name = 'Trivia Broadcast Engine';
 var year = '2025';
@@ -87,16 +88,18 @@ if (!subcommand) {
 }
 
 if (subcommand === 'show') {
-  if (subarg === 'w') { showWarranty(); process.exit(0); }
-  if (subarg === 'c') { showConditions(); process.exit(0); }
+  if (subarg === 'w') { stats.increment('showWRuns'); showWarranty(); process.exit(0); }
+  if (subarg === 'c') { stats.increment('showCRuns'); showConditions(); process.exit(0); }
   console.log('Unknown show argument: ' + subarg);
   console.log('Usage: trivia show w | trivia show c');
   process.exit(1);
 }
 
 if (subcommand === 'setup') {
+  stats.increment('setupRuns');
   require('../src/cli/setup');
 } else if (subcommand === 'start') {
+  stats.increment('startRuns');
   require('../src/cli/start');
 } else {
   console.log('Unknown command: ' + subcommand);
