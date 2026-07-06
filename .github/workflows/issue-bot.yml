@@ -1,0 +1,221 @@
+name: Issue Bot
+on:
+  schedule:
+    - cron: '0 6 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  scan-and-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for code issues
+        id: scan
+        run: |
+          mkdir -p /tmp/bot-scans
+
+          # 1 — TODO/FIXME/HACK comments in src/
+          grep -rn "TODO\|FIXME\|HACK\|XXX" --include="*.js" src/ 2>/dev/null | head -15 > /tmp/bot-scans/todos.txt
+          echo "todos=$(wc -l < /tmp/bot-scans/todos.txt)" >> $GITHUB_OUTPUT
+
+          # 2 — console.log in src/ (production code)
+          grep -rn "console\.log" --include="*.js" src/ 2>/dev/null | grep -v "console\.log(''" | head -10 > /tmp/bot-scans/consolelogs.txt
+          echo "logs=$(wc -l < /tmp/bot-scans/consolelogs.txt)" >> $GITHUB_OUTPUT
+
+          # 3 — Long functions (functions spanning >40 lines)
+          awk '/function /{start=NR; name=$0} {if(start && NR-start>40){print name" at line "start; start=0}}' src/server/*.js src/cli/*.js src/lib/*.js 2>/dev/null | head -8 > /tmp/bot-scans/longfns.txt
+          echo "longfns=$(wc -l < /tmp/bot-scans/longfns.txt)" >> $GITHUB_OUTPUT
+
+          # 4 — Files with >300 lines
+          wc -l src/**/*.js bin/*.js 2>/dev/null | sort -rn | awk '$1>300' | head -8 > /tmp/bot-scans/bigfiles.txt
+          echo "bigfiles=$(wc -l < /tmp/bot-scans/bigfiles.txt)" >> $GITHUB_OUTPUT
+
+          # 5 — Commented-out code blocks (lines starting with // that look like code)
+          grep -rn "^\s*//\s*\(var\|let\|const\|function\|if\|for\|while\|return\|console\)" --include="*.js" src/ 2>/dev/null | head -10 > /tmp/bot-scans/commented.txt
+          echo "commented=$(wc -l < /tmp/bot-scans/commented.txt)" >> $GITHUB_OUTPUT
+
+          # 6 — Files missing trailing newline
+          for f in $(find src/ -name "*.js" 2>/dev/null); do
+            if [ -s "$f" ] && [ "$(tail -c1 "$f" | wc -l)" -eq 0 ]; then echo "$f"; fi
+          done | head -8 > /tmp/bot-scans/newnl.txt
+          echo "newnl=$(wc -l < /tmp/bot-scans/newnl.txt)" >> $GITHUB_OUTPUT
+
+      - name: Create issues from findings
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const scanDir = '/tmp/bot-scans';
+
+            // Check existing open bot issues to avoid duplicates
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'bot-generated'
+            });
+            const existingTitles = new Set(existing.data.map(i => i.title));
+
+            function readLines(file) {
+              try {
+                const raw = fs.readFileSync(path.join(scanDir, file), 'utf8');
+                return raw.split('\n').filter(l => l.trim());
+              } catch(e) { return []; }
+            }
+
+            function createIssue(title, body) {
+              if (existingTitles.has(title)) {
+                console.log('Skipping duplicate: ' + title);
+                return;
+              }
+              return github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bot-generated', 'bots-only']
+              });
+            }
+
+            const issues = [];
+            const todos = readLines('todos.txt');
+            const logs = readLines('consolelogs.txt');
+            const fns = readLines('longfns.txt');
+            const big = readLines('bigfiles.txt');
+            const commented = readLines('commented.txt');
+            const newnl = readLines('newnl.txt');
+
+            // Issue 1: TODO/FIXME backlog
+            if (todos.length > 0) {
+              const body = `## Unresolved TODO/FIXME Comments
+            The following items were found in source code and may need attention:
+
+            \`\`\`
+            ${todos.slice(0, 10).join('\n')}
+            \`\`\`
+
+            **Action:** Review each item — either implement the TODO, fix the bug, or remove the comment if outdated.
+            `;
+              issues.push(createIssue(
+                'Clean up ' + todos.length + ' unresolved TODO/FIXME comments in src/',
+                body
+              ));
+            }
+
+            // Issue 2: console.log in production code
+            if (logs.length > 0) {
+              const body = `## console.log Statements in Production Code
+            Found ${logs.length} \`console.log\` calls in \`src/\` that should be removed or replaced with structured logging:
+
+            \`\`\`
+            ${logs.slice(0, 8).join('\n')}
+            \`\`\`
+
+            **Action:** Remove debug \`console.log\` statements or replace with a proper logging utility.
+            `;
+              issues.push(createIssue(
+                'Remove ' + logs.length + ' console.log statements from production source',
+                body
+              ));
+            }
+
+            // Issue 3: Long functions
+            if (fns.length > 0) {
+              const body = `## Overly Long Functions Detected
+            Functions exceeding 40 lines make code harder to read and test:
+
+            \`\`\`
+            ${fns.slice(0, 6).join('\n')}
+            \`\`\`
+
+            **Action:** Refactor these functions into smaller, single-responsibility units.
+            `;
+              issues.push(createIssue(
+                'Refactor ' + fns.length + ' overly long functions (>40 lines)',
+                body
+              ));
+            }
+
+            // Issue 4: Large files
+            if (big.length > 0) {
+              const body = `## Files Exceeding 300 Lines
+            These files are large and may benefit from splitting:
+
+            \`\`\`
+            ${big.slice(0, 6).join('\n')}
+            \`\`\`
+
+            **Action:** Consider breaking these files into smaller modules.
+            `;
+              issues.push(createIssue(
+                'Break down ' + big.length + ' large files (>300 lines)',
+                body
+              ));
+            }
+
+            // Issue 5: Commented-out code
+            if (commented.length > 0) {
+              const body = `## Commented-Out Code Blocks
+            Dead code was found commented out in these locations:
+
+            \`\`\`
+            ${commented.slice(0, 8).join('\n')}
+            \`\`\`
+
+            **Action:** Remove dead commented-out code. Use version control history if needed later.
+            `;
+              issues.push(createIssue(
+                'Remove ' + commented.length + ' commented-out code blocks',
+                body
+              ));
+            }
+
+            // Issue 6: Missing trailing newlines
+            if (newnl.length > 0) {
+              const body = `## Files Missing Trailing Newlines
+            POSIX convention requires files to end with a newline:
+
+            \`\`\`
+            ${newnl.slice(0, 8).join('\n')}
+            \`\`\`
+
+            **Action:** Add a trailing newline to each file.
+            `;
+              issues.push(createIssue(
+                'Add trailing newlines to ' + newnl.length + ' files',
+                body
+              ));
+            }
+
+            // Ensure we create at least 2 issues if possible
+            if (issues.length < 2 && todos.length > 1) {
+              // Create a second todo issue with different items
+              const remaining = todos.slice(5, 12);
+              if (remaining.length > 0) {
+                const body = `## Additional TODO/FIXME Items
+            More unresolved items:
+
+            \`\`\`
+            ${remaining.join('\n')}
+            \`\`\`
+            `;
+                issues.push(createIssue(
+                  'Address remaining TODO/FIXME items in src/ (batch 2)',
+                  body
+                ));
+              }
+            }
+
+            if (issues.length === 0) {
+              console.log('No new issues to create — codebase is clean!');
+            } else {
+              console.log('Created ' + issues.length + ' new issues');
+            }
