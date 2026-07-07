@@ -3,31 +3,37 @@
  * Backed by Google Sheets. Deploy as a web app.
  *
  * === SETUP ===
- * 1. Create a Google Sheet with a sheet named "Stats"
- * 2. In column A header put "key", column B header put "value"
- * 3. Pre-fill rows: key | value (e.g. totalPointsEarned | 0)
- *    Use the same keys as usage-stats.json:
- *    totalPointsEarned, totalPointsLost, gamesPlayed, gamesCompleted,
- *    correctAnswers, incorrectAnswers, bonusCluesHit, totalWagers,
- *    championshipRounds, cluesRevealed, biggestWin, biggestLoss,
- *    averageScore, bestStreak, categoriesRevealed, timerExpired,
- *    buzzesRegistered, totalPlayers, totalRounds, moneyOnBoard,
- *    setupRuns, startRuns, showWRuns, showCRuns, csvImports, sheetImports
- * 4. Extensions → Apps Script → paste this file
- * 5. Set SCRIPT_TOKEN to a random secret string
- * 6. Deploy → New deployment → Web app → Execute as "Me", access "Anyone"
- * 7. Copy the web app URL → paste into CLOUD_URL in src/lib/stats.js and index.html
+ * 1. Create a blank Google Sheet (any name)
+ * 2. Extensions → Apps Script → paste this file
+ * 3. Set SCRIPT_TOKEN to a random secret string
+ * 4. Deploy → New deployment → Web app → Execute as "Me", access "Anyone"
+ * 5. Copy the web app URL → paste into CLOUD_URL in src/lib/stats.js and index.html
+ *
+ * The script auto-creates a "Stats" sheet with all keys on first request.
  */
 
 var SHEET_NAME = 'Stats';
-var SCRIPT_TOKEN = 'CHANGE_ME_TO_A_RANDOM_SECRET';
+var SCRIPT_TOKEN = 'sdaiof8q34werds0qwf@#R$EWFIAWE(REFskdfiwepaf)';
+var SHEET_ID = '1UpfPGdd2LQADvSYwQc8YbYTpXecu4jAUUYnzQo3Sg4Y';
+
+var DEFAULT_KEYS = [
+  'totalPointsEarned', 'totalPointsLost', 'gamesPlayed', 'gamesCompleted',
+  'correctAnswers', 'incorrectAnswers', 'bonusCluesHit', 'totalWagers',
+  'championshipRounds', 'cluesRevealed', 'biggestWin', 'biggestLoss',
+  'averageScore', 'bestStreak', 'categoriesRevealed', 'timerExpired',
+  'buzzesRegistered', 'totalPlayers', 'totalRounds', 'moneyOnBoard',
+  'setupRuns', 'startRuns', 'showWRuns', 'showCRuns', 'csvImports', 'sheetImports'
+];
 
 function getSheet() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SHEET_ID);
   var sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
     sheet.appendRow(['key', 'value']);
+    for (var i = 0; i < DEFAULT_KEYS.length; i++) {
+      sheet.appendRow([DEFAULT_KEYS[i], 0]);
+    }
   }
   return sheet;
 }

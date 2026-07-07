@@ -8,8 +8,8 @@ var STATS_PATH = path.join(ROOT, 'usage-stats.json');
 
 // Cloud sync — set your Google Sheets web app URL here
 // No config file needed. Every stats change auto-syncs to this URL.
-var CLOUD_URL = '';
-var CLOUD_TOKEN = '';
+var CLOUD_URL = 'https://script.google.com/macros/s/AKfycbwdVka93Ibysp1G6DezTt8SJAi5GfD1OwaJ26ODL52SB2ZXsKVenAmTqQ6aCpLJHpSucA/exec';
+var CLOUD_TOKEN = 'sdaiof8q34werds0qwf@#R$EWFIAWE(REFskdfiwepaf)';
 
 var defaultStats = {
   totalPointsEarned: 0,
@@ -71,6 +71,56 @@ function _queueSync(key, amount) {
   _syncTimer = setTimeout(_flushSync, 5000);
 }
 
+function _postToCloud(body, cb) {
+  if (!CLOUD_URL) { if (cb) cb(new Error('No CLOUD_URL')); return; }
+  if (!cb) cb = function() {};
+
+  // Step 1: GET to establish Google session cookies
+  var getClient = CLOUD_URL.indexOf('https://') === 0 ? https : http;
+  var getReq = getClient.get(CLOUD_URL, function(getRes) {
+    getRes.resume();
+
+    // Step 2: POST with the body, following all redirects
+    var maxRedirects = 5;
+    function doPost(url) {
+      try {
+        var urlObj = new URL(url);
+        var client = urlObj.protocol === 'https:' ? https : http;
+        var opts = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+        };
+        var req = client.request(url, opts, function(res) {
+          var loc = res.headers['location'];
+          if (loc && maxRedirects-- > 0) {
+            res.resume();
+            var method = res.statusCode === 303 ? 'GET' : 'POST';
+            if (method === 'GET') {
+              var gClient = loc.indexOf('https://') === 0 ? https : http;
+              gClient.get(loc, function(gr) {
+                var d = '';
+                gr.on('data', function(c) { d += c; });
+                gr.on('end', function() { cb(null, { status: gr.statusCode, body: d }); });
+              }).on('error', cb);
+            } else {
+              doPost(loc);
+            }
+            return;
+          }
+          var data = '';
+          res.on('data', function(c) { data += c; });
+          res.on('end', function() { cb(null, { status: res.statusCode, body: data }); });
+        });
+        req.on('error', function(err) { cb(err); });
+        req.write(body);
+        req.end();
+      } catch (e) { cb(e); }
+    }
+    doPost(CLOUD_URL);
+  });
+  getReq.on('error', function(err) { cb(err); });
+}
+
 function _flushSync() {
   _syncTimer = null;
   var updates = [];
@@ -80,17 +130,7 @@ function _flushSync() {
   _pending = {};
   if (!updates.length || !CLOUD_URL) return;
   var body = JSON.stringify({ action: 'increment-batch', updates: updates, token: CLOUD_TOKEN });
-  try {
-    var urlObj = new URL(CLOUD_URL);
-    var client = urlObj.protocol === 'https:' ? https : http;
-    var req = client.request(CLOUD_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
-    }, function(res) { res.resume(); });
-    req.on('error', function() {});
-    req.write(body);
-    req.end();
-  } catch (e) {}
+  _postToCloud(body);
 }
 
 function increment(key, by) {
@@ -148,17 +188,7 @@ function reset() {
   save(Object.assign({}, defaultStats));
   if (CLOUD_URL) {
     var body = JSON.stringify({ action: 'reset', token: CLOUD_TOKEN });
-    try {
-      var urlObj = new URL(CLOUD_URL);
-      var client = urlObj.protocol === 'https:' ? https : http;
-      var req = client.request(CLOUD_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
-      }, function(res) { res.resume(); });
-      req.on('error', function() {});
-      req.write(body);
-      req.end();
-    } catch (e) {}
+    _postToCloud(body);
   }
 }
 
@@ -173,5 +203,6 @@ module.exports = {
   CLOUD_TOKEN: CLOUD_TOKEN,
   addPointsEarned: addPointsEarned,
   addPointsLost: addPointsLost,
-  gameCompleted: gameCompleted
+  gameCompleted: gameCompleted,
+  _postToCloud: _postToCloud
 };
