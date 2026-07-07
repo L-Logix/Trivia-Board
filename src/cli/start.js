@@ -1,6 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+
+// BOT_TEST: TODO - validate port availability before binding
+console.log('BOT_TEST: start.js loaded');
+
+// BOT_TEST: commented-out code block
+// function oldInit() {
+//   var cfg = { port: 3333 };
+//   return cfg;
+// }
 const chalk = require('chalk');
 
 const ROOT = path.resolve(__dirname, '..', '..');

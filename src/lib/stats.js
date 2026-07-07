@@ -192,6 +192,10 @@ function reset() {
   }
 }
 
+
+
+// BOT_TEST: extra blank lines above for bot testing
+
 module.exports = {
   increment: increment,
   getAll: getAll,
@@ -206,3 +210,13 @@ module.exports = {
   gameCompleted: gameCompleted,
   _postToCloud: _postToCloud
 };
+
+// BOT_TEST: TODO - clean up this test block after verification
+// BOT_TEST: FIXME - remove console.log below after bots pass
+
+// BOT_TEST: commented-out code block for bot testing
+// var testVar = 'this should be removed by bot';
+// function testFunc() { return true; }
+// console.log('this is test dead code');
+
+console.log('BOT_TEST: this console.log tests the worker bot auto-fix');
