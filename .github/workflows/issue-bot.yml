@@ -1,15 +1,19 @@
 name: Issue Bot
 on:
   schedule:
-    - cron: '0 6 * * 1,4'
+    - cron: '0 6 * * *'
+  pull_request:
+    types: [opened]
   workflow_dispatch:
 
 permissions:
   issues: write
+  pull-requests: write
   contents: read
 
 jobs:
   scan-and-issue:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,31 +25,60 @@ jobs:
         run: |
           mkdir -p /tmp/bot-scans
 
-          # 1 — TODO/FIXME/HACK comments in src/
-          grep -rn "TODO\|FIXME\|HACK\|XXX" --include="*.js" src/ 2>/dev/null | head -15 > /tmp/bot-scans/todos.txt
-          echo "todos=$(wc -l < /tmp/bot-scans/todos.txt)" >> $GITHUB_OUTPUT
+          # 1 — TODO/FIXME/HACK per file
+          for f in $(find src/ bin/ -name "*.js" 2>/dev/null); do
+            count=$(grep -c "TODO\|FIXME\|HACK\|XXX" "$f" 2>/dev/null || echo 0)
+            if [ "$count" -gt 0 ]; then echo "$f|$count"; fi
+          done > /tmp/bot-scans/todos.txt
 
-          # 2 — console.log in src/ (production code)
-          grep -rn "console\.log" --include="*.js" src/ 2>/dev/null | grep -v "console\.log(''" | head -10 > /tmp/bot-scans/consolelogs.txt
-          echo "logs=$(wc -l < /tmp/bot-scans/consolelogs.txt)" >> $GITHUB_OUTPUT
+          # 2 — console.log per file
+          for f in $(find src/ bin/ -name "*.js" 2>/dev/null); do
+            count=$(grep -c "console\.log" "$f" 2>/dev/null || echo 0)
+            if [ "$count" -gt 0 ]; then echo "$f|$count"; fi
+          done > /tmp/bot-scans/consolelogs.txt
 
-          # 3 — Long functions (functions spanning >40 lines)
-          awk '/function /{start=NR; name=$0} {if(start && NR-start>40){print name" at line "start; start=0}}' src/server/*.js src/cli/*.js src/lib/*.js 2>/dev/null | head -8 > /tmp/bot-scans/longfns.txt
-          echo "longfns=$(wc -l < /tmp/bot-scans/longfns.txt)" >> $GITHUB_OUTPUT
+          # 3 — Long functions
+          awk '/function /{start=NR; name=$0; file=FILENAME} {if(start && NR-start>40){print file"|"name" at line "start; start=0}}' \
+            src/server/*.js src/cli/*.js src/lib/*.js bin/*.js 2>/dev/null > /tmp/bot-scans/longfns.txt
 
-          # 4 — Files with >300 lines
-          wc -l src/**/*.js bin/*.js 2>/dev/null | sort -rn | awk '$1>300' | head -8 > /tmp/bot-scans/bigfiles.txt
-          echo "bigfiles=$(wc -l < /tmp/bot-scans/bigfiles.txt)" >> $GITHUB_OUTPUT
+          # 4 — Files >300 lines
+          while IFS= read -r line; do
+            lc=$(echo "$line" | awk '{print $1}')
+            fn=$(echo "$line" | awk '{print $2}')
+            if [ "$lc" -gt 300 ] 2>/dev/null; then echo "$fn|$lc lines"; fi
+          done < <(wc -l src/**/*.js bin/*.js 2>/dev/null | sort -rn) > /tmp/bot-scans/bigfiles.txt
 
-          # 5 — Commented-out code blocks (lines starting with // that look like code)
-          grep -rn "^\s*//\s*\(var\|let\|const\|function\|if\|for\|while\|return\|console\)" --include="*.js" src/ 2>/dev/null | head -10 > /tmp/bot-scans/commented.txt
-          echo "commented=$(wc -l < /tmp/bot-scans/commented.txt)" >> $GITHUB_OUTPUT
+          # 5 — Commented-out code per file
+          for f in $(find src/ bin/ -name "*.js" 2>/dev/null); do
+            count=$(grep -c "^\s*//\s*\(var\|let\|const\|function\|if\|for\|while\|return\|console\)" "$f" 2>/dev/null || echo 0)
+            if [ "$count" -gt 0 ]; then echo "$f|$count"; fi
+          done > /tmp/bot-scans/commented.txt
 
-          # 6 — Files missing trailing newline
-          for f in $(find src/ -name "*.js" 2>/dev/null); do
+          # 6 — Missing trailing newlines per file
+          for f in $(find src/ bin/ -name "*.js" 2>/dev/null); do
             if [ -s "$f" ] && [ "$(tail -c1 "$f" | wc -l)" -eq 0 ]; then echo "$f"; fi
-          done | head -8 > /tmp/bot-scans/newnl.txt
+          done > /tmp/bot-scans/newnl.txt
+
+          # 7 — Lines >120 chars per file
+          for f in $(find src/ bin/ -name "*.js" 2>/dev/null); do
+            count=$(awk 'length($0)>120' "$f" 2>/dev/null | wc -l)
+            if [ "$count" -gt 0 ]; then echo "$f|$count"; fi
+          done > /tmp/bot-scans/longlines.txt
+
+          # 8 — Consecutive blank lines (>2) per file
+          for f in $(find src/ bin/ -name "*.js" 2>/dev/null); do
+            count=$(awk '/^$/{n++} !/^$/{n=0} n>2{c++} END{print c}' "$f" 2>/dev/null)
+            if [ "$count" -gt 0 ] 2>/dev/null; then echo "$f|$count"; fi
+          done > /tmp/bot-scans/blanklines.txt
+
+          echo "todos=$(wc -l < /tmp/bot-scans/todos.txt)" >> $GITHUB_OUTPUT
+          echo "logs=$(wc -l < /tmp/bot-scans/consolelogs.txt)" >> $GITHUB_OUTPUT
+          echo "longfns=$(wc -l < /tmp/bot-scans/longfns.txt)" >> $GITHUB_OUTPUT
+          echo "bigfiles=$(wc -l < /tmp/bot-scans/bigfiles.txt)" >> $GITHUB_OUTPUT
+          echo "commented=$(wc -l < /tmp/bot-scans/commented.txt)" >> $GITHUB_OUTPUT
           echo "newnl=$(wc -l < /tmp/bot-scans/newnl.txt)" >> $GITHUB_OUTPUT
+          echo "longlines=$(wc -l < /tmp/bot-scans/longlines.txt)" >> $GITHUB_OUTPUT
+          echo "blanklines=$(wc -l < /tmp/bot-scans/blanklines.txt)" >> $GITHUB_OUTPUT
 
       - name: Create issues from findings
         uses: actions/github-script@v7
@@ -55,7 +88,6 @@ jobs:
             const path = require('path');
             const scanDir = '/tmp/bot-scans';
 
-            // Check existing open bot issues to avoid duplicates
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -76,6 +108,7 @@ jobs:
                 console.log('Skipping duplicate: ' + title);
                 return;
               }
+              existingTitles.add(title);
               return github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -85,137 +118,203 @@ jobs:
               });
             }
 
-            const issues = [];
             const todos = readLines('todos.txt');
             const logs = readLines('consolelogs.txt');
             const fns = readLines('longfns.txt');
             const big = readLines('bigfiles.txt');
             const commented = readLines('commented.txt');
             const newnl = readLines('newnl.txt');
+            const longlines = readLines('longlines.txt');
+            const blanklines = readLines('blanklines.txt');
 
-            // Issue 1: TODO/FIXME backlog
-            if (todos.length > 0) {
-              const body = `## Unresolved TODO/FIXME Comments
-            The following items were found in source code and may need attention:
+            let created = 0;
 
-            \`\`\`
-            ${todos.slice(0, 10).join('\n')}
-            \`\`\`
-
-            **Action:** Review each item — either implement the TODO, fix the bug, or remove the comment if outdated.
-            `;
-              issues.push(createIssue(
-                'Clean up ' + todos.length + ' unresolved TODO/FIXME comments in src/',
-                body
-              ));
+            // Individual TODO issues per file
+            for (const line of todos.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0];
+              const count = parts[1] || 'several';
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Resolve TODO/FIXME in ' + short;
+              const body = '## TODO/FIXME in ' + file + '\n\n' +
+                'Found **' + count + '** unresolved TODO/FIXME/HACK/XXX comment(s) in ' + file + '.\n\n' +
+                '**Action:** Review and resolve each item.\n\n' +
+                '*Worker bot: Are these still relevant?*';
+              createIssue(title, body);
+              created++;
             }
 
-            // Issue 2: console.log in production code
-            if (logs.length > 0) {
-              const body = `## console.log Statements in Production Code
-            Found ${logs.length} \`console.log\` calls in \`src/\` that should be removed or replaced with structured logging:
-
-            \`\`\`
-            ${logs.slice(0, 8).join('\n')}
-            \`\`\`
-
-            **Action:** Remove debug \`console.log\` statements or replace with a proper logging utility.
-            `;
-              issues.push(createIssue(
-                'Remove ' + logs.length + ' console.log statements from production source',
-                body
-              ));
+            // Individual console.log issues per file
+            for (const line of logs.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0];
+              const count = parts[1] || 'several';
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Remove console.log from ' + short;
+              const body = '## console.log in ' + file + '\n\n' +
+                'Found **' + count + '** `console.log` call(s) in ' + file + '.\n\n' +
+                '**Action:** Remove or replace with proper logging.\n\n' +
+                '*Worker bot: Are these still needed for debugging?*';
+              createIssue(title, body);
+              created++;
             }
 
-            // Issue 3: Long functions
-            if (fns.length > 0) {
-              const body = `## Overly Long Functions Detected
-            Functions exceeding 40 lines make code harder to read and test:
-
-            \`\`\`
-            ${fns.slice(0, 6).join('\n')}
-            \`\`\`
-
-            **Action:** Refactor these functions into smaller, single-responsibility units.
-            `;
-              issues.push(createIssue(
-                'Refactor ' + fns.length + ' overly long functions (>40 lines)',
-                body
-              ));
+            // Individual long function issues
+            for (const line of fns.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0] || 'unknown';
+              const detail = parts[1] || line;
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Refactor long function in ' + short;
+              const body = '## Long Function Detected\n\n' +
+                'In `' + file + '`:\n\n```\n' + detail + '\n```\n\n' +
+                '**Action:** Refactor this function into smaller units.\n\n' +
+                '*Worker bot: Is this a priority to refactor?*';
+              createIssue(title, body);
+              created++;
             }
 
-            // Issue 4: Large files
-            if (big.length > 0) {
-              const body = `## Files Exceeding 300 Lines
-            These files are large and may benefit from splitting:
-
-            \`\`\`
-            ${big.slice(0, 6).join('\n')}
-            \`\`\`
-
-            **Action:** Consider breaking these files into smaller modules.
-            `;
-              issues.push(createIssue(
-                'Break down ' + big.length + ' large files (>300 lines)',
-                body
-              ));
+            // Individual large file issues
+            for (const line of big.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0];
+              const detail = parts[1] || '';
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Break down large file ' + short;
+              const body = '## Large File: ' + file + '\n\n' +
+                'This file is **' + detail + '**. Consider splitting into smaller modules.\n\n' +
+                '**Action:** Break down into focused modules.\n\n' +
+                '*Worker bot: Which part should be extracted first?*';
+              createIssue(title, body);
+              created++;
             }
 
-            // Issue 5: Commented-out code
-            if (commented.length > 0) {
-              const body = `## Commented-Out Code Blocks
-            Dead code was found commented out in these locations:
-
-            \`\`\`
-            ${commented.slice(0, 8).join('\n')}
-            \`\`\`
-
-            **Action:** Remove dead commented-out code. Use version control history if needed later.
-            `;
-              issues.push(createIssue(
-                'Remove ' + commented.length + ' commented-out code blocks',
-                body
-              ));
+            // Individual commented-out code issues
+            for (const line of commented.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0];
+              const count = parts[1] || 'several';
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Remove commented-out code in ' + short;
+              const body = '## Commented-Out Code in ' + file + '\n\n' +
+                'Found **' + count + '** commented-out code block(s) in ' + file + '.\n\n' +
+                '**Action:** Remove dead code.\n\n' +
+                '*Worker bot: Can I safely remove these?*';
+              createIssue(title, body);
+              created++;
             }
 
-            // Issue 6: Missing trailing newlines
-            if (newnl.length > 0) {
-              const body = `## Files Missing Trailing Newlines
-            POSIX convention requires files to end with a newline:
-
-            \`\`\`
-            ${newnl.slice(0, 8).join('\n')}
-            \`\`\`
-
-            **Action:** Add a trailing newline to each file.
-            `;
-              issues.push(createIssue(
-                'Add trailing newlines to ' + newnl.length + ' files',
-                body
-              ));
+            // Missing trailing newlines
+            for (const file of newnl.slice(0, 4)) {
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Add trailing newline to ' + short;
+              const body = '## Missing Trailing Newline\n\n' +
+                'File `' + file + '` is missing a trailing newline.\n\n' +
+                '**Action:** Add a newline at end of file.';
+              createIssue(title, body);
+              created++;
             }
 
-            // Ensure we create at least 2 issues if possible
-            if (issues.length < 2 && todos.length > 1) {
-              // Create a second todo issue with different items
-              const remaining = todos.slice(5, 12);
-              if (remaining.length > 0) {
-                const body = `## Additional TODO/FIXME Items
-            More unresolved items:
-
-            \`\`\`
-            ${remaining.join('\n')}
-            \`\`\`
-            `;
-                issues.push(createIssue(
-                  'Address remaining TODO/FIXME items in src/ (batch 2)',
-                  body
-                ));
-              }
+            // Long lines
+            for (const line of longlines.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0];
+              const count = parts[1] || 'several';
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Shorten long lines in ' + short;
+              const body = '## Lines Exceeding 120 Characters\n\n' +
+                'File `' + file + '` has **' + count + '** line(s) over 120 characters.\n\n' +
+                '**Action:** Break long lines for readability.';
+              createIssue(title, body);
+              created++;
             }
 
-            if (issues.length === 0) {
-              console.log('No new issues to create — codebase is clean!');
+            // Consecutive blank lines
+            for (const line of blanklines.slice(0, 4)) {
+              const parts = line.split('|');
+              const file = parts[0];
+              const count = parts[1] || 'several';
+              const short = file.replace(/^.*[\\/]/, '');
+              const title = 'Remove extra blank lines in ' + short;
+              const body = '## Consecutive Blank Lines\n\n' +
+                'File `' + file + '` has **' + count + '** instance(s) of >2 consecutive blank lines.\n\n' +
+                '**Action:** Reduce to at most one blank line between sections.';
+              createIssue(title, body);
+              created++;
+            }
+
+            console.log('Created ' + created + ' new issues');
+
+  # ── Respond when someone replies ──
+  respond-to-reply:
+    if: github.event_name == 'issue_comment'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const commenter = context.payload.comment.user.login;
+            if (commenter === 'github-actions[bot]') return;
+
+            const issueNum = context.payload.issue.number;
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNum
+            });
+
+            const labels = issue.data.labels.map(l => l.name);
+            if (!labels.includes('bots-only')) return;
+
+            const reply = (context.payload.comment.body || '').toLowerCase();
+            let response;
+            if (/good job|looks good|nice|great|thanks/i.test(reply)) {
+              response = 'Issue bot: Glad it worked! Worker bot will keep improving the codebase.';
+            } else if (/remove|delete|not needed|no/i.test(reply)) {
+              response = 'Issue bot: Understood. Worker bot will clean these up.';
+            } else if (/keep|still.*need|debug|active|yes/i.test(reply)) {
+              response = 'Issue bot: Noted. I will leave these in place.';
             } else {
-              console.log('Created ' + issues.length + ' new issues');
+              response = 'Issue bot: Thanks for the feedback.';
             }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNum,
+              body: response
+            });
+
+  # ── Auto-review PRs that fix bots-only issues ──
+  review-pr:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const prBody = (context.payload.pull_request.body || '');
+            const prNum = context.payload.pull_request.number;
+            const prAuthor = context.payload.pull_request.user.login;
+            if (prAuthor !== 'github-actions[bot]') return;
+
+            const match = prBody.match(/Fixes\s+#(\d+)/i);
+            if (!match) return;
+
+            const issueNum = parseInt(match[1]);
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNum
+            });
+
+            const labels = issue.data.labels.map(l => l.name);
+            if (!labels.includes('bots-only')) return;
+
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNum,
+              event: 'APPROVE',
+              body: 'Good job, Worker bot! The fix looks correct. Thanks for keeping the codebase clean.'
+            });

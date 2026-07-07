@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About — Trivia Broadcast Engine</title>
+  <title>Usage Stats — Trivia Broadcast Engine</title>
   <link rel="icon" href="public/img/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,6 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --navy: #070b17;
-      --sky: #38bdf8;
       --indigo: #818cf8;
       --cyan: #22d3ee;
       --slate: #94a3b8;
@@ -26,7 +25,7 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
-    ::selection { background: rgba(56,189,248,0.25); color: #fff; }
+    ::selection { background: rgba(129,140,248,0.25); color: #fff; }
 
     #bg-canvas {
       position: fixed; top: 0; left: 0;
@@ -40,8 +39,8 @@
       pointer-events: none;
       background:
         radial-gradient(ellipse at 15% 30%, rgba(129,140,248,0.06) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 20%, rgba(56,189,248,0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(34,211,238,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 20%, rgba(34,211,238,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(148,163,184,0.04) 0%, transparent 50%),
         radial-gradient(ellipse at 50% 50%, rgba(7,11,23,0.3) 0%, rgba(7,11,23,1) 100%);
     }
     .grid-overlay {
@@ -86,7 +85,7 @@
       align-items: center;
       gap: 10px;
     }
-    .nav-logo .accent { color: var(--sky); }
+    .nav-logo .accent { color: var(--indigo); }
     .nav-links { display: flex; gap: 4px; }
     .nav-links a {
       padding: 8px 14px;
@@ -100,8 +99,8 @@
     }
     .nav-links a:hover { color: var(--frost); background: rgba(148,163,184,0.04); }
     .nav-links a.active {
-      color: var(--sky);
-      background: rgba(56,189,248,0.06);
+      color: var(--indigo);
+      background: rgba(129,140,248,0.06);
     }
     .nav-toggle {
       display: none;
@@ -122,7 +121,7 @@
       letter-spacing: 2px;
       text-transform: uppercase;
     }
-    .page-header h1 .accent { color: var(--sky); }
+    .page-header h1 .accent { color: var(--indigo); }
     .page-header p {
       font-size: clamp(0.85rem, 1.2vw, 1rem);
       color: rgba(148,163,184,0.45);
@@ -133,19 +132,19 @@
     }
     .page-header .bar {
       width: 60px; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      background: linear-gradient(90deg, transparent, var(--indigo), transparent);
       margin: 16px auto 0;
     }
 
     .section {
-      max-width: 1100px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 40px 24px 60px;
+      padding: 0 24px 60px;
     }
 
     .section-title {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
     }
     .section-title h2 {
       font-family: 'Oswald', sans-serif;
@@ -154,231 +153,133 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
     }
-    .section-title h2 .accent { color: var(--sky); }
+    .section-title h2 .accent { color: var(--indigo); }
     .section-title .bar {
       width: 40px; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      background: linear-gradient(90deg, transparent, var(--indigo), transparent);
       margin: 10px auto 0;
     }
 
-    .story-card {
-      max-width: 780px;
-      margin: 0 auto;
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.05);
-      border-radius: 14px;
-      padding: 40px;
-      line-height: 1.8;
-      font-weight: 300;
-      color: rgba(148,163,184,0.45);
-      font-size: 0.92rem;
-    }
-    .story-card em {
-      color: var(--sky);
-      font-style: normal;
-    }
-    .story-card strong {
-      color: rgba(241,245,249,0.7);
-      font-weight: 500;
-    }
-
-    .tech-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-    }
-    .tech-card {
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.05);
-      border-radius: 14px;
-      padding: 28px 22px;
-      text-align: center;
-      transition: border-color 0.3s, transform 0.3s;
-    }
-    .tech-card:hover {
-      border-color: var(--accent, var(--sky));
-      transform: translateY(-3px);
-    }
-    .tech-icon {
-      width: 48px; height: 48px;
-      margin: 0 auto 14px;
-      border-radius: 12px;
+    .live-stats-header {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
-      background: rgba(56,189,248,0.06);
-      border: 1px solid rgba(56,189,248,0.08);
-      color: var(--sky);
-      transition: all 0.3s;
+      gap: 12px;
+      margin-bottom: 24px;
     }
-    .tech-card:hover .tech-icon {
-      background: rgba(56,189,248,0.1);
-      border-color: rgba(56,189,248,0.2);
-    }
-    .tech-card h3 {
-      font-family: 'Oswald', sans-serif;
-      font-weight: 600;
-      font-size: 1rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--frost);
-      margin-bottom: 8px;
-    }
-    .tech-card p {
-      font-size: 0.8rem;
-      line-height: 1.6;
-      color: rgba(148,163,184,0.45);
-      font-weight: 300;
-    }
-
-    .license-card {
-      max-width: 650px;
-      margin: 0 auto;
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.05);
-      border-radius: 14px;
-      padding: 36px 40px;
-      text-align: center;
-    }
-    .license-card .badge {
+    .live-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 18px;
-      border-radius: 20px;
-      background: rgba(56,189,248,0.06);
-      border: 1px solid rgba(56,189,248,0.1);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--sky);
-      margin-bottom: 16px;
-    }
-    .license-card p {
-      font-size: 0.88rem;
-      line-height: 1.7;
-      color: rgba(148,163,184,0.45);
-      font-weight: 300;
-      margin-bottom: 14px;
-    }
-    .license-card a {
-      display: inline-block;
-      margin-top: 6px;
-      font-size: 0.8rem;
-      color: var(--sky);
-      text-decoration: none;
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: 1px solid rgba(56,189,248,0.12);
-      transition: all 0.2s;
-    }
-    .license-card a:hover {
-      background: rgba(56,189,248,0.06);
-      border-color: rgba(56,189,248,0.25);
-    }
-
-    .counter-section {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .counter-item {
-      text-align: center;
-      padding: 28px 16px;
-      border-radius: 12px;
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.05);
-      transition: border-color 0.3s, transform 0.3s;
-    }
-    .counter-item:hover {
-      border-color: rgba(56,189,248,0.12);
-      transform: translateY(-2px);
-    }
-    .counter-item .num {
+      gap: 6px;
       font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
       font-weight: 700;
-      font-size: clamp(2rem, 3vw, 2.8rem);
-      line-height: 1;
-      background: linear-gradient(135deg, var(--sky), var(--indigo));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .counter-item .label {
-      font-size: 0.75rem;
-      color: rgba(148,163,184,0.35);
+      letter-spacing: 3px;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-top: 6px;
-      font-weight: 500;
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
     }
-
-    .link-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      max-width: 800px;
-      margin: 0 auto;
+    .live-badge .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: liveFlash 1s ease-in-out infinite;
     }
-    .link-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    @keyframes liveFlash {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(239,68,68,0.6); }
+      50% { opacity: 0.3; box-shadow: 0 0 0 rgba(239,68,68,0); }
+    }
+    .source-line {
       text-align: center;
-      padding: 32px 20px;
-      border-radius: 14px;
-      background: rgba(148,163,184,0.02);
-      border: 1px solid rgba(148,163,184,0.05);
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    .link-card:hover {
-      border-color: rgba(56,189,248,0.15);
-      background: rgba(56,189,248,0.03);
-      transform: translateY(-3px);
-    }
-    .link-card .icon {
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      margin-bottom: 12px;
-      background: rgba(56,189,248,0.06);
-      border: 1px solid rgba(56,189,248,0.08);
-      color: var(--sky);
-    }
-    .link-card h3 {
-      font-family: 'Oswald', sans-serif;
-      font-weight: 600;
-      font-size: 0.95rem;
-      letter-spacing: 1px;
+      font-size: 0.6rem;
+      color: rgba(148,163,184,0.2);
+      letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--frost);
-      margin-bottom: 4px;
-    }
-    .link-card p {
-      font-size: 0.75rem;
-      color: rgba(148,163,184,0.35);
-      font-weight: 300;
+      margin-bottom: 28px;
     }
 
-    .reveal {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
+    .group-section { margin-bottom: 36px; }
+    .group-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.2);
+      margin-bottom: 12px;
+      padding-left: 4px;
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
     }
-    .reveal-delay-1 { transition-delay: 0.1s; }
-    .reveal-delay-2 { transition-delay: 0.2s; }
-    .reveal-delay-3 { transition-delay: 0.3s; }
-    .reveal-delay-4 { transition-delay: 0.4s; }
+    .stat-card {
+      background: rgba(148,163,184,0.02);
+      border: 1px solid rgba(148,163,184,0.06);
+      border-radius: 10px;
+      padding: 16px 14px;
+      text-align: center;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .stat-card:hover {
+      border-color: rgba(129,140,248,0.12);
+      transform: translateY(-1px);
+    }
+    .stat-card .val {
+      display: block;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+      font-weight: 600;
+      color: var(--indigo);
+      line-height: 1.2;
+      text-shadow: 0 0 20px rgba(129,140,248,0.1);
+    }
+    .stat-card .val.live { color: var(--cyan); }
+    .stat-card .label {
+      display: block;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.3);
+      margin-top: 5px;
+    }
+
+    .stats-loading {
+      text-align: center;
+      padding: 60px 0;
+    }
+    .stats-loading .spinner {
+      display: inline-block;
+      width: 24px; height: 24px;
+      border: 2px solid rgba(148,163,184,0.06);
+      border-top-color: var(--indigo);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .stats-loading .label {
+      display: block;
+      font-size: 0.65rem;
+      color: rgba(148,163,184,0.2);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .stats-notice {
+      text-align: center;
+      font-size: 0.65rem;
+      color: rgba(148,163,184,0.15);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 24px;
+    }
 
     footer {
       max-width: 1200px;
@@ -410,7 +311,7 @@
       letter-spacing: 1px;
       transition: color 0.2s;
     }
-    .footer-links a:hover { color: var(--sky); }
+    .footer-links a:hover { color: var(--indigo); }
     .footer-tech {
       display: flex;
       flex-wrap: wrap;
@@ -426,7 +327,7 @@
       color: rgba(148,163,184,0.18);
       font-family: 'JetBrains Mono', monospace;
     }
-    .footer-tech span em { color: rgba(56,189,248,0.2); font-style: normal; }
+    .footer-tech span em { color: rgba(129,140,248,0.2); font-style: normal; }
     .footer-copy {
       margin-top: 14px;
       font-size: 0.62rem;
@@ -446,10 +347,6 @@
     #gpl-notice .modal .btn-accept { display:block; width:100%; padding:12px; border-radius:8px; border:1px solid rgba(129,140,248,0.2); background:rgba(129,140,248,0.08); color:var(--indigo); font-family:'Oswald',sans-serif; font-size:0.85rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; }
     #gpl-notice .modal .btn-accept:hover { background:rgba(129,140,248,0.15); border-color:rgba(129,140,248,0.35); }
 
-    @media (max-width: 900px) {
-      .tech-grid { grid-template-columns: repeat(2, 1fr); }
-      .link-grid { grid-template-columns: repeat(2, 1fr); }
-    }
     @media (max-width: 768px) {
       .nav-links {
         display: none;
@@ -462,22 +359,12 @@
       }
       .nav-links.open { display: flex; }
       .nav-toggle { display: block; }
-      .section { padding: 24px 16px 40px; }
-      .counter-section { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .counter-item { padding: 20px 12px; }
-      .tech-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-      .link-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-      .story-card { padding: 24px 20px; }
-      .license-card { padding: 24px 20px; }
+      .section { padding: 0 16px 40px; }
       footer .footer-inner { flex-direction: column; text-align: center; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
     }
     @media (max-width: 480px) {
-      .tech-grid { grid-template-columns: 1fr; }
-      .link-grid { grid-template-columns: 1fr; }
-      .counter-section { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    }
-    @media (min-width: 901px) {
-      .tech-grid { grid-template-columns: repeat(4, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -486,7 +373,6 @@
   <div class="bg-overlay"></div>
   <div class="grid-overlay"></div>
 
-  <!-- NAV -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
       <a href="/Trivia-Board/" class="nav-logo">Trivia <span class="accent">Board</span></a>
@@ -494,142 +380,53 @@
       <div class="nav-links" id="navLinks">
         <a href="/Trivia-Board/">Home</a>
         <a href="/Trivia-Board/features.html">Features</a>
-        <a href="/Trivia-Board/demo.html">Live Demo</a>
-        <a href="/Trivia-Board/stats.html">Stats</a>
+        <a href="/Trivia-Board/demo.html">Demo</a>
+        <a href="/Trivia-Board/stats.html" class="active">Stats</a>
         <a href="/Trivia-Board/docs.html">Docs</a>
-        <a href="/Trivia-Board/about.html" class="active">About</a>
+        <a href="/Trivia-Board/about.html">About</a>
       </div>
     </div>
   </nav>
 
   <div class="content">
-    <!-- PAGE HEADER -->
     <div class="page-header">
-      <h1>About <span class="accent">the Project</span></h1>
+      <h1>Usage <span class="accent">Stats</span></h1>
       <div class="bar"></div>
-      <p>Everything you need to know about the Trivia Broadcast Engine &mdash; the story, the technology, and the community behind it.</p>
+      <p>Aggregate anonymous counters from every game server. No personal data is ever collected or transmitted.</p>
     </div>
 
-    <!-- STORY -->
     <div class="section">
-      <div class="section-title reveal">
-        <h2>Our <span class="accent">Story</span></h2>
-        <div class="bar"></div>
+      <div class="live-stats-header">
+        <span class="live-badge"><span class="dot"></span> LIVE</span>
       </div>
-      <div class="story-card reveal">
-        <p>The Trivia Broadcast Engine was built for one reason: to make <em>professional-grade live trivia</em> accessible to everyone. Hosts, educators, event organizers, and streamers deserve a tool that works as hard as they do &mdash; without expensive licensing or closed ecosystems.</p>
-        <p style="margin-top: 14px;">Born from a passion for game shows and a frustration with clunky alternatives, this project combines a <strong>real-time WebSocket engine</strong>, a <strong>scriptable CLI setup</strong>, and a <strong>dual-screen broadcast architecture</strong> into one cohesive package. Whether you're running a pub quiz, a classroom review session, or a Twitch stream, the Trivia Broadcast Engine gives you total control over your game.</p>
-        <p style="margin-top: 14px;">Every component is open source, fully documented, and built to be extended. We believe great trivia software should be free &mdash; and that's exactly what this is.</p>
-      </div>
-    </div>
+      <div class="source-line" id="statsSource">loading&hellip;</div>
 
-    <!-- TECH STACK -->
-    <div class="section">
-      <div class="section-title reveal">
-        <h2>Built <span class="accent">With</span></h2>
-        <div class="bar"></div>
-      </div>
-      <div class="tech-grid">
-        <div class="tech-card reveal reveal-delay-1" style="--accent: var(--sky);">
-          <div class="tech-icon">&gt;_</div>
-          <h3>Node.js 18+</h3>
-          <p>Server runtime, handles HTTP, WebSocket, and CLI</p>
+      <div id="statsContent">
+        <div class="stats-loading" id="statsLoading">
+          <div class="spinner"></div>
+          <div class="label">Connecting to stats</div>
         </div>
-        <div class="tech-card reveal reveal-delay-2" style="--accent: var(--indigo);">
-          <div class="tech-icon">&#8594;</div>
-          <h3>Express</h3>
-          <p>HTTP server framework for API and static files</p>
-        </div>
-        <div class="tech-card reveal reveal-delay-3" style="--accent: var(--cyan);">
-          <div class="tech-icon">&#8631;</div>
-          <h3>Socket.IO</h3>
-          <p>Real-time bidirectional communication between server and clients</p>
-        </div>
-        <div class="tech-card reveal reveal-delay-4" style="--accent: var(--sky);">
-          <div class="tech-icon">&#9784;</div>
-          <h3>Chart.js</h3>
-          <p>Interactive post-game analytics dashboards</p>
-        </div>
-        <div class="tech-card reveal reveal-delay-1" style="--accent: var(--indigo);">
-          <div class="tech-icon">&#9776;</div>
-          <h3>Google Sheets</h3>
-          <p>Import game data directly from published sheets</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- LICENSE -->
-    <div class="section">
-      <div class="section-title reveal">
-        <h2>Open <span class="accent">Source</span></h2>
-        <div class="bar"></div>
+        <div id="statsGroups" style="display:none">
+          <div class="group-section">
+            <div class="group-label">Gameplay</div>
+            <div class="stats-grid" id="group-gameplay"></div>
+          </div>
+          <div class="group-section">
+            <div class="group-label">CLI</div>
+            <div class="stats-grid" id="group-cli"></div>
+          </div>
+          <div class="group-section">
+            <div class="group-label">Data</div>
+            <div class="stats-grid" id="group-data"></div>
+          </div>
+        </div>
       </div>
-      <div class="license-card reveal">
-        <div class="badge">&#9733; GNU GPL v3</div>
-        <p>This project is released under the <strong>GNU General Public License v3</strong>. You are free to use, modify, and distribute this software, as long as all derivative works are also distributed under the same license. No restrictions, no hidden costs &mdash; just open source software for the trivia community.</p>
-        <p>We believe in the power of community-driven development. Contributions, forks, and improvements are not just welcome &mdash; they're encouraged.</p>
-        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank">View Full License &rarr;</a>
-      </div>
-    </div>
 
-    <!-- STATS -->
-    <div class="section">
-      <div class="section-title reveal">
-        <h2>By the <span class="accent">Numbers</span></h2>
-        <div class="bar"></div>
-      </div>
-      <div class="counter-section">
-        <div class="counter-item reveal reveal-delay-1">
-          <div class="num" data-target="327">0</div>
-          <div class="label">Clues Supported</div>
-        </div>
-        <div class="counter-item reveal reveal-delay-2">
-          <div class="num" data-target="19">0</div>
-          <div class="label">Game Rounds</div>
-        </div>
-        <div class="counter-item reveal reveal-delay-3">
-          <div class="num" data-target="8">0</div>
-          <div class="label">Core Features</div>
-        </div>
-        <div class="counter-item reveal reveal-delay-4">
-          <div class="num" data-target="6">0</div>
-          <div class="label">Player Slots</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LINKS -->
-    <div class="section">
-      <div class="section-title reveal">
-        <h2>Get <span class="accent">Connected</span></h2>
-        <div class="bar"></div>
-      </div>
-      <div class="link-grid">
-        <a href="https://github.com/L-Logix/Trivia-Board" target="_blank" class="link-card reveal reveal-delay-1">
-          <div class="icon">&#9733;</div>
-          <h3>GitHub</h3>
-          <p>Source code, releases, and contributing</p>
-        </a>
-        <a href="https://github.com/L-Logix/Trivia-Board/issues" target="_blank" class="link-card reveal reveal-delay-2">
-          <div class="icon">&#9881;</div>
-          <h3>Issues</h3>
-          <p>Report bugs and request features</p>
-        </a>
-        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/README.md" target="_blank" class="link-card reveal reveal-delay-3">
-          <div class="icon">&#9998;</div>
-          <h3>Docs</h3>
-          <p>Setup guides and full documentation</p>
-        </a>
-        <a href="https://github.com/L-Logix/Trivia-Board/blob/main/LICENSE" target="_blank" class="link-card reveal reveal-delay-4">
-          <div class="icon">&#9774;</div>
-          <h3>License</h3>
-          <p>GNU GPL v3 terms and conditions</p>
-        </a>
-      </div>
+      <div class="stats-notice" id="statsNotice"></div>
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
       <div class="footer-brand">TechnoThatch <strong>Software Solutions</strong></div>
@@ -651,31 +448,28 @@
   </footer>
 
   <script>
+    // ===== Navbar =====
     (function() {
       var nav = document.getElementById('navbar');
       window.addEventListener('scroll', function() {
         if (window.scrollY > 20) nav.classList.add('scrolled');
         else nav.classList.remove('scrolled');
       });
-    })();
-
-    (function() {
       var btn = document.getElementById('navToggle');
       var links = document.getElementById('navLinks');
       if (btn) {
-        btn.addEventListener('click', function() {
-          links.classList.toggle('open');
-        });
+        btn.addEventListener('click', function() { links.classList.toggle('open'); });
       }
     })();
 
+    // ===== Particle background =====
     (function() {
       var canvas = document.getElementById('bg-canvas');
       if (!canvas) return;
       var ctx = canvas.getContext('2d');
       var W, H, particles = [];
       var NUM = 70;
-      var COLORS = ['56,189,248', '129,140,248', '34,211,238', '148,163,184', '241,245,249'];
+      var COLORS = ['129,140,248', '34,211,238', '148,163,184', '241,245,249', '148,163,184'];
 
       function resize() {
         W = canvas.width = window.innerWidth;
@@ -734,7 +528,7 @@
               if (a > 0.001) {
                 ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
                 ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.strokeStyle = 'rgba(56,189,248,' + a + ')';
+                ctx.strokeStyle = 'rgba(129,140,248,' + a + ')';
                 ctx.lineWidth = 0.35; ctx.stroke();
               }
             }
@@ -745,45 +539,127 @@
       draw();
     })();
 
+    // ===== Stats Fetcher =====
     (function() {
-      var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+      var CLOUD_URL = 'https://script.google.com/macros/s/AKfycbwdVka93Ibysp1G6DezTt8SJAi5GfD1OwaJ26ODL52SB2ZXsKVenAmTqQ6aCpLJHpSucA/exec';
+      var statDefs = [
+        { key: 'totalPointsEarned', label: 'Money Earned', group: 'gameplay' },
+        { key: 'totalPointsLost', label: 'Money Lost', group: 'gameplay' },
+        { key: 'gamesPlayed', label: 'Games Played', group: 'gameplay' },
+        { key: 'gamesCompleted', label: 'Completed', group: 'gameplay' },
+        { key: 'correctAnswers', label: 'Correct', group: 'gameplay' },
+        { key: 'incorrectAnswers', label: 'Incorrect', group: 'gameplay' },
+        { key: 'bonusCluesHit', label: 'Bonus Clues', group: 'gameplay' },
+        { key: 'totalWagers', label: 'Wagered', group: 'gameplay' },
+        { key: 'championshipRounds', label: 'Championships', group: 'gameplay' },
+        { key: 'cluesRevealed', label: 'Clues Revealed', group: 'gameplay' },
+        { key: 'biggestWin', label: 'Biggest Win', group: 'gameplay' },
+        { key: 'biggestLoss', label: 'Biggest Loss', group: 'gameplay' },
+        { key: 'averageScore', label: 'Avg Score', group: 'gameplay' },
+        { key: 'bestStreak', label: 'Best Streak', group: 'gameplay' },
+        { key: 'categoriesRevealed', label: 'Categories', group: 'gameplay' },
+        { key: 'timerExpired', label: 'Times Up', group: 'gameplay' },
+        { key: 'buzzesRegistered', label: 'Buzzes', group: 'gameplay' },
+        { key: 'totalPlayers', label: 'Total Players', group: 'gameplay' },
+        { key: 'setupRuns', label: 'Setup Runs', group: 'cli' },
+        { key: 'startRuns', label: 'Server Starts', group: 'cli' },
+        { key: 'showWRuns', label: 'Show Warranty', group: 'cli' },
+        { key: 'showCRuns', label: 'Show Conditions', group: 'cli' },
+        { key: 'csvImports', label: 'CSV Imports', group: 'data' },
+        { key: 'sheetImports', label: 'Sheet Imports', group: 'data' }
+      ];
 
-      document.querySelectorAll('.reveal').forEach(function(el) {
-        observer.observe(el);
+      var sourceEl = document.getElementById('statsSource');
+      var loadingEl = document.getElementById('statsLoading');
+      var groupsEl = document.getElementById('statsGroups');
+      var noticeEl = document.getElementById('statsNotice');
+
+      var accepted = false;
+      try { accepted = localStorage.getItem('triviaBoardStatsConsent') === '1'; } catch(e) {}
+      if (!accepted) {
+        loadingEl.style.display = 'none';
+        sourceEl.textContent = 'consent required';
+        noticeEl.textContent = 'Accept the data collection notice to see live counters.';
+        return;
+      }
+
+      // Build stat card containers by group
+      statDefs.forEach(function(def) {
+        var card = document.createElement('div');
+        card.className = 'stat-card';
+        card.id = 's-' + def.key;
+        card.innerHTML = '<span class="val">0</span><span class="label">' + def.label + '</span>';
+        document.getElementById('group-' + def.group).appendChild(card);
       });
-    })();
 
-    (function() {
-      var counters = document.querySelectorAll('.counter-item .num');
-      var counterObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            var el = entry.target;
-            var target = parseInt(el.dataset.target);
-            var current = 0;
-            var step = Math.max(1, Math.floor(target / 50));
+      var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-            var interval = setInterval(function() {
-              current += step;
-              if (current >= target) {
-                current = target;
-                clearInterval(interval);
-              }
-              el.textContent = current;
-            }, 25);
+      var urls = [];
+      if (isLocal) {
+        urls.push('http://' + location.hostname + ':3333/api/usage-stats');
+      } else {
+        var base = location.pathname.replace(/\/[^/]*$/, '');
+        if (CLOUD_URL) urls.push(CLOUD_URL);
+        urls.push(base + '/usage-stats.json');
+      }
 
-            counterObserver.unobserve(el);
+      function applyStats(stats, label) {
+        var any = false;
+        statDefs.forEach(function(def) {
+          var card = document.getElementById('s-' + def.key);
+          if (!card) return;
+          var v = typeof stats[def.key] === 'number' ? stats[def.key] : 0;
+          var valEl = card.querySelector('.val');
+          if (valEl) {
+            valEl.textContent = v > 0 ? v : '0';
+            if (v > 0 && label) valEl.classList.add('live');
           }
+          if (v > 0) any = true;
         });
-      }, { threshold: 0.5 });
+        loadingEl.style.display = 'none';
+        groupsEl.style.display = 'block';
+        if (label) {
+          sourceEl.textContent = label;
+          sourceEl.style.color = 'rgba(148,163,184,0.4)';
+        } else if (any) {
+          sourceEl.textContent = 'synced from game servers';
+          sourceEl.style.color = 'rgba(34,211,238,0.4)';
+        } else {
+          sourceEl.textContent = 'no data yet';
+        }
+        return any;
+      }
 
-      counters.forEach(function(c) { counterObserver.observe(c); });
+      var urlIndex = 0;
+      function fetchNext() {
+        if (urlIndex >= urls.length) {
+          loadingEl.style.display = 'none';
+          sourceEl.textContent = 'offline';
+          sourceEl.style.color = 'rgba(148,163,184,0.1)';
+          return;
+        }
+        var isCloud = CLOUD_URL && urlIndex === 0;
+        var u = urls[urlIndex++];
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', u, true);
+        xhr.timeout = 5000;
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            try {
+              var raw = JSON.parse(xhr.responseText);
+              var stats = raw.stats || raw;
+              var label = isLocal ? 'live from trivia server' : (isCloud ? 'synced from Google Sheets' : '');
+              applyStats(stats, label);
+            } catch(e) { fetchNext(); }
+          } else { fetchNext(); }
+        };
+        xhr.onerror = function() { fetchNext(); };
+        xhr.ontimeout = function() { fetchNext(); };
+        xhr.send();
+      }
+
+      fetchNext();
+      if (isLocal) setInterval(fetchNext, 30000);
     })();
   </script>
 
