@@ -112,7 +112,7 @@
 
     .page-header {
       text-align: center;
-      padding: 60px 24px 40px;
+      padding: 60px 24px 24px;
     }
     .page-header h1 {
       font-family: 'Oswald', sans-serif;
@@ -160,51 +160,62 @@
       margin: 10px auto 0;
     }
 
+    /* ===== Split-Screen Demo ===== */
     .demo-section {
-      max-width: 960px;
+      max-width: 1100px;
     }
-    .demo-board-container {
+    .demo-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .split-pane {
+      border-radius: 12px;
+      overflow: hidden;
       position: relative;
-      margin-bottom: 16px;
     }
-    .demo-badge {
-      position: absolute;
-      top: -10px; left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
+    .split-pane .pane-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
       font-family: 'Oswald', sans-serif;
-      font-size: 0.6rem;
+      font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 4px;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--indigo);
-      background: rgba(7,11,23,0.85);
-      padding: 5px 16px;
-      border-radius: 20px;
-      border: 1px solid rgba(129,140,248,0.15);
-      backdrop-filter: blur(8px);
-      animation: badgePulse 2s ease-in-out infinite;
-      pointer-events: none;
+      background: rgba(148,163,184,0.02);
+      border-bottom: 1px solid rgba(148,163,184,0.04);
     }
-    @keyframes badgePulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+    .split-pane.broadcast .pane-header { color: var(--cyan); }
+    .split-pane.broadcast .pane-header .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      animation: liveFlash 1s ease-in-out infinite;
+    }
+    .split-pane.host .pane-header { color: var(--indigo); }
+    .split-pane.host .pane-header .icon { opacity: 0.5; }
+    .split-pane .pane-body {
+      padding: 16px;
     }
 
+    /* Broadcast pane: board + scores */
+    .broadcast-board-wrap { margin-bottom: 12px; }
     .demo-board {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
-      margin-top: 4px;
+      gap: 4px;
     }
     .demo-board .cat {
       background: linear-gradient(180deg, rgba(129,140,248,0.14) 0%, rgba(129,140,248,0.06) 100%);
       border: 1px solid rgba(129,140,248,0.15);
       border-radius: 6px;
-      padding: 14px 8px;
+      padding: 12px 6px;
       text-align: center;
       font-family: 'Oswald', sans-serif;
-      font-size: clamp(0.65rem, 1vw, 0.85rem);
+      font-size: clamp(0.55rem, 0.8vw, 0.7rem);
       font-weight: 600;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -228,25 +239,13 @@
       border: 1px solid rgba(129,140,248,0.08);
       border-radius: 6px;
       font-family: 'Oswald', sans-serif;
-      font-size: clamp(0.7rem, 1.1vw, 0.95rem);
+      font-size: clamp(0.55rem, 0.8vw, 0.75rem);
       font-weight: 600;
       color: var(--indigo);
       cursor: pointer;
       transition: all 0.25s ease;
-      position: relative;
-      overflow: hidden;
       text-shadow: 0 0 10px rgba(129,140,248,0.1);
     }
-    .demo-board .cell::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(180deg, rgba(129,140,248,0.06) 0%, transparent 50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .demo-board .cell:hover::before { opacity: 1; }
     .demo-board .cell:hover {
       border-color: rgba(129,140,248,0.3);
       background: linear-gradient(180deg, rgba(129,140,248,0.14) 0%, rgba(129,140,248,0.07) 100%);
@@ -269,56 +268,94 @@
       transform: none;
       box-shadow: none;
     }
-    .demo-board .cell.done::before { opacity: 0; }
 
-    .demo-clue-area {
-      margin-top: 16px;
-      min-height: 180px;
+    .broadcast-scores {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.12);
+      border: 1px solid rgba(148,163,184,0.04);
+      border-radius: 8px;
+    }
+    .broadcast-scores .player {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+    }
+    .broadcast-scores .player .indicator {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(148,163,184,0.1);
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .broadcast-scores .player .indicator.correct { background: var(--cyan); box-shadow: 0 0 6px rgba(34,211,238,0.4); }
+    .broadcast-scores .player .indicator.incorrect { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.4); }
+    .broadcast-scores .player.buzzed .name { color: var(--indigo); }
+    .broadcast-scores .player .name { color: rgba(148,163,184,0.5); font-weight: 400; }
+    .broadcast-scores .player .score {
+      color: var(--frost);
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+    .broadcast-scores .player .score.pos { color: var(--cyan); }
+    .broadcast-scores .player .score.neg { color: #f87171; }
+    .broadcast-scores .player .score.score-pop { animation: scorePop 0.4s ease-out; }
+    @keyframes scorePop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+
+    /* Host pane: clue, timer, controls */
+    .host-clue-area {
+      min-height: 160px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.2);
+      background: rgba(0,0,0,0.15);
       border: 1px solid rgba(148,163,184,0.06);
-      border-radius: 12px;
-      padding: 28px 24px;
-      position: relative;
-      overflow: hidden;
+      border-radius: 8px;
+      padding: 20px 16px;
       transition: min-height 0.4s, border-color 0.3s;
     }
-    .demo-clue-area.active-clue { border-color: rgba(129,140,248,0.12); }
-    .demo-clue-area .clue-text {
-      font-size: clamp(0.95rem, 1.5vw, 1.25rem);
+    .host-clue-area.active-clue { border-color: rgba(129,140,248,0.12); }
+    .host-clue-area .clue-text {
+      font-size: clamp(0.8rem, 1.1vw, 0.95rem);
       color: rgba(241,245,249,0.8);
       text-align: center;
       line-height: 1.6;
-      max-width: 90%;
       font-weight: 300;
       transition: opacity 0.4s, transform 0.4s;
     }
-    .demo-clue-area .clue-text.entering {
+    .host-clue-area .clue-text.entering {
       animation: clueTextIn 0.5s ease-out;
     }
     @keyframes clueTextIn {
       0% { opacity: 0; transform: translateY(15px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-    .demo-clue-area .clue-answer-wrap {
-      margin-top: 14px;
+    .host-clue-area .clue-answer-wrap {
+      margin-top: 12px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 8px;
       opacity: 0;
       transform: translateY(10px);
       transition: all 0.5s ease;
     }
-    .demo-clue-area .clue-answer-wrap.visible {
+    .host-clue-area .clue-answer-wrap.visible {
       opacity: 1;
       transform: translateY(0);
     }
-    .demo-clue-area .clue-answer-badge {
+    .host-clue-area .clue-answer-badge {
       font-family: 'Oswald', sans-serif;
-      font-size: 0.55rem;
+      font-size: 0.5rem;
       font-weight: 600;
       letter-spacing: 2px;
       text-transform: uppercase;
@@ -328,134 +365,60 @@
       border-radius: 3px;
       line-height: 1;
     }
-    .demo-clue-area .clue-answer {
-      font-size: clamp(0.8rem, 1.2vw, 1rem);
+    .host-clue-area .clue-answer {
+      font-size: clamp(0.7rem, 0.9vw, 0.85rem);
       color: var(--cyan);
       font-weight: 500;
       text-shadow: 0 0 15px rgba(34,211,238,0.15);
     }
-    .demo-clue-area .demo-status {
-      font-size: 0.7rem;
+    .host-clue-area .host-status {
+      font-size: 0.6rem;
       color: rgba(148,163,184,0.25);
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-top: 12px;
+      margin-top: 10px;
+      text-align: center;
       transition: color 0.3s;
     }
-    .demo-clue-area .demo-status.active { color: rgba(129,140,248,0.35); }
-    .demo-clue-area .demo-status.correct { color: var(--cyan); }
-    .demo-clue-area .demo-status.wrong { color: #f87171; }
-    .demo-clue-area .clue-hint {
-      font-size: 0.7rem;
+    .host-clue-area .host-status.active { color: rgba(129,140,248,0.35); }
+    .host-clue-area .host-status.correct { color: var(--cyan); }
+    .host-clue-area .host-status.wrong { color: #f87171; }
+    .host-clue-area .clue-hint {
+      font-size: 0.6rem;
       color: rgba(148,163,184,0.15);
       letter-spacing: 3px;
       text-transform: uppercase;
       margin-top: 6px;
+      text-align: center;
       animation: hintPulse 2s ease-in-out infinite;
     }
     @keyframes hintPulse {
       0%, 100% { opacity: 0.15; }
       50% { opacity: 0.4; }
     }
-    .demo-clue-area .reset-btn {
-      margin-top: 16px;
-      padding: 10px 28px;
-      border-radius: 8px;
-      border: 1px solid rgba(129,140,248,0.2);
-      background: rgba(129,140,248,0.08);
-      color: var(--indigo);
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .demo-clue-area .reset-btn:hover {
-      background: rgba(129,140,248,0.15);
-      border-color: rgba(129,140,248,0.35);
-      box-shadow: 0 0 20px rgba(129,140,248,0.08);
-    }
-
-    .demo-timer {
+    .host-timer {
       position: relative;
       width: 100%;
-      height: 4px;
+      height: 3px;
       background: rgba(148,163,184,0.05);
       border-radius: 2px;
-      margin-top: 12px;
+      margin-top: 10px;
       overflow: hidden;
     }
-    .demo-timer .bar {
+    .host-timer .bar {
       height: 100%;
       background: linear-gradient(90deg, var(--indigo), var(--cyan), var(--indigo));
       background-size: 200% 100%;
       border-radius: 2px;
       width: 0%;
       transition: width 0.1s linear;
-      position: relative;
     }
-    .demo-timer .bar.running {
+    .host-timer .bar.running {
       animation: timerShimmer 1.5s ease-in-out infinite;
     }
     @keyframes timerShimmer {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
-    }
-
-    .demo-scores {
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      margin-top: 16px;
-      padding: 14px 24px;
-      background: rgba(0,0,0,0.12);
-      border: 1px solid rgba(148,163,184,0.04);
-      border-radius: 10px;
-    }
-    .demo-scores .player {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.85rem;
-    }
-    .demo-scores .player .indicator {
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: rgba(148,163,184,0.1);
-      transition: all 0.3s;
-      flex-shrink: 0;
-    }
-    .demo-scores .player .indicator.correct {
-      background: var(--cyan);
-      box-shadow: 0 0 8px rgba(34,211,238,0.4);
-    }
-    .demo-scores .player .indicator.incorrect {
-      background: #f87171;
-      box-shadow: 0 0 8px rgba(248,113,113,0.4);
-    }
-    .demo-scores .player.buzzed .name {
-      color: var(--indigo);
-    }
-    .demo-scores .player .name {
-      color: rgba(148,163,184,0.5);
-      font-weight: 400;
-    }
-    .demo-scores .player .score {
-      color: var(--frost);
-      font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1rem;
-    }
-    .demo-scores .player .score.pos { color: var(--cyan); }
-    .demo-scores .player .score.neg { color: #f87171; }
-    .demo-scores .player .score.score-pop { animation: scorePop 0.4s ease-out; }
-    @keyframes scorePop {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.25); }
-      100% { transform: scale(1); }
     }
 
     .steps {
@@ -572,6 +535,9 @@
     #gpl-notice .modal .btn-accept { display:block; width:100%; padding:12px; border-radius:8px; border:1px solid rgba(129,140,248,0.2); background:rgba(129,140,248,0.08); color:var(--indigo); font-family:'Oswald',sans-serif; font-size:0.85rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; }
     #gpl-notice .modal .btn-accept:hover { background:rgba(129,140,248,0.15); border-color:rgba(129,140,248,0.35); }
 
+    @media (max-width: 900px) {
+      .demo-split { grid-template-columns: 1fr; }
+    }
     @media (max-width: 768px) {
       .nav-links {
         display: none;
@@ -586,20 +552,20 @@
       .nav-toggle { display: block; }
       .section { padding: 24px 16px 40px; }
       footer .footer-inner { flex-direction: column; text-align: center; }
-      .demo-board .cat { font-size: 0.55rem; padding: 10px 4px; }
-      .demo-board .cell { font-size: 0.55rem; }
-      .demo-clue-area { min-height: 140px; padding: 20px 16px; }
-      .demo-clue-area .clue-text { font-size: 0.8rem; }
-      .demo-scores { gap: 16px; flex-wrap: wrap; }
+      .demo-board .cat { font-size: 0.45rem; padding: 8px 4px; }
+      .demo-board .cell { font-size: 0.45rem; }
+      .host-clue-area { min-height: 130px; padding: 16px; }
+      .host-clue-area .clue-text { font-size: 0.75rem; }
+      .broadcast-scores { gap: 12px; flex-wrap: wrap; }
       .steps { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .demo-board { gap: 3px; }
-      .demo-board .cat { font-size: 0.45rem; padding: 6px 2px; }
-      .demo-board .cell { font-size: 0.45rem; }
-      .demo-clue-area { min-height: 120px; padding: 16px 12px; }
-      .demo-clue-area .clue-text { font-size: 0.7rem; }
-      .demo-scores .player { font-size: 0.7rem; }
+      .demo-board .cat { font-size: 0.4rem; padding: 6px 2px; }
+      .demo-board .cell { font-size: 0.4rem; }
+      .host-clue-area { min-height: 110px; padding: 12px; }
+      .host-clue-area .clue-text { font-size: 0.65rem; }
+      .broadcast-scores .player { font-size: 0.6rem; }
     }
   </style>
 </head>
@@ -617,6 +583,7 @@
         <a href="/Trivia-Board/">Home</a>
         <a href="/Trivia-Board/features.html">Features</a>
         <a href="/Trivia-Board/demo.html" class="active">Live Demo</a>
+        <a href="/Trivia-Board/stats.html">Stats</a>
         <a href="/Trivia-Board/docs.html">Docs</a>
         <a href="/Trivia-Board/about.html">About</a>
       </div>
@@ -626,34 +593,45 @@
   <div class="content">
     <!-- PAGE HEADER -->
     <div class="page-header">
-      <h1>Interactive <span class="accent">Demo</span></h1>
+      <h1>Live <span class="accent">Demo</span></h1>
       <div class="bar"></div>
-      <p>Play with a live simulation of the broadcast view. Click any clue to start a round and watch the game come to life.</p>
+      <p>Watch the broadcast and host views side by side. Click a clue to play. Live counters below show real-time usage from the community.</p>
     </div>
 
-    <!-- DEMO SECTION -->
+    <!-- SPLIT-SCREEN DEMO -->
     <div class="section demo-section">
-      <div class="demo-board-container">
-        <div class="demo-badge">Live Demo &bull; Interactive</div>
-        <div class="demo-board" id="demo-board"></div>
-      </div>
-
-      <div class="demo-clue-area" id="demo-clue">
-        <div class="clue-text" id="demo-clue-text">Click any clue value to start the demo</div>
-        <div class="clue-answer-wrap" id="clue-answer-wrap">
-          <span class="clue-answer-badge">ANSWER</span>
-          <span class="clue-answer" id="demo-clue-answer"></span>
+      <div class="demo-split">
+        <!-- Broadcast Pane -->
+        <div class="split-pane broadcast">
+          <div class="pane-header"><span class="dot"></span> Broadcast View</div>
+          <div class="pane-body">
+            <div class="broadcast-board-wrap">
+              <div class="demo-board" id="demo-board"></div>
+            </div>
+            <div class="broadcast-scores" id="demo-scores">
+              <div class="player"><span class="indicator" id="ind-a"></span><span class="name">Alice</span> <span class="score pos" id="score-a">$0</span></div>
+              <div class="player"><span class="indicator" id="ind-b"></span><span class="name">Bob</span> <span class="score pos" id="score-b">$0</span></div>
+              <div class="player"><span class="indicator" id="ind-c"></span><span class="name">Carol</span> <span class="score pos" id="score-c">$0</span></div>
+            </div>
+          </div>
         </div>
-        <div class="demo-status" id="demo-status">Ready</div>
-        <div class="clue-hint" id="demo-hint">Click a dollar value to start</div>
-      </div>
 
-      <div class="demo-timer"><div class="bar" id="demo-timer-bar"></div></div>
-
-      <div class="demo-scores" id="demo-scores">
-        <div class="player"><span class="indicator" id="ind-a"></span><span class="name">Alice</span> <span class="score pos" id="score-a">$0</span></div>
-        <div class="player"><span class="indicator" id="ind-b"></span><span class="name">Bob</span> <span class="score pos" id="score-b">$0</span></div>
-        <div class="player"><span class="indicator" id="ind-c"></span><span class="name">Carol</span> <span class="score pos" id="score-c">$0</span></div>
+        <!-- Host Pane -->
+        <div class="split-pane host">
+          <div class="pane-header"><span class="icon">&#9679;</span> Host View</div>
+          <div class="pane-body">
+            <div class="host-clue-area" id="host-clue">
+              <div class="clue-text" id="demo-clue-text">Click any clue value on the board</div>
+              <div class="clue-answer-wrap" id="clue-answer-wrap">
+                <span class="clue-answer-badge">ANSWER</span>
+                <span class="clue-answer" id="demo-clue-answer"></span>
+              </div>
+              <div class="host-status" id="demo-status">Ready</div>
+              <div class="clue-hint" id="demo-hint">Click a dollar value to start</div>
+            </div>
+            <div class="host-timer"><div class="bar" id="demo-timer-bar"></div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -667,7 +645,7 @@
         <div class="step">
           <div class="step-num">1</div>
           <h3>Click a Clue</h3>
-          <p>Select any clue value on the board. The trivia question appears in the display area below.</p>
+          <p>Select any clue value on the board. The trivia question appears in the host panel.</p>
         </div>
         <div class="step">
           <div class="step-num">2</div>
@@ -844,7 +822,7 @@
       ];
 
       var board = document.getElementById('demo-board');
-      var clueWrap = document.getElementById('demo-clue');
+      var clueWrap = document.getElementById('host-clue');
       var clueText = document.getElementById('demo-clue-text');
       var clueAnswerWrap = document.getElementById('clue-answer-wrap');
       var clueAnswer = document.getElementById('demo-clue-answer');
@@ -882,8 +860,9 @@
       function resetIndicators() {
         for (var k in indicators) {
           indicators[k].className = 'indicator';
+          if (indicators[k]) indicators[k].className = 'indicator';
         }
-        var players = document.querySelectorAll('.demo-scores .player');
+        var players = document.querySelectorAll('.broadcast-scores .player');
         players.forEach(function(p) { p.classList.remove('buzzed'); });
       }
 
@@ -906,11 +885,11 @@
         stopTimer();
         timerBar.style.width = '0%';
         timerBar.className = 'bar';
-        clueText.textContent = 'Click any clue value to start the demo';
+        clueText.textContent = 'Click any clue value on the board';
         clueAnswerWrap.classList.remove('visible');
         clueAnswer.textContent = '';
         demoStatus.textContent = 'Ready';
-        demoStatus.className = 'demo-status';
+        demoStatus.className = 'host-status';
         demoHint.textContent = 'Click a dollar value to start';
         clueWrap.classList.remove('active-clue');
         resetIndicators();
@@ -919,7 +898,7 @@
       }
 
       function clearClueDefaults() {
-        clueText.textContent = 'Click any clue value to continue watching';
+        clueText.textContent = 'Click any clue value on the board';
         clueText.className = 'clue-text';
         clueAnswerWrap.classList.remove('visible');
         clueAnswer.textContent = '';
@@ -965,7 +944,6 @@
         clueState = 'clue';
         resetIndicators();
 
-        // Highlight cell
         var cells = board.querySelectorAll('.cell');
         cells.forEach(function(c) {
           if (parseInt(c.dataset.cat) === cat && parseInt(c.dataset.val) === val) {
@@ -980,27 +958,24 @@
         clueAnswerWrap.classList.remove('visible');
         clueAnswer.textContent = '';
 
-        // Animate clue text in
         setTimeout(function() {
           if (clueState !== 'clue') return;
           clueText.textContent = clue[0];
           clueText.className = 'clue-text entering';
           demoStatus.textContent = 'Clue selected \u2022 Reading\u2026';
-          demoStatus.className = 'demo-status active';
+          demoStatus.className = 'host-status active';
           demoHint.textContent = '';
         }, 100);
 
-        // Reveal answer
         window._demoTimeout1 = setTimeout(function() {
           if (clueState !== 'clue') return;
           clueAnswer.textContent = clue[1];
           clueAnswerWrap.classList.add('visible');
           demoStatus.textContent = 'Answer revealed \u2022 Who can buzz in?';
-          demoStatus.className = 'demo-status active';
+          demoStatus.className = 'host-status active';
           startTimer();
         }, 2500);
 
-        // Simulate player buzz
         window._demoTimeout2 = setTimeout(function() {
           if (clueState !== 'clue') return;
           var p = currentPlayer;
@@ -1010,8 +985,7 @@
           var pName = playerNames[p];
           var isCorrect = Math.random() > 0.3;
 
-          // Highlight buzzing player
-          var playerEls = document.querySelectorAll('.demo-scores .player');
+          var playerEls = document.querySelectorAll('.broadcast-scores .player');
           if (playerEls[p]) playerEls[p].classList.add('buzzed');
 
           if (isCorrect) {
@@ -1020,14 +994,14 @@
             scoreEls[key2].textContent = '$' + scores[key2];
             scoreEls[key2].className = 'score score-pop pos';
             demoStatus.textContent = pName + ' answered correctly! +$' + delta;
-            demoStatus.className = 'demo-status correct';
+            demoStatus.className = 'host-status correct';
           } else {
             indicators[key2].className = 'indicator incorrect';
             scores[key2] -= delta;
             scoreEls[key2].textContent = '$' + scores[key2];
             scoreEls[key2].className = 'score score-pop neg';
             demoStatus.textContent = pName + ' was incorrect. -$' + delta;
-            demoStatus.className = 'demo-status wrong';
+            demoStatus.className = 'host-status wrong';
           }
 
           stopTimer();
@@ -1064,7 +1038,7 @@
         window._demoTimeout3 = setTimeout(function() {
           clearClueDefaults();
           demoStatus.textContent = 'Ready';
-          demoStatus.className = 'demo-status';
+          demoStatus.className = 'host-status';
           demoHint.textContent = 'Click another dollar value';
           clueWrap.classList.remove('active-clue');
         }, 800);
@@ -1076,7 +1050,7 @@
         clueAnswerWrap.classList.remove('visible');
         clueAnswer.textContent = '';
         demoStatus.textContent = 'Try again';
-        demoStatus.className = 'demo-status';
+        demoStatus.className = 'host-status';
         demoHint.textContent = '';
         clueWrap.classList.remove('active-clue');
         timerBar.style.width = '0%';
@@ -1084,11 +1058,17 @@
         var btn = document.createElement('button');
         btn.className = 'reset-btn';
         btn.textContent = '\u21bb Reset Demo';
+        btn.style.cssText = 'margin-top:12px;padding:10px 28px;border-radius:8px;border:1px solid rgba(129,140,248,0.2);background:rgba(129,140,248,0.08);color:var(--indigo);font-family:Oswald,sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;';
+        btn.onmouseover = function() { this.style.background = 'rgba(129,140,248,0.15)'; this.style.borderColor = 'rgba(129,140,248,0.35)'; };
+        btn.onmouseout = function() { this.style.background = 'rgba(129,140,248,0.08)'; this.style.borderColor = 'rgba(129,140,248,0.2)'; };
         var existing = document.querySelector('.reset-btn');
         if (existing) existing.remove();
-        var area = document.getElementById('demo-clue');
+        var hint = document.getElementById('demo-hint');
         var status = document.getElementById('demo-status');
-        area.insertBefore(btn, status);
+        var area = document.getElementById('host-clue');
+        if (hint) area.insertBefore(btn, hint);
+        else if (status) area.insertBefore(btn, status.nextSibling);
+        else area.appendChild(btn);
         btn.addEventListener('click', function() { this.remove(); resetGame(); });
       }
 
@@ -1106,7 +1086,7 @@
             timerBar.className = 'bar';
             if (clueState === 'clue') {
               demoStatus.textContent = 'Time\u2019s up!';
-              demoStatus.className = 'demo-status wrong';
+              demoStatus.className = 'host-status wrong';
               clueState = 'board';
               setTimeout(function() {
                 markDone();
