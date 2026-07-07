@@ -81,8 +81,6 @@ if (!subcommand) {
   console.log('  Usage:');
   console.log('    trivia setup       Run the configuration wizard');
   console.log('    trivia start       Launch the broadcast server');
-  console.log('    trivia api test    Generate test data for the stats API');
-  console.log('    trivia api reset   Reset the stats API data to zero');
   console.log('    trivia show w      Display warranty information');
   console.log('    trivia show c      Display redistribution conditions');
   console.log('');
@@ -112,6 +110,6 @@ if (subcommand === 'setup') {
   }
 } else {
   console.log('Unknown command: ' + subcommand);
-  console.log('Usage: trivia setup | trivia start | trivia api test | trivia api reset | trivia show w | trivia show c');
+  console.log('Usage: trivia setup | trivia start | trivia show w | trivia show c');
   process.exit(1);
 }

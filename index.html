@@ -886,6 +886,48 @@
       letter-spacing: 1px;
     }
 
+    /* ===== Stats Loading Overlay ===== */
+    #stats-loading {
+      display: flex;
+      position: fixed;
+      z-index: 9998;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(7,11,23,0.94);
+      backdrop-filter: blur(12px);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #stats-loading.done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    #stats-loading .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(148,163,184,0.08);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #stats-loading .sl-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(148,163,184,0.3);
+    }
+    #stats-loading .sl-sub {
+      font-size: 0.65rem;
+      color: rgba(148,163,184,0.12);
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+
     /* ===== Data Collection Popup ===== */
     #gpl-notice {
       display: none;
@@ -1393,6 +1435,12 @@
 
   </div>
 
+  <div id="stats-loading">
+    <div class="spinner"></div>
+    <div class="sl-label">Connecting to stats</div>
+    <div class="sl-sub">Syncing from cloud &bull; please wait</div>
+  </div>
+
   <div id="gpl-notice">
     <div class="modal">
       <h2>Data Collection Notice</h2>
@@ -1866,14 +1914,21 @@
       });
     })();
 
-    // ===== Stats Fetcher (live API or static JSON) =====
+    // ===== Stats Fetcher (cloud, static, or local) =====
     (function() {
+      // Set your Google Sheets web app URL here:
+      var CLOUD_URL = 'https://script.google.com/macros/s/AKfycbwdVka93Ibysp1G6DezTt8SJAi5GfD1OwaJ26ODL52SB2ZXsKVenAmTqQ6aCpLJHpSucA/exec';
+
+      var loadEl = document.getElementById('stats-loading');
+      function dismissLoader() { if (loadEl) loadEl.classList.add('done'); }
+
       var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
       var statKeys = ['totalPointsEarned','totalPointsLost','gamesPlayed','gamesCompleted','correctAnswers','incorrectAnswers','bonusCluesHit','totalWagers','championshipRounds','cluesRevealed','biggestWin','biggestLoss','averageScore','bestStreak','categoriesRevealed','timerExpired','buzzesRegistered','totalPlayers','setupRuns','startRuns','showWRuns','showCRuns','csvImports','sheetImports'];
       var notice = document.getElementById('statsNotice');
       var accepted = false;
       try { accepted = localStorage.getItem('triviaBoardStatsConsent') === '1'; } catch(e) {}
       if (!accepted) {
+        dismissLoader();
         notice.innerHTML = 'Accept data collection notice above to enable stats.';
         return;
       }
@@ -1883,56 +1938,62 @@
         if (el) { el.textContent = '0'; el.className = 'val'; }
       });
 
-      var url;
+      var urls = [];
       if (isLocal) {
-        url = 'http://' + location.hostname + ':3333/api/usage-stats';
+        urls.push('http://' + location.hostname + ':3333/api/usage-stats');
       } else {
         var base = location.pathname.replace(/\/[^/]*$/, '');
-        url = base + '/usage-stats.json';
+        if (CLOUD_URL) urls.push(CLOUD_URL);
+        urls.push(base + '/usage-stats.json');
       }
 
-      function applyStats(stats, live) {
+      function applyStats(stats, label) {
+        dismissLoader();
         var any = false;
         statKeys.forEach(function(k) {
           var el = document.getElementById('stat-' + k);
           if (!el) return;
           var v = typeof stats[k] === 'number' ? stats[k] : 0;
           el.textContent = v > 0 ? v : '0';
-          el.className = 'val' + (live ? ' live' : '');
+          el.className = 'val' + (label ? ' live' : '');
           if (v > 0) any = true;
         });
-        if (live && any) notice.innerHTML = '<span class="dot live"></span> Live from trivia server';
-        else if (live) notice.innerHTML = '<span class="dot live"></span> Connected &mdash; waiting for activity';
-        else if (any) notice.innerHTML = 'Published stats from ' + new Date().toLocaleDateString();
+        if (label) notice.innerHTML = label;
+        else if (any) notice.innerHTML = 'Published stats';
         else notice.innerHTML = 'No stats published yet';
+        return any;
       }
 
-      function fetchStats() {
+      var urlIndex = 0;
+      function fetchNext() {
+        if (urlIndex >= urls.length) {
+          dismissLoader();
+          if (isLocal) notice.innerHTML = 'Start the trivia server to see live stats';
+          else notice.innerHTML = 'No stats found';
+          return;
+        }
+        var isCloud = CLOUD_URL && urlIndex === 0;
+        var u = urls[urlIndex++];
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.timeout = 4000;
+        xhr.open('GET', u, true);
+        xhr.timeout = 5000;
         xhr.onload = function() {
           if (xhr.status === 200) {
             try {
               var raw = JSON.parse(xhr.responseText);
               var stats = raw.stats || raw;
-              applyStats(stats, isLocal);
-            } catch(e) { notice.textContent = 'Could not parse stats'; }
-          } else {
-            notice.innerHTML = isLocal ? 'Start the trivia server to see live stats' : 'Stats file not found &mdash; run <code>trivia api test</code> to generate';
-          }
+              var label = isLocal ? '<span class="dot live"></span> Live from trivia server' : (isCloud ? 'Synced from Google Sheets' : '');
+              applyStats(stats, label);
+            } catch(e) { fetchNext(); }
+          } else { fetchNext(); }
         };
-        xhr.onerror = function() {
-          notice.innerHTML = isLocal ? 'Start the trivia server to see live stats' : 'Could not load stats file';
-        };
-        xhr.ontimeout = function() {
-          notice.innerHTML = isLocal ? 'Trivia server not responding' : 'Could not load stats file';
-        };
+        xhr.onerror = function() { fetchNext(); };
+        xhr.ontimeout = function() { fetchNext(); };
         xhr.send();
       }
 
-      fetchStats();
-      if (isLocal) setInterval(fetchStats, 30000);
+      fetchNext();
+      if (isLocal) setInterval(fetchNext, 30000);
     })();
 
 </script>
