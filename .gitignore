@@ -3,3 +3,5 @@ public/img/*
 public/audio/*
 public/video/*
 src/cli/api.js
+/usage-stats.json
+usage-stats.json
