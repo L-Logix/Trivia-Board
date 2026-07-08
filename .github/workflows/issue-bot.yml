@@ -4,11 +4,17 @@ on:
     - cron: '0 6 * * *'
   pull_request:
     types: [opened]
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'bin/**'
   workflow_dispatch:
 
 permissions:
   issues: write
   pull-requests: write
+  actions: write
   contents: read
 
 jobs:
@@ -244,6 +250,17 @@ jobs:
             }
 
             console.log('Created ' + created + ' new issues');
+
+            // Trigger worker-bot to immediately process new issues
+            if (created > 0) {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'worker-bot.yml',
+                ref: 'main'
+              });
+              console.log('Triggered worker-bot');
+            }
 
   # ── Respond when someone replies ──
   respond-to-reply:
