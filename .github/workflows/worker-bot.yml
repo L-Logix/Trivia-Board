@@ -62,8 +62,19 @@ jobs:
               sort: 'created',
               direction: 'asc'
             });
+            console.log('API returned ' + issues.data.length + ' issues');
 
             const candidates = issues.data.filter(i => !i.assignee && !i.pull_request);
+            console.log('Candidates (unassigned, non-PR): ' + candidates.length);
+            if (candidates.length > 0) {
+              console.log('First issue title: ' + candidates[0].title);
+              console.log('First issue labels: ' + candidates[0].labels.map(l => l.name).join(', '));
+            } else {
+              console.log('All issue titles:');
+              for (const i of issues.data) {
+                console.log('  #' + i.number + ' ' + i.title + ' (assignee=' + i.assignee + ', is_pr=' + (!!i.pull_request) + ')');
+              }
+            }
             let processed = 0;
 
             // Helper: find a file by basename under src/ or bin/
