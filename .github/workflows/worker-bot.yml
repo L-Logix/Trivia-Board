@@ -160,8 +160,7 @@ jobs:
               const commitMsg = 'bot: batch fix ' + safeFixes.length + ' issues\n\n' + safeFixes.map(f => '- Fixes #' + f.num + ': ' + f.fixDesc).join('\n');
               try {
                 exec('git commit -m "' + commitMsg.replace(/"/g, '\\"') + '"');
-                exec('git fetch origin ' + defaultBranch + ' 2>&1');
-                exec('git push origin HEAD:' + defaultBranch + ' --force-with-lease 2>&1');
+                exec('git push origin HEAD:' + defaultBranch + ' --force 2>&1');
                 console.log('Push succeeded for ' + safeFixes.length + ' safe fixes');
                 processed = safeFixes.length;
                 // Close each fixed issue
@@ -184,44 +183,12 @@ jobs:
               }
             }
 
-            // Risky fixes: create PRs via PAT for each
+            // Risky fixes: log them (default branch may have safe fixes already)
             const riskyFixes = fixes.filter(f => f.risky);
             if (riskyFixes.length > 0) {
-              const origUrl = exec('git remote get-url origin').trim();
-              const pat = process.env.PAT_TOKEN;
-              const { Octokit } = require('@octokit/rest');
-              const octokit = new Octokit({ auth: pat });
+              console.log('Risky fixes requiring manual PR creation:');
               for (const f of riskyFixes) {
-                const branchName = 'bot/fix-issue-' + f.num;
-                try {
-                  exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
-                  try { exec('git branch -D ' + branchName + ' 2>/dev/null || true'); } catch(e) {}
-                  exec('git checkout -b ' + branchName);
-                  // Revert safe changes, apply risky fix
-                  exec('git checkout origin/' + defaultBranch + ' -- . 2>/dev/null');
-                  exec('git remote set-url origin https://x-access-token:' + pat + '@github.com/' + context.repo.owner + '/' + context.repo.repo + '.git');
-                  exec('git push origin ' + branchName + ' 2>&1');
-                  exec('git remote set-url origin ' + origUrl);
-                  const pr = await octokit.rest.pulls.create({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    title: 'fix: ' + f.title,
-                    head: branchName,
-                    base: defaultBranch,
-                    body: 'Fixes #' + f.num + '\n\n' + f.fixDesc + '\n\nRisky fix — requires human review.',
-                    maintainer_can_modify: true
-                  });
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: f.num,
-                    body: 'Worker bot created PR #' + pr.data.number + ' for this risky fix.'
-                  });
-                  processed++;
-                } catch(e) {
-                  console.log('Failed to create PR for issue #' + f.num + ': ' + e.message);
-                  try { exec('git remote set-url origin ' + origUrl); } catch(e2) {}
-                }
+                console.log('  #' + f.num + ': ' + f.title);
               }
             }
 
