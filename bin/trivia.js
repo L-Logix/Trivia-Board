@@ -97,9 +97,11 @@ if (subcommand === 'show') {
 
 if (subcommand === 'setup') {
   stats.increment('setupRuns');
+  console.log('  Setup runs: ' + stats.get('setupRuns'));
   require('../src/cli/setup');
 } else if (subcommand === 'start') {
   stats.increment('startRuns');
+  console.log('  Start runs: ' + stats.get('startRuns'));
   require('../src/cli/start');
 } else if (subcommand === 'api') {
   try {
