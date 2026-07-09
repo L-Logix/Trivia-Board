@@ -80,14 +80,18 @@ jobs:
             // Helper: find a file by basename under src/ or bin/
             function findFile(basename) {
               try {
-                const out = exec('find src/ bin/ -name "' + basename.replace(/"/g, '\\"') + '" 2>/dev/null | head -1');
-                return out.trim();
-              } catch(e) { return ''; }
+                const cmd = 'find src/ bin/ -name "' + basename.replace(/"/g, '\\"') + '" 2>/dev/null | head -1';
+                const out = exec(cmd);
+                const result = out.trim();
+                console.log('findFile(' + basename + ') => "' + result + '"');
+                return result;
+              } catch(e) { console.log('findFile(' + basename + ') error: ' + e.message); return ''; }
             }
 
             for (const issue of candidates) {
               const num = issue.number;
               const title = issue.title;
+              console.log('Checking #' + num + ': ' + title);
               let fixable = false;
               let fixDesc = '';
               let safe = false;
