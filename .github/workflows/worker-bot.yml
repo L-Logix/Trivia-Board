@@ -42,6 +42,15 @@ jobs:
               return execSync(cmd, { encoding: 'utf8', cwd: process.env.GITHUB_WORKSPACE });
             }
 
+            // Resolve default branch dynamically
+            const repoInfo = await github.rest.repos.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const defaultBranch = repoInfo.data.default_branch;
+            console.log('Default branch: ' + defaultBranch);
+            exec('git fetch origin ' + defaultBranch);
+
             // Process all fixable unassigned bots-only issues
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -147,14 +156,15 @@ jobs:
               try {
                 exec('git branch -D ' + branchName + ' 2>/dev/null || true');
               } catch(e) {}
-              exec('git checkout -b ' + branchName + ' main');
+              exec('git checkout origin/' + defaultBranch);
+              exec('git checkout -b ' + branchName);
 
               // Stage and commit
               exec('git add -A');
               try {
                 exec('git commit -m "fix: ' + title.replace(/"/g, '\\"') + '"');
               } catch(e) {
-                exec('git checkout main');
+                exec('git checkout ' + defaultBranch);
                 continue;
               }
 
@@ -162,7 +172,7 @@ jobs:
               try {
                 exec('git push origin ' + branchName + ' 2>&1');
               } catch(e) {
-                exec('git checkout main');
+                exec('git checkout ' + defaultBranch);
                 continue;
               }
 
@@ -172,7 +182,7 @@ jobs:
                 repo: context.repo.repo,
                 title: 'fix: ' + title,
                 head: branchName,
-                base: 'main',
+                base: defaultBranch,
                 body: 'Fixes #' + num + '\n\n' + fixDesc + '\n\nAutomated fix by worker-bot.',
                 maintainer_can_modify: true
               });
@@ -207,7 +217,7 @@ jobs:
               }
 
               processed++;
-              exec('git checkout main');
+              exec('git checkout ' + defaultBranch);
             }
 
             console.log('Processed ' + processed + ' issues');
