@@ -7,7 +7,8 @@ var ROOT = path.resolve(__dirname, '../..');
 var STATS_PATH = path.join(ROOT, 'usage-stats.json');
 
 // Cloud sync — set your Google Sheets web app URL here
-// No config file needed. Every stats change auto-syncs to this URL.
+// Push manually with: trivia api push
+// Reset via: trivia api reset
 var CLOUD_URL = 'https://script.google.com/macros/s/AKfycbwdVka93Ibysp1G6DezTt8SJAi5GfD1OwaJ26ODL52SB2ZXsKVenAmTqQ6aCpLJHpSucA/exec';
 var CLOUD_TOKEN = 'sdaiof8q34werds0qwf@#R$EWFIAWE(REFskdfiwepaf)';
 
@@ -138,7 +139,6 @@ function increment(key, by) {
   var data = load();
   data[key] = (data[key] || 0) + (by || 1);
   save(data);
-  _queueSync(key, by || 1);
 }
 
 function addPointsEarned(amount) {
@@ -148,7 +148,6 @@ function addPointsEarned(amount) {
   data.currentStreak = (data.currentStreak || 0) + 1;
   if (data.currentStreak > (data.bestStreak || 0)) data.bestStreak = data.currentStreak;
   save(data);
-  _queueSync('totalPointsEarned', amount);
 }
 
 function addPointsLost(amount) {
@@ -157,7 +156,6 @@ function addPointsLost(amount) {
   if (amount > (data.biggestLoss || 0)) data.biggestLoss = amount;
   data.currentStreak = 0;
   save(data);
-  _queueSync('totalPointsLost', amount);
 }
 
 function gameCompleted(totalScore) {
@@ -166,7 +164,6 @@ function gameCompleted(totalScore) {
   var played = data.gamesPlayed || 1;
   data.averageScore = Math.round(((data.averageScore || 0) * (played - 1) + totalScore) / played);
   save(data);
-  _queueSync('gamesCompleted', 1);
 }
 
 function getAll() {
@@ -184,11 +181,13 @@ function get(key) {
   return typeof data[key] === 'number' ? data[key] : 0;
 }
 
-function reset() {
+function reset(cb) {
   save(Object.assign({}, defaultStats));
   if (CLOUD_URL) {
     var body = JSON.stringify({ action: 'reset', token: CLOUD_TOKEN });
-    _postToCloud(body);
+    _postToCloud(body, cb);
+  } else if (cb) {
+    cb();
   }
 }
 
