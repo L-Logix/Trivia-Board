@@ -134,12 +134,12 @@ jobs:
 
               if (!fixable) continue;
 
-              // Assign issue to bot
-              await github.rest.issues.addAssignees({
+              // Mark issue as in-progress
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: num,
-                assignees: ['github-actions[bot]']
+                labels: ['in-progress']
               });
 
               // Create branch and commit
