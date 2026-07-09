@@ -35,6 +35,8 @@ jobs:
 
       - name: Batch fix and create PRs
         uses: actions/github-script@v7
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
           script: |
             const execSync = require('child_process').execSync;
@@ -143,82 +145,74 @@ jobs:
 
               if (!fixable) continue;
 
-              // Mark issue as in-progress
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: num,
-                labels: ['in-progress']
-              });
-
-              // Create branch and commit
+              // Checkout default branch
+              exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
+              const origUrl = exec('git remote get-url origin').trim();
               const branchName = 'bot/fix-issue-' + num;
-              try {
-                exec('git branch -D ' + branchName + ' 2>/dev/null || true');
-              } catch(e) {}
-              exec('git checkout origin/' + defaultBranch);
-              exec('git checkout -b ' + branchName);
+
+              if (!safe) {
+                try { exec('git branch -D ' + branchName + ' 2>/dev/null || true'); } catch(e) {}
+                exec('git checkout -b ' + branchName);
+              }
 
               // Stage and commit
               exec('git add -A');
               try {
                 exec('git commit -m "fix: ' + title.replace(/"/g, '\\"') + '"');
               } catch(e) {
-                exec('git checkout ' + defaultBranch);
                 continue;
               }
 
-              // Push
-              try {
-                exec('git push origin ' + branchName + ' 2>&1');
-              } catch(e) {
-                exec('git checkout ' + defaultBranch);
-                continue;
-              }
-
-              // Create PR
-              const pr = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: 'fix: ' + title,
-                head: branchName,
-                base: defaultBranch,
-                body: 'Fixes #' + num + '\n\n' + fixDesc + '\n\nAutomated fix by worker-bot.',
-                maintainer_can_modify: true
-              });
-
-              // Comment on issue
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: num,
-                body: 'Worker bot opened PR #' + pr.data.number + ' for this issue.'
-              });
-
-              // Auto-merge if safe
               if (safe) {
+                // Push directly to default branch
                 try {
-                  await github.rest.pulls.createReview({
+                  exec('git push origin HEAD:' + defaultBranch + ' 2>&1');
+                } catch(e) {
+                  continue;
+                }
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: num,
+                  body: 'Worker bot applied fix: ' + fixDesc
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: num,
+                  state: 'closed'
+                });
+              } else {
+                // Push branch and create PR using PAT
+                try {
+                  const pat = process.env.PAT_TOKEN;
+                  exec('git remote set-url origin https://x-access-token:' + pat + '@github.com/' + context.repo.owner + '/' + context.repo.repo + '.git');
+                  exec('git push origin ' + branchName + ' 2>&1');
+                  exec('git remote set-url origin ' + origUrl);
+                  const { Octokit } = require('@octokit/rest');
+                  const octokit = new Octokit({ auth: pat });
+                  const pr = await octokit.rest.pulls.create({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    pull_number: pr.data.number,
-                    event: 'APPROVE',
-                    body: 'Safe fix — auto-approved by worker-bot.'
+                    title: 'fix: ' + title,
+                    head: branchName,
+                    base: defaultBranch,
+                    body: 'Fixes #' + num + '\n\n' + fixDesc + '\n\nRisky fix — requires human review.',
+                    maintainer_can_modify: true
                   });
-                  await github.rest.pulls.merge({
+                  await github.rest.issues.createComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    pull_number: pr.data.number,
-                    merge_method: 'squash'
+                    issue_number: num,
+                    body: 'Worker bot created PR #' + pr.data.number + ' for this risky fix.'
                   });
                 } catch(e) {
-                  console.log('Auto-merge failed for PR #' + pr.data.number + ': ' + e.message);
+                  console.log('Failed to create PR for issue #' + num + ': ' + e.message);
+                  try { exec('git remote set-url origin ' + origUrl); } catch(e2) {}
                 }
               }
 
               processed++;
-              exec('git checkout ' + defaultBranch);
-            }
 
             console.log('Processed ' + processed + ' issues');
 
