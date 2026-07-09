@@ -92,6 +92,10 @@ jobs:
               const num = issue.number;
               const title = issue.title;
               console.log('Checking #' + num + ': ' + title);
+
+              // Reset to clean default branch before any fix
+              exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
+
               let fixable = false;
               let fixDesc = '';
               let safe = false;
@@ -160,8 +164,6 @@ jobs:
 
               if (!fixable) continue;
 
-              // Checkout default branch
-              exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
               const origUrl = exec('git remote get-url origin').trim();
               const branchName = 'bot/fix-issue-' + num;
 
