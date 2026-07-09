@@ -54,6 +54,14 @@ jobs:
             const MAX_ISSUES = 8;
             let processed = 0;
 
+            // Helper: find a file by basename under src/ or bin/
+            function findFile(basename) {
+              try {
+                const out = exec('find src/ bin/ -name "' + basename.replace(/"/g, '\\"') + '" 2>/dev/null | head -1');
+                return out.trim();
+              } catch(e) { return ''; }
+            }
+
             for (const issue of candidates) {
               if (processed >= MAX_ISSUES) break;
               const num = issue.number;
@@ -81,14 +89,9 @@ jobs:
               }
 
               else if (/console\.log/i.test(title)) {
-                // Extract file from title: "Remove console.log from <file>"
                 const fileMatch = title.match(/from\s+(\S+)$/);
                 if (fileMatch) {
-                  const file = 'src/' + fileMatch[1];
-                  if (fileMatch[1].startsWith('bin/')) file = fileMatch[1];
-                  const relFile = fileMatch[1].startsWith('src/') || fileMatch[1].startsWith('bin/') ? fileMatch[1] : 'src/' + fileMatch[1];
-                  const exists = exec('ls "' + relFile + '" 2>/dev/null || ls "src/' + fileMatch[1] + '" 2>/dev/null || ls "bin/' + fileMatch[1] + '" 2>/dev/null || true');
-                  const target = exists.trim();
+                  const target = findFile(fileMatch[1]);
                   if (target) {
                     exec('sed -i "/console\\.log/d" "' + target + '"');
                     fixable = true;
@@ -96,7 +99,6 @@ jobs:
                     safe = true;
                   }
                 } else {
-                  // Fallback: remove all console.log in src/
                   exec('for f in $(grep -rl "console\\.log" --include="*.js" src/ 2>/dev/null); do sed -i "/console\\.log/d" "$f"; done');
                   fixable = true;
                   fixDesc = 'Removed console.log statements across src/';
@@ -107,11 +109,7 @@ jobs:
               else if (/commented-out/i.test(title)) {
                 const fileMatch = title.match(/in\s+(\S+)$/);
                 if (fileMatch) {
-                  const candidates2 = [fileMatch[1], 'src/' + fileMatch[1], 'bin/' + fileMatch[1]];
-                  let target = '';
-                  for (const c of candidates2) {
-                    try { exec('ls "' + c + '" 2>/dev/null'); target = c; } catch(e) {}
-                  }
+                  const target = findFile(fileMatch[1]);
                   if (target) {
                     exec('sed -i "/^\\s*\\/\\/\\s*\\(var\\|let\\|const\\|function\\|if\\|for\\|while\\|return\\|console\\)/d" "' + target + '"');
                     fixable = true;
@@ -124,11 +122,7 @@ jobs:
               else if (/extra blank line|blank lines|consecutive blank/i.test(title)) {
                 const fileMatch = title.match(/in\s+(\S+)$/);
                 if (fileMatch) {
-                  const candidates2 = [fileMatch[1], 'src/' + fileMatch[1], 'bin/' + fileMatch[1]];
-                  let target = '';
-                  for (const c of candidates2) {
-                    try { exec('ls "' + c + '" 2>/dev/null'); target = c; } catch(e) {}
-                  }
+                  const target = findFile(fileMatch[1]);
                   if (target) {
                     exec('awk "/^$/{n++; if(n>2) next} !/^$/{n=0} 1" "' + target + '" > "' + target + '.tmp" && mv "' + target + '.tmp" "' + target + '"');
                     fixable = true;

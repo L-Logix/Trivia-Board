@@ -252,13 +252,17 @@ jobs:
 
             // Trigger worker-bot to immediately process new issues
             if (created > 0) {
+              const repoInfo = await github.rest.repos.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'worker-bot.yml',
-                ref: 'main'
+                ref: repoInfo.data.default_branch
               });
-              console.log('Triggered worker-bot');
+              console.log('Triggered worker-bot on ' + repoInfo.data.default_branch);
             }
 
   # ── Respond when someone replies ──
