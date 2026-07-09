@@ -177,7 +177,8 @@ jobs:
               if (safe) {
                 // Push directly to default branch
                 try {
-                  exec('git push origin HEAD:' + defaultBranch + ' 2>&1');
+                  exec('git fetch origin ' + defaultBranch + ' 2>&1');
+                  exec('git push origin HEAD:' + defaultBranch + ' --force-with-lease 2>&1');
                 } catch(e) {
                   continue;
                 }
