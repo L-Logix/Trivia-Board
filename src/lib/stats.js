@@ -219,4 +219,4 @@ module.exports = {
 // function testFunc() { return true; }
 // console.log('this is test dead code');
 
-console.log('BOT_TEST: this console.log tests the worker bot auto-fix');
+console.log('BOT_TEST: this console.log tests the worker bot auto-fix');
