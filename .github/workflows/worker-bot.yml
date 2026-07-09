@@ -213,6 +213,7 @@ jobs:
               }
 
               processed++;
+            }
 
             console.log('Processed ' + processed + ' issues');
 
