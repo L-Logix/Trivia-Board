@@ -1,5 +1,7 @@
 name: Worker Bot
 on:
+  push:
+    branches: ['**']
   issues:
     types: [opened]
   issue_comment:
@@ -18,7 +20,7 @@ permissions:
 jobs:
   # ── Batch fix up to 8 issues per run ──
   batch-fix:
-    if: github.event_name == 'issues' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: (github.event_name == 'issues' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +42,7 @@ jobs:
               return execSync(cmd, { encoding: 'utf8', cwd: process.env.GITHUB_WORKSPACE });
             }
 
-            // Find up to 8 fixable unassigned bots-only issues
+            // Process all fixable unassigned bots-only issues
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -51,7 +53,6 @@ jobs:
             });
 
             const candidates = issues.data.filter(i => !i.assignee && !i.pull_request);
-            const MAX_ISSUES = 8;
             let processed = 0;
 
             // Helper: find a file by basename under src/ or bin/
@@ -63,7 +64,6 @@ jobs:
             }
 
             for (const issue of candidates) {
-              if (processed >= MAX_ISSUES) break;
               const num = issue.number;
               const title = issue.title;
               let fixable = false;
