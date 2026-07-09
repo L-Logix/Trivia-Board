@@ -88,21 +88,16 @@ jobs:
               } catch(e) { console.log('findFile(' + basename + ') error: ' + e.message); return ''; }
             }
 
+            // First pass: collect all fix commands
+            const fixes = [];
             for (const issue of candidates) {
               const num = issue.number;
               const title = issue.title;
-              console.log('Checking #' + num + ': ' + title);
-
-              // Reset to clean default branch before any fix
-              exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
-
               let fixable = false;
               let fixDesc = '';
-              let safe = false;
+              let risky = false;
 
-              // Check issue title for fix categories
               if (/trailing newline/i.test(title)) {
-                // Add trailing newlines to files missing them
                 const files = exec('find src/ bin/ -name "*.js" 2>/dev/null');
                 const toFix = files.trim().split('\n').filter(f => {
                   try {
@@ -113,124 +108,121 @@ jobs:
                 for (const f of toFix) {
                   exec('echo "" >> "' + f + '"');
                 }
-                fixable = toFix.length > 0;
-                fixDesc = 'Added trailing newlines to ' + toFix.length + ' files';
-                safe = true;
-              }
-
-              else if (/console\.log/i.test(title)) {
+                if (toFix.length > 0) { fixable = true; fixDesc = 'Added trailing newlines to ' + toFix.length + ' files'; }
+              } else if (/console\.log/i.test(title)) {
                 const fileMatch = title.match(/from\s+(\S+)$/);
                 if (fileMatch) {
                   const target = findFile(fileMatch[1]);
-                  if (target) {
-                    exec('sed -i "/console\\.log/d" "' + target + '"');
-                    fixable = true;
-                    fixDesc = 'Removed console.log from ' + target;
-                    safe = true;
-                  }
+                  if (target) { exec('sed -i "/console\\.log/d" "' + target + '"'); fixable = true; fixDesc = 'Removed console.log from ' + target; }
                 } else {
                   exec('for f in $(grep -rl "console\\.log" --include="*.js" src/ 2>/dev/null); do sed -i "/console\\.log/d" "$f"; done');
-                  fixable = true;
-                  fixDesc = 'Removed console.log statements across src/';
-                  safe = true;
+                  fixable = true; fixDesc = 'Removed console.log statements across src/';
                 }
-              }
-
-              else if (/commented-out/i.test(title)) {
+              } else if (/commented-out/i.test(title)) {
                 const fileMatch = title.match(/in\s+(\S+)$/);
                 if (fileMatch) {
                   const target = findFile(fileMatch[1]);
-                  if (target) {
-                    exec('sed -i "/^\\s*\\/\\/\\s*\\(var\\|let\\|const\\|function\\|if\\|for\\|while\\|return\\|console\\)/d" "' + target + '"');
-                    fixable = true;
-                    fixDesc = 'Removed commented-out code from ' + target;
-                    safe = true;
-                  }
+                  if (target) { exec('sed -i "/^\\s*\\/\\/\\s*\\(var\\|let\\|const\\|function\\|if\\|for\\|while\\|return\\|console\\)/d" "' + target + '"'); fixable = true; fixDesc = 'Removed commented-out code from ' + target; }
                 }
-              }
-
-              else if (/extra blank line|blank lines|consecutive blank/i.test(title)) {
+              } else if (/extra blank line|blank lines|consecutive blank/i.test(title)) {
                 const fileMatch = title.match(/in\s+(\S+)$/);
                 if (fileMatch) {
                   const target = findFile(fileMatch[1]);
-                  if (target) {
-                    exec('awk "/^$/{n++; if(n>2) next} !/^$/{n=0} 1" "' + target + '" > "' + target + '.tmp" && mv "' + target + '.tmp" "' + target + '"');
-                    fixable = true;
-                    fixDesc = 'Removed consecutive blank lines from ' + target;
-                    safe = true;
-                  }
+                  if (target) { exec('awk "/^$/{n++; if(n>2) next} !/^$/{n=0} 1" "' + target + '" > "' + target + '.tmp" && mv "' + target + '.tmp" "' + target + '"'); fixable = true; fixDesc = 'Removed consecutive blank lines from ' + target; }
                 }
-              }
-
-              if (!fixable) continue;
-
-              const origUrl = exec('git remote get-url origin').trim();
-              const branchName = 'bot/fix-issue-' + num;
-
-              if (!safe) {
-                try { exec('git branch -D ' + branchName + ' 2>/dev/null || true'); } catch(e) {}
-                exec('git checkout -b ' + branchName);
-              }
-
-              // Stage and commit
-              exec('git add -A');
-              try {
-                exec('git commit -m "fix: ' + title.replace(/"/g, '\\"') + '"');
-              } catch(e) {
-                continue;
-              }
-
-              if (safe) {
-                // Push directly to default branch
-                try {
-                  exec('git fetch origin ' + defaultBranch + ' 2>&1');
-                  exec('git push origin HEAD:' + defaultBranch + ' --force-with-lease 2>&1');
-                } catch(e) {
-                  continue;
-                }
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: num,
-                  body: 'Worker bot applied fix: ' + fixDesc
-                });
-                await github.rest.issues.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: num,
-                  state: 'closed'
-                });
               } else {
-                // Push branch and create PR using PAT
+                risky = true;
+              }
+
+              if (fixable || risky) {
+                fixes.push({ num, title, fixDesc, risky });
+              }
+            }
+
+            console.log('Total fixes to apply: ' + fixes.length);
+            for (const f of fixes) {
+              console.log('  #' + f.num + ': ' + f.title + (f.risky ? ' [RISKY]' : ''));
+            }
+
+            // If there are no fixes, we're done
+            if (fixes.length === 0) {
+              console.log('No fixes to apply');
+              return;
+            }
+
+            // Checkout the default branch
+            exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
+
+            // Safe fixes: stage, commit, push
+            const safeFixes = fixes.filter(f => !f.risky);
+            if (safeFixes.length > 0) {
+              exec('git add -A');
+              const commitMsg = 'bot: batch fix ' + safeFixes.length + ' issues\n\n' + safeFixes.map(f => '- Fixes #' + f.num + ': ' + f.fixDesc).join('\n');
+              try {
+                exec('git commit -m "' + commitMsg.replace(/"/g, '\\"') + '"');
+                exec('git fetch origin ' + defaultBranch + ' 2>&1');
+                exec('git push origin HEAD:' + defaultBranch + ' --force-with-lease 2>&1');
+                console.log('Push succeeded for ' + safeFixes.length + ' safe fixes');
+                processed = safeFixes.length;
+                // Close each fixed issue
+                for (const f of safeFixes) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: f.num,
+                    body: 'Worker bot applied fix: ' + f.fixDesc
+                  });
+                  await github.rest.issues.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: f.num,
+                    state: 'closed'
+                  });
+                }
+              } catch(e) {
+                console.log('Safe batch fix failed: ' + e.message);
+              }
+            }
+
+            // Risky fixes: create PRs via PAT for each
+            const riskyFixes = fixes.filter(f => f.risky);
+            if (riskyFixes.length > 0) {
+              const origUrl = exec('git remote get-url origin').trim();
+              const pat = process.env.PAT_TOKEN;
+              const { Octokit } = require('@octokit/rest');
+              const octokit = new Octokit({ auth: pat });
+              for (const f of riskyFixes) {
+                const branchName = 'bot/fix-issue-' + f.num;
                 try {
-                  const pat = process.env.PAT_TOKEN;
+                  exec('git checkout origin/' + defaultBranch + ' 2>/dev/null || git checkout ' + defaultBranch);
+                  try { exec('git branch -D ' + branchName + ' 2>/dev/null || true'); } catch(e) {}
+                  exec('git checkout -b ' + branchName);
+                  // Revert safe changes, apply risky fix
+                  exec('git checkout origin/' + defaultBranch + ' -- . 2>/dev/null');
                   exec('git remote set-url origin https://x-access-token:' + pat + '@github.com/' + context.repo.owner + '/' + context.repo.repo + '.git');
                   exec('git push origin ' + branchName + ' 2>&1');
                   exec('git remote set-url origin ' + origUrl);
-                  const { Octokit } = require('@octokit/rest');
-                  const octokit = new Octokit({ auth: pat });
                   const pr = await octokit.rest.pulls.create({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    title: 'fix: ' + title,
+                    title: 'fix: ' + f.title,
                     head: branchName,
                     base: defaultBranch,
-                    body: 'Fixes #' + num + '\n\n' + fixDesc + '\n\nRisky fix — requires human review.',
+                    body: 'Fixes #' + f.num + '\n\n' + f.fixDesc + '\n\nRisky fix — requires human review.',
                     maintainer_can_modify: true
                   });
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    issue_number: num,
+                    issue_number: f.num,
                     body: 'Worker bot created PR #' + pr.data.number + ' for this risky fix.'
                   });
+                  processed++;
                 } catch(e) {
-                  console.log('Failed to create PR for issue #' + num + ': ' + e.message);
+                  console.log('Failed to create PR for issue #' + f.num + ': ' + e.message);
                   try { exec('git remote set-url origin ' + origUrl); } catch(e2) {}
                 }
               }
-
-              processed++;
             }
 
             console.log('Processed ' + processed + ' issues');
