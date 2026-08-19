@@ -63,33 +63,7 @@ Trivia Broadcast Engine runs a live-hosted trivia game on your local network. Th
 - **In-browser editor** — edit categories, clues, answers, and settings directly from the browser at `/editor`
 - **Stress-tested** — dedicated verification script for timer/audio desync plus full stress suite covering duplicates, scoring, wagers, reset, and edge cases
 
-## Star History
 
-<p align="center">
- <a href="https://www.star-history.com/#L-Logix/Trivia-Board">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board" />
-    <img alt="Star History Rank" src="https://api.star-history.com/badge?repo=L-Logix/Trivia-Board" />
-  </picture>
- </a>
-</p>
-
-<a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&type=date&legend=top-left" />
- </picture>
-</a>
-
-<a href="https://www.star-history.com/#L-Logix/Trivia-Board&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&style=landscape1&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&style=landscape1" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=L-Logix/Trivia-Board&style=landscape1" />
- </picture>
-</a>
 ## Quick Start
 
 Requires Node.js 18+.
