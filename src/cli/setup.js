@@ -469,92 +469,10 @@ function parseConfigValue(raw) {
 }
 
 function showSetupUsage() {
-  console.log('');
-  console.log('  Trivia setup');
-  console.log('');
-  console.log('  Interactive wizard:');
-  console.log('    trivia setup');
-  console.log('');
-  console.log('  Content-only refresh:');
-  console.log('    trivia setup --update-content --round1 round1.csv --round2 round2.csv --championship final.csv');
-  console.log('    trivia setup --update-content --round1 "https://docs.google.com/.../pub?output=csv" --round2-same-as-round1');
-  console.log('');
-  console.log('  Presets, rules, and values:');
-  console.log('    trivia setup --modern');
-  console.log('    trivia setup --traditional');
-  console.log('    trivia setup --values 200,400,600,800,1000 --double-values 400,800,1200,1600,2000');
-  console.log('    trivia setup --columns 6 --rows 5 --timer 10 --bonus-r1 1 --bonus-r2 2');
-  console.log('    trivia setup --bonus-positions-r1 3:5 --bonus-positions-r2 2:3,1:4');
-  console.log('');
-  console.log('  Content flags:');
-  console.log('    --round1, --r1              Round 1 CSV file path or published Google Sheet CSV URL');
-  console.log('    --round2, --r2              Round 2 CSV file path or published Google Sheet CSV URL');
-  console.log('    --round2-same-as-round1     Load Round 2 from the Round 1 source using double values');
-  console.log('    --championship, --final     Championship CSV file path or URL');
-  console.log('    --players "A,B,C"           Replace player/team names');
-  console.log('    --no-save-sources           Do not remember sheet paths/URLs for next refresh');
-  console.log('');
-  console.log('  Game flags:');
-  console.log('    --columns N                 Board columns');
-  console.log('    --rows N                    Board rows');
-  console.log('    --timer, --timer-seconds N  Clue timer duration');
-  console.log('    --double-round [true|false] Enable or disable Round 2');
-  console.log('    --single-round              Shortcut for --double-round false');
-  console.log('    --bonus-r1 N                Number of Round 1 bonus clues');
-  console.log('    --bonus-r2 N                Number of Round 2 bonus clues');
-  console.log('    --bonus-positions-r1 LIST   1-based positions, for example 3:5,6:5');
-  console.log('    --bonus-positions-r2 LIST   1-based positions, for example 2:3,1:4');
-  console.log('    --bonus-method TEXT         Bonus clue assignment method label');
-  console.log('    --child-host [true|false]   Kid-friendly host mode');
-  console.log('    --jeopardy-style [true|false] Use Jeopardy-style labels');
-  console.log('');
-  console.log('  Label flags:');
-  console.log('    --bonus-label TEXT          Bonus clue label');
-  console.log('    --championship-label TEXT   Final/championship header label');
-  console.log('    --championship-section TEXT Final/championship section label');
-  console.log('    --round2-suffix TEXT        Round 2 suffix label');
-  console.log('');
-  console.log('  Asset flags:');
-  console.log('    --logo PATH                 Copy logo to public/img/logo.*');
-  console.log('    --category-cover PATH       Copy price cover to public/img/cat-cover.*');
-  console.log('    --intro-video PATH          Copy intro video to public/video/intro.mp4');
-  console.log('    --video-music PATH          Copy intro video music to public/audio/intro-audio.mp3');
-  console.log('    --bonus-image PATH          Copy bonus clue image to public/img/bonus-clue.*');
-  console.log('    --promo-image PATH          Copy promo image to public/img/promo.*');
-  console.log('    --host-intro PATH           Copy host intro audio');
-  console.log('    --times-up PATH             Copy timer-expired audio');
-  console.log('    --bonus-sound PATH          Copy bonus clue audio');
-  console.log('    --think-music PATH          Copy final/championship think music');
-  console.log('    --applause PATH             Copy applause audio');
-  console.log('    --board-fill PATH           Copy board-fill audio');
-  console.log('    --correct-sound PATH        Copy correct-answer audio');
-  console.log('    --incorrect-sound PATH      Copy incorrect-answer audio');
-  console.log('    --outro PATH                Copy outro audio');
-  console.log('    --background-music PATH     Copy background music');
-  console.log('    --asset key=PATH            Generic asset updater');
-  console.log('    --enable-asset KEY          Mark an existing asset enabled');
-  console.log('    --disable-asset KEY         Mark an asset disabled');
-  console.log('');
-  console.log('  Escape hatch:');
-  console.log('    --set path=value            Update any config.json field, e.g. labels.bonusClue=DAILY DOUBLE');
-  console.log('');
 }
 
 function showSplash() {
   console.clear();
-  console.log(chalk.cyan('╔══════════════════════════════════════════════════════════╗'));
-  console.log(chalk.cyan('║'));
-  console.log(chalk.cyan('║') + '          TechnoThatch Software Solutions');
-  console.log(chalk.cyan('║') + '               Broadcast Engine');
-  console.log(chalk.cyan('║') + '              Configuration Wizard');
-  console.log(chalk.cyan('║'));
-  console.log(chalk.cyan('╚══════════════════════════════════════════════════════════╝'));
-  console.log('');
-  console.log(chalk.dim('  Trivia Broadcast Engine  Copyright (C) 2025  TechnoThatch Software Solutions'));
-  console.log(chalk.dim('  This program comes with ABSOLUTELY NO WARRANTY.'));
-  console.log(chalk.dim('  This is free software, and you are welcome to redistribute it'));
-  console.log(chalk.dim('  under certain conditions.'));
-  console.log('');
 }
 
 function convertSheetUrl(input) {
@@ -566,13 +484,11 @@ function convertSheetUrl(input) {
   const pubMatch = input.match(/\/d\/e\/([a-zA-Z0-9_-]+)\/pub/);
   if (pubMatch) {
     const converted = `https://docs.google.com/spreadsheets/d/e/${pubMatch[1]}/pub?gid=${gid}&single=true&output=csv`;
-    console.log(chalk.green('  \u21b3 Normalized published URL'));
     return converted;
   }
   const editMatch = input.match(/\/d\/([a-zA-Z0-9_-]+?)(?:\/|$)/);
   if (editMatch) {
     const converted = `https://docs.google.com/spreadsheets/d/${editMatch[1]}/export?format=csv&gid=${gid}`;
-    console.log(chalk.green('  \u21b3 Converted to CSV export URL automatically'));
     return converted;
   }
   return input;
@@ -705,12 +621,10 @@ async function readCsvSource(input, label) {
   const converted = convertSheetUrl(src);
   if (/^https?:\/\//i.test(converted)) {
     stats.increment('sheetImports');
-    console.log(chalk.cyan('  \u2192 Fetching ' + label + ' from URL...'));
     return fetchUrl(converted);
   }
 
   const resolvedPath = path.isAbsolute(src) ? src : path.resolve(ROOT, src);
-  console.log(chalk.cyan('  \u2192 Reading ' + label + ' from ' + resolvedPath + '...'));
   return fs.readFileSync(resolvedPath, 'utf-8');
 }
 
@@ -791,7 +705,6 @@ function updateAssetFile(config, key, sourcePath) {
     throw new Error('Could not update ' + def.label + ' from: ' + sourcePath);
   }
   config.assets[assetKey] = def.value === 'ext' ? target.ext : true;
-  console.log(chalk.green('  \u2713 Updated ' + def.label));
 }
 
 function toggleAsset(config, key, enabled) {
@@ -800,7 +713,6 @@ function toggleAsset(config, key, enabled) {
   if (!config.assets) config.assets = {};
   if (!enabled) {
     config.assets[assetKey] = false;
-    console.log(chalk.green('  \u2713 Disabled ' + def.label));
     return;
   }
   if (def.value === 'ext') {
@@ -813,7 +725,6 @@ function toggleAsset(config, key, enabled) {
   } else {
     config.assets[assetKey] = true;
   }
-  console.log(chalk.green('  \u2713 Enabled ' + def.label));
 }
 
 function setConfigPath(config, pathExpr, value) {
@@ -870,7 +781,6 @@ function applyConfigUpdates(config, options) {
 
   if (options.players) {
     config.players = options.players.split(',').map(s => s.trim()).filter(Boolean);
-    console.log(chalk.green('  \u2713 Updated players: ') + config.players.join(', '));
     changed = true;
   }
 
@@ -912,7 +822,6 @@ function applyConfigUpdates(config, options) {
   if (options.setValues && options.setValues.length) {
     for (const assignment of options.setValues) {
       setConfigPath(config, assignment.path, assignment.value);
-      console.log(chalk.green('  \u2713 Set ') + assignment.path);
     }
     changed = true;
   }
@@ -944,8 +853,6 @@ function shouldRefreshSavedSources(options) {
 async function runContentOnlyUpdate(options) {
   stats.increment('updateContent');
 
-  console.log(chalk.cyan('\n  Trivia Setup Update'));
-  console.log(chalk.cyan('  ========================================\n'));
 
   if (!fs.existsSync(CONFIG_PATH)) {
     throw new Error('No config.json found. Run trivia setup once before using --update-content.');
@@ -971,9 +878,7 @@ async function runContentOnlyUpdate(options) {
     updateSavedSource(config, 'round1', round1Source, options.saveSources);
     changed = true;
     stats.increment('csvImports');
-    console.log(chalk.green('  \u2713 Loaded Round 1 content'));
   } else {
-    console.log(chalk.gray('  - Kept existing Round 1 content (no --round1 or saved source)'));
   }
 
   if (config.doubleRound !== false) {
@@ -993,9 +898,7 @@ async function runContentOnlyUpdate(options) {
       config.answersR2 = r2Board.answers;
       updateSavedSource(config, 'round2', round2Source, options.saveSources);
       changed = true;
-      console.log(chalk.green('  \u2713 Loaded Round 2 content'));
     } else {
-      console.log(chalk.gray('  - Kept existing Round 2 content (no --round2 or saved source)'));
     }
   }
 
@@ -1009,9 +912,7 @@ async function runContentOnlyUpdate(options) {
     config.championshipAnswer = questions[0].answer;
     updateSavedSource(config, 'championship', championshipSource, options.saveSources);
     changed = true;
-    console.log(chalk.green('  \u2713 Loaded ' + questions.length + ' Championship question(s)'));
   } else {
-    console.log(chalk.gray('  - Kept existing Championship content (no --championship or saved source)'));
   }
 
   const templateCsv = generateTemplate(config);
@@ -1026,15 +927,9 @@ async function runContentOnlyUpdate(options) {
 
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 
-  console.log('');
   if (changed) {
-    console.log(chalk.green('\u2713 Setup update saved to config.json'));
-    if (config.baseValues) console.log(chalk.cyan('  Round 1 values: ') + config.baseValues.join(','));
-    if (config.doubleValues || config.baseValues) console.log(chalk.cyan('  Round 2 values: ') + (config.doubleValues || config.baseValues).join(','));
   } else {
-    console.log(chalk.yellow('\u26a0 Nothing changed. Pass flags such as --round1, --modern, --logo, --timer, or --set.'));
   }
-  console.log('');
 }
 
 function escapeCsv(val) {
@@ -1085,7 +980,6 @@ function copyAssetFile(srcPath, destPath) {
     if (!srcPath || srcPath.trim() === '') return false;
     srcPath = srcPath.trim();
     if (!fs.existsSync(srcPath)) {
-      console.log(chalk.yellow('  \u26a0 File not found: ' + srcPath));
       return false;
     }
     const destDir = path.dirname(destPath);
@@ -1093,7 +987,6 @@ function copyAssetFile(srcPath, destPath) {
     fs.copyFileSync(srcPath, destPath);
     return true;
   } catch (e) {
-    console.log(chalk.yellow('  \u26a0 Could not copy ' + srcPath + ': ' + e.message));
     return false;
   }
 }
@@ -1139,16 +1032,6 @@ async function main() {
   if (mode === 'existing') {
     isExisting = true;
     config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
-    console.log(chalk.green('\n  \u2713 Loaded existing config.json'));
-    console.log(chalk.cyan('  Current settings summary:\n'));
-    console.log(chalk.cyan('    Columns: ') + (config.columns || 'not set'));
-    console.log(chalk.cyan('    Rows: ') + (config.rows || 'not set'));
-    console.log(chalk.cyan('    Players: ') + ((config.players && config.players.join(', ')) || 'not set'));
-    console.log(chalk.cyan('    Timer: ') + (config.timerSeconds || 'not set') + 's');
-    console.log(chalk.cyan('    Logo: ') + (config.assets && config.assets.logo ? 'yes' : 'no'));
-    console.log(chalk.cyan('    Categories: ') + (config.categories ? config.categories.length : 'not set'));
-    if (config.championshipCategory) console.log(chalk.cyan('    Championship: ') + config.championshipCategory);
-    console.log('');
     
     const { modify } = await inquirer.prompt([
       {
@@ -1159,8 +1042,6 @@ async function main() {
       }
     ]);
     if (!modify) {
-      console.log(chalk.green('\u2713 Config unchanged.\n'));
-      console.log(chalk.cyan('Run ') + chalk.bold('trivia start') + chalk.cyan(' to launch the broadcast server.\n'));
       process.exit(0);
     }
     var updateContent = (await inquirer.prompt([
@@ -1169,13 +1050,9 @@ async function main() {
     var updateAssets = (await inquirer.prompt([
       { type: 'confirm', name: 'val', message: 'Update assets (images, audio)?', default: false }
     ])).val;
-    console.log(chalk.cyan('  \u2192 Proceeding through prompts with existing values as defaults.\n'));
   }
 
   if (mode === 'typical' && !isExisting) {
-    console.log(chalk.green('\n  \u2713 Auto-filling: 6 columns, 5 rows'));
-    console.log(chalk.green('  \u2713 Bonus Clues: 1 in Round 1, 2 in Round 2'));
-    console.log(chalk.green('  \u2713 Timer: 5 seconds\n'));
 
     config.columns = 6;
     config.rows = 5;
@@ -1184,7 +1061,6 @@ async function main() {
     config.bonusCluesRound2 = 2;
     config.timerSeconds = 5;
 
-    console.log(chalk.cyan('\n  Value Preset:'));
     const { vp } = await inquirer.prompt([
       {
         type: 'list',
@@ -1212,7 +1088,6 @@ async function main() {
     let presetDouble = null;
     if (isExisting && dfl.baseValues) {
       const isTrad = dfl.baseValues[0] === 100;
-      console.log(chalk.cyan('\n  Current values: ') + dfl.baseValues.join(',') + ' / ' + (dfl.doubleValues || dfl.baseValues.map(v => v*2)).join(','));
       const { changePreset } = await inquirer.prompt([
         { type: 'confirm', name: 'changePreset', message: 'Switch to different value preset?', default: false }
       ]);
@@ -1232,7 +1107,6 @@ async function main() {
         else if (vp === 'custom') { stats.increment('customValuesSet'); }
       }
     } else if (!isExisting) {
-      console.log(chalk.cyan('\n  Value Preset:'));
       const { vp } = await inquirer.prompt([
         {
           type: 'list', name: 'vp', message: 'Choose value preset:',
@@ -1359,8 +1233,6 @@ async function main() {
         function pickRandomCol() { return Math.floor(Math.random() * config.columns); }
 
         if (totalBC1 > 0) {
-          console.log(chalk.cyan('\n  Position Bonus Clues for Round 1:'));
-          console.log(chalk.gray('    (Enter the value row number — column is chosen randomly)'));
           for (var b = 0; b < totalBC1; b++) {
             var rowNum = null;
             while (rowNum === null) {
@@ -1369,7 +1241,6 @@ async function main() {
               ]);
               rowNum = parseInt(bRow);
               if (isNaN(rowNum) || rowNum < 1 || rowNum > config.rows) {
-                console.log(chalk.yellow('    Enter a number between 1 and ' + config.rows));
                 rowNum = null;
               }
             }
@@ -1378,8 +1249,6 @@ async function main() {
         }
 
         if (totalBC2 > 0) {
-          console.log(chalk.cyan('\n  Position Bonus Clues for Round 2:'));
-          console.log(chalk.gray('    (Enter the value row number — column is chosen randomly)'));
           for (var b = 0; b < totalBC2; b++) {
             var rowNum = null;
             while (rowNum === null) {
@@ -1388,7 +1257,6 @@ async function main() {
               ]);
               rowNum = parseInt(bRow);
               if (isNaN(rowNum) || rowNum < 1 || rowNum > config.rows) {
-                console.log(chalk.yellow('    Enter a number between 1 and ' + config.rows));
                 rowNum = null;
               }
             }
@@ -1403,10 +1271,7 @@ async function main() {
   const templateCsv = generateTemplate(config);
   stats.increment('templateGenerated');
   fs.writeFileSync(TEMPLATE_PATH, templateCsv);
-  console.log(chalk.cyan('  \u2192 Generated template: ') + chalk.bold('trivia-template.csv'));
-  console.log(chalk.cyan('    Open it as a guide for formatting your Google Sheet.\n'));
 
-  console.log(chalk.cyan('  \u2192 Edit ') + chalk.bold('trivia-template.csv') + chalk.cyan(' with your questions, then provide the file path below.\n'));
 
   let csvText;
   let skipCsv = false;
@@ -1424,7 +1289,6 @@ async function main() {
       categories = config.categories;
       clues = config.clues;
       answers = config.answers;
-      console.log(chalk.green('  \u2713 Kept existing Round 1 data'));
     }
   }
 
@@ -1439,16 +1303,12 @@ async function main() {
 
     if (csvPath && csvPath.trim()) {
       const resolvedPath = path.resolve(ROOT, csvPath.trim());
-      console.log(chalk.cyan('  \u2192 Reading Round 1 CSV from ' + resolvedPath + '...'));
       try {
         csvText = fs.readFileSync(resolvedPath, 'utf-8');
       } catch (e) {
-        console.log(chalk.red('  \u2717 Failed to read file: ' + e.message));
-        console.log(chalk.yellow('  \u26a0 Using template data instead.\n'));
         csvText = templateCsv;
       }
     } else {
-      console.log(chalk.yellow('  \u26a0 No file provided, using template data.\n'));
       csvText = templateCsv;
     }
 
@@ -1460,10 +1320,7 @@ async function main() {
         clues = board.clues;
         answers = board.answers;
         stats.increment('csvImports');
-        console.log(chalk.green('  \u2713 Loaded ' + config.columns + ' categories x ' + config.rows + ' rows'));
       } catch (e) {
-        console.log(chalk.red('  \u2717 CSV parse error: ' + e.message));
-        console.log(chalk.yellow('  \u26a0 Using placeholder data instead.\n'));
         categories = [];
         clues = [];
         answers = [];
@@ -1474,7 +1331,6 @@ async function main() {
   // Round 2 data
   if (config.doubleRound) {
     if (!isExisting || updateContent) {
-    console.log(chalk.cyan('\n--- Round 2 Data ---\n'));
     let skipR2 = false;
     if (isExisting && config.r2Categories) {
       const { reuseR2 } = await inquirer.prompt([
@@ -1493,7 +1349,6 @@ async function main() {
 
     if (r2Path && r2Path.trim()) {
       const resolvedPath = path.resolve(ROOT, r2Path.trim());
-      console.log(chalk.cyan('  \u2192 Reading Round 2 CSV from ' + resolvedPath + '...'));
       try {
         const r2Text = fs.readFileSync(resolvedPath, 'utf-8');
         const r2Parsed = parseCsvData(r2Text);
@@ -1502,10 +1357,8 @@ async function main() {
           config.r2Categories = r2Board.categories;
           config.r2Clues = r2Board.clues;
           config.r2Answers = r2Board.answers;
-          console.log(chalk.green('  \u2713 Loaded Round 2 data'));
         }
       } catch (e) {
-        console.log(chalk.yellow('  \u26a0 Could not load Round 2: ' + e.message));
       }
     }
     }
@@ -1514,7 +1367,6 @@ async function main() {
 
   // Championship data
   if (!isExisting || updateContent) {
-  console.log(chalk.cyan('\n--- Championship Data ---\n'));
   let skipChamp = false;
   if (isExisting && config.championshipCategory) {
     const { reuseChamp } = await inquirer.prompt([
@@ -1533,7 +1385,6 @@ async function main() {
 
   if (championshipPath && championshipPath.trim()) {
       const resolvedPath = path.resolve(ROOT, championshipPath.trim());
-      console.log(chalk.cyan('  \u2192 Reading Championship CSV from ' + resolvedPath + '...'));
       try {
         const championshipCsvText = fs.readFileSync(resolvedPath, 'utf-8');
         const championshipParsed = parseCsvData(championshipCsvText);
@@ -1553,13 +1404,10 @@ async function main() {
             config.championshipCategory = questions[0].category;
             config.championshipClue = questions[0].clue;
             config.championshipAnswer = questions[0].answer;
-            console.log(chalk.green('  \u2713 Loaded ' + questions.length + ' Championship question(s)'));
           }
         } else {
-          console.log(chalk.yellow('  \u26a0 Championship CSV needs at least 2 rows (header + data)'));
         }
       } catch (e) {
-        console.log(chalk.yellow('  \u26a0 Could not load Championship: ' + e.message));
       }
     }
   }
@@ -1624,7 +1472,6 @@ async function main() {
 
   // Naming prompt
   if (!isExisting || !config.labels) {
-    console.log(chalk.cyan('\n--- Terminology ---\n'));
     const { jeopStyle } = await inquirer.prompt([
       {
         type: 'confirm',
@@ -1665,7 +1512,6 @@ async function main() {
   }
 
   if (!isExisting || updateAssets) {
-  console.log(chalk.cyan('\n--- Asset Uploads ---'));
 
   const { logoPath } = await inquirer.prompt([
     {
@@ -1679,7 +1525,6 @@ async function main() {
     const dest = path.join(ROOT, 'public', 'img', 'logo.' + ext);
     if (copyAssetFile(logoPath.trim(), dest)) {
       config.assets.logo = ext;
-      console.log(chalk.green('  \u2713 Logo copied'));
     }
   }
 
@@ -1695,7 +1540,6 @@ async function main() {
     const dest = path.join(ROOT, 'public', 'img', 'cat-cover.' + ext);
     if (copyAssetFile(catCoverPath.trim(), dest)) {
       config.assets.categoryCover = ext;
-      console.log(chalk.green('  \u2713 Price cover copied'));
     }
   }
 
@@ -1711,7 +1555,6 @@ async function main() {
     const dest = path.join(ROOT, 'public', 'video', 'intro.mp4');
     if (copyAssetFile(introVideoPath.trim(), dest)) {
       config.assets.introVideo = true;
-      console.log(chalk.green('  \u2713 Intro video copied'));
     }
   }
 
@@ -1726,7 +1569,6 @@ async function main() {
     const dest = path.join(ROOT, 'public', 'audio', 'intro-audio.mp3');
     if (copyAssetFile(introAudioPath.trim(), dest)) {
       config.assets.introAudio = true;
-      console.log(chalk.green('  \u2713 Intro audio copied'));
     }
   }
 
@@ -1742,7 +1584,6 @@ async function main() {
     const dest = path.join(ROOT, 'public', 'img', 'bonus-clue.' + ext);
     if (copyAssetFile(bonusClueImagePath.trim(), dest)) {
       config.assets.bonusClueImage = ext;
-      console.log(chalk.green('  \u2713 Bonus clue image copied'));
     }
   }
 
@@ -1758,7 +1599,6 @@ async function main() {
     const dest = path.join(ROOT, 'public', 'img', 'promo.' + ext);
     if (copyAssetFile(promoImagePath.trim(), dest)) {
       config.assets.promoImage = ext;
-      console.log(chalk.green('  \u2713 Promo image copied'));
     }
   }
 
@@ -1787,7 +1627,6 @@ async function main() {
       const dest = path.join(ROOT, 'public', 'audio', af.name);
       if (copyAssetFile(filePath.trim(), dest)) {
         config.assets[af.key] = true;
-        console.log(chalk.green('  \u2713 ' + af.label + ' copied'));
       }
     }
   }
@@ -1832,10 +1671,6 @@ async function main() {
   if (config.players && config.players.length > 0) stats.increment('totalPlayers', config.players.length);
 
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
-  console.log('');
-  console.log(chalk.green('\u2713 Configuration saved to config.json'));
-  console.log(chalk.cyan('Run ') + chalk.bold('trivia start') + chalk.cyan(' to launch the broadcast server.'));
-  console.log('');
 }
 
 main().catch(err => {
