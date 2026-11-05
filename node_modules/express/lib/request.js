@@ -14,10 +14,9 @@
  */
 
 var accepts = require('accepts');
-var deprecate = require('depd')('express');
-var isIP = require('net').isIP;
+var isIP = require('node:net').isIP;
 var typeis = require('type-is');
-var http = require('http');
+var http = require('node:http');
 var fresh = require('fresh');
 var parseRange = require('range-parser');
 var parse = require('parseurl');
@@ -84,16 +83,13 @@ req.header = function header(name) {
 };
 
 /**
- * To do: update docs.
- *
  * Check if the given `type(s)` is acceptable, returning
- * the best match when true, otherwise `undefined`, in which
+ * the best match when true, otherwise `false`, in which
  * case you should respond with 406 "Not Acceptable".
  *
  * The `type` value may be a single MIME type string
  * such as "application/json", an extension name
- * such as "json", a comma-delimited list such as "json, html, text/plain",
- * an argument list such as `"json", "html", "text/plain"`,
+ * such as "json", an argument list such as `"json", "html", "text/plain"`,
  * or an array `["json", "html", "text/plain"]`. When a list
  * or array is given, the _best_ match, if any is returned.
  *
@@ -108,7 +104,7 @@ req.header = function header(name) {
  *     // => "html"
  *     req.accepts('text/html');
  *     // => "text/html"
- *     req.accepts('json, text');
+ *     req.accepts('json', 'text');
  *     // => "json"
  *     req.accepts('application/json');
  *     // => "application/json"
@@ -116,12 +112,11 @@ req.header = function header(name) {
  *     // Accept: text/*, application/json
  *     req.accepts('image/png');
  *     req.accepts('png');
- *     // => undefined
+ *     // => false
  *
  *     // Accept: text/*;q=.5, application/json
  *     req.accepts(['html', 'json']);
  *     req.accepts('html', 'json');
- *     req.accepts('html, json');
  *     // => "json"
  *
  * @param {String|Array} type(s)
@@ -147,25 +142,36 @@ req.acceptsEncodings = function(){
   return accept.encodings.apply(accept, arguments);
 };
 
-req.acceptsEncoding = deprecate.function(req.acceptsEncodings,
-  'req.acceptsEncoding: Use acceptsEncodings instead');
-
 /**
- * Check if the given `charset`s are acceptable,
- * otherwise you should respond with 406 "Not Acceptable".
+ * Checks if the specified `charset`s are acceptable based on the request's `Accept-Charset` header.
+ * Returns the best matching charset or an array of acceptable charsets.
  *
- * @param {String} ...charset
- * @return {String|Array}
+ * The `charset` argument(s) can be:
+ * - A single charset string (e.g., "utf-8")
+ * - Multiple charset strings as arguments (e.g., `"utf-8", "iso-8859-1"`)
+ * - A comma-delimited list of charsets (e.g., `"utf-8, iso-8859-1"`)
+ *
+ * Examples:
+ *
+ *     // Accept-Charset: utf-8, iso-8859-1
+ *     req.acceptsCharsets('utf-8');
+ *     // => "utf-8"
+ *
+ *     req.acceptsCharsets('utf-8', 'iso-8859-1');
+ *     // => "utf-8"
+ *
+ *     req.acceptsCharsets('utf-8, utf-16');
+ *     // => "utf-8"
+ *
+ * @param {...String} charsets - The charset(s) to check against the `Accept-Charset` header.
+ * @return {String|Array} - The best matching charset, or an array of acceptable charsets.
  * @public
  */
 
-req.acceptsCharsets = function(){
-  var accept = accepts(this);
-  return accept.charsets.apply(accept, arguments);
+req.acceptsCharsets = function(...charsets) {
+  const accept = accepts(this);
+  return accept.charsets(...charsets);
 };
-
-req.acceptsCharset = deprecate.function(req.acceptsCharsets,
-  'req.acceptsCharset: Use acceptsCharsets instead');
 
 /**
  * Check if the given `lang`s are acceptable,
@@ -176,13 +182,9 @@ req.acceptsCharset = deprecate.function(req.acceptsCharsets,
  * @public
  */
 
-req.acceptsLanguages = function(){
-  var accept = accepts(this);
-  return accept.languages.apply(accept, arguments);
+req.acceptsLanguages = function(...languages) {
+  return accepts(this).languages(...languages);
 };
-
-req.acceptsLanguage = deprecate.function(req.acceptsLanguages,
-  'req.acceptsLanguage: Use acceptsLanguages instead');
 
 /**
  * Parse Range header field, capping to the given `size`.
@@ -216,38 +218,27 @@ req.range = function range(size, options) {
 };
 
 /**
- * Return the value of param `name` when present or `defaultValue`.
+ * Parse the query string of `req.url`.
  *
- *  - Checks route placeholders, ex: _/user/:id_
- *  - Checks body params, ex: id=12, {"id":12}
- *  - Checks query string params, ex: ?id=12
+ * This uses the "query parser" setting to parse the raw
+ * string into an object.
  *
- * To utilize request bodies, `req.body`
- * should be an object. This can be done by using
- * the `bodyParser()` middleware.
- *
- * @param {String} name
- * @param {Mixed} [defaultValue]
  * @return {String}
- * @public
+ * @api public
  */
 
-req.param = function param(name, defaultValue) {
-  var params = this.params || {};
-  var body = this.body || {};
-  var query = this.query || {};
+defineGetter(req, 'query', function query(){
+  var queryparse = this.app.get('query parser fn');
 
-  var args = arguments.length === 1
-    ? 'name'
-    : 'name, default';
-  deprecate('req.param(' + args + '): Use req.params, req.body, or req.query instead');
+  if (!queryparse) {
+    // parsing is disabled
+    return Object.create(null);
+  }
 
-  if (null != params[name] && params.hasOwnProperty(name)) return params[name];
-  if (null != body[name]) return body[name];
-  if (null != query[name]) return query[name];
+  var querystring = parse(this).query;
 
-  return defaultValue;
-};
+  return queryparse(querystring);
+});
 
 /**
  * Check if the incoming request contains the "Content-Type"
@@ -304,12 +295,12 @@ req.is = function is(types) {
  */
 
 defineGetter(req, 'protocol', function protocol(){
-  var proto = this.connection.encrypted
+  var proto = this.socket.encrypted
     ? 'https'
     : 'http';
   var trust = this.app.get('trust proxy fn');
 
-  if (!trust(this.connection.remoteAddress, 0)) {
+  if (!trust(this.socket.remoteAddress, 0)) {
     return proto;
   }
 
@@ -339,7 +330,7 @@ defineGetter(req, 'secure', function secure(){
 /**
  * Return the remote address from the trusted proxy.
  *
- * The is the remote address on the socket unless
+ * This is the remote address on the socket unless
  * "trust proxy" is set.
  *
  * @return {String}
@@ -414,7 +405,7 @@ defineGetter(req, 'path', function path() {
 });
 
 /**
- * Parse the "Host" header field to a hostname.
+ * Parse the "Host" header field to a host.
  *
  * When the "trust proxy" setting trusts the socket
  * address, the "X-Forwarded-Host" header field will
@@ -424,17 +415,34 @@ defineGetter(req, 'path', function path() {
  * @public
  */
 
-defineGetter(req, 'hostname', function hostname(){
+defineGetter(req, 'host', function host(){
   var trust = this.app.get('trust proxy fn');
-  var host = this.get('X-Forwarded-Host');
+  var val = this.get('X-Forwarded-Host');
 
-  if (!host || !trust(this.connection.remoteAddress, 0)) {
-    host = this.get('Host');
-  } else if (host.indexOf(',') !== -1) {
+  if (!val || !trust(this.socket.remoteAddress, 0)) {
+    val = this.get('Host');
+  } else if (val.indexOf(',') !== -1) {
     // Note: X-Forwarded-Host is normally only ever a
     //       single value, but this is to be safe.
-    host = host.substring(0, host.indexOf(',')).trimRight()
+    val = val.substring(0, val.indexOf(',')).trimEnd()
   }
+
+  return val || undefined;
+});
+
+/**
+ * Parse the "Host" header field to a hostname.
+ *
+ * When the "trust proxy" setting trusts the socket
+ * address, the "X-Forwarded-Host" header field will
+ * be trusted.
+ *
+ * @return {String}
+ * @api public
+ */
+
+defineGetter(req, 'hostname', function hostname(){
+  var host = this.host;
 
   if (!host) return;
 
@@ -449,15 +457,9 @@ defineGetter(req, 'hostname', function hostname(){
     : host;
 });
 
-// TODO: change req.host to return host in next major
-
-defineGetter(req, 'host', deprecate.function(function host(){
-  return this.hostname;
-}, 'req.host: Use req.hostname instead'));
-
 /**
  * Check if the request is fresh, aka
- * Last-Modified and/or the ETag
+ * Last-Modified or the ETag
  * still match.
  *
  * @return {Boolean}
@@ -469,8 +471,8 @@ defineGetter(req, 'fresh', function(){
   var res = this.res
   var status = res.statusCode
 
-  // GET or HEAD for weak freshness validation only
-  if ('GET' !== method && 'HEAD' !== method) return false;
+  // GET, HEAD, or QUERY for weak freshness validation only
+  if ('GET' !== method && 'HEAD' !== method && 'QUERY' !== method) return false;
 
   // 2xx or 304 as per rfc2616 14.26
   if ((status >= 200 && status < 300) || 304 === status) {
