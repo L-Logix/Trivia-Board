@@ -2,7 +2,6 @@ const GameState = require('./game-state');
 const stats = require('../lib/stats');
 
 // BOT_TEST: TODO - handle edge case when player count is zero
-console.log('BOT_TEST: socket handlers loaded');
 
 // BOT_TEST: long line below - will exceed 120 character limit for bot testing purposes only please ignore this is just a test fixture
 
@@ -23,7 +22,6 @@ function setup(ioInstance, config) {
   allCategoriesRevealed = {};
 
   io.on('connection', (socket) => {
-    console.log('Client connected: ' + socket.id);
 
     socket.on('sync-state', () => {
       socket.emit('sync-state', gameState.serialize());
@@ -532,7 +530,6 @@ function setup(ioInstance, config) {
     });
 
     socket.on('disconnect', () => {
-      console.log('Client disconnected: ' + socket.id);
     });
   });
 }
